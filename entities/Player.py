@@ -22,7 +22,6 @@ class Player(ABC):
     value = 0
     for card in self.hand:
       value += card.value
-      ServerLogger.debug(value)
 
     return value
 

@@ -1,5 +1,4 @@
 from fastapi import HTTPException
-from fastapi.responses import JSONResponse
 from entities.Game import GameState
 from services.SessionManagerSingleton import SessionManagerSingleton
 
@@ -11,10 +10,8 @@ class PlaceBetController:
     assert isinstance(bet, int)
 
     game = session_manager.get_game(session_id)
-
     if not game:
       raise HTTPException(status_code=401, detail="Invalid session")
-
     if not game.state == GameState.BETTING:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
@@ -23,4 +20,4 @@ class PlaceBetController:
     game.deal_cards()
     game.state = GameState.HUMAN_PLAYER_DECISIONS
 
-    return JSONResponse(content=game.to_dict())
+    return 200
