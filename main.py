@@ -2,9 +2,6 @@
 
 from fastapi import FastAPI
 from api import GameStart, PlaceBet, Session
-from services.ServerLogger import ServerLogger
-
-ServerLogger.debug("test1")
 
 app = FastAPI()
 app.include_router(PlaceBet.router)

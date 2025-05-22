@@ -4,7 +4,6 @@ from entities.Player import Player
 from entities.Dealer import Dealer
 from entities.Players.AiPlayer import AiPlayer
 from entities.Players.HumanPlayer import HumanPlayer
-from services.ServerLogger import ServerLogger
 
 class GameState(Enum):
   NOT_STARTED = 0
@@ -59,15 +58,10 @@ class Game:
     for i in range (1, len(self.players)):
       self.players[i].place_bet(self.min_bet, self.max_bet)
 
-    ServerLogger.debug(0)
     self.deal_cards()
-    ServerLogger.debug(5)
 
   def deal_cards(self):
-    ServerLogger.debug(1)
     self.state = GameState.DEALING
-
-    ServerLogger.debug(2)
     full_shoe = self.dealer.shoe.full_size
     shoe_is_above_reset_point = len(self.dealer.shoe.cards) > (full_shoe / (100 / self.shoe_reset_percentage))
     if not shoe_is_above_reset_point:
@@ -75,9 +69,7 @@ class Game:
       self.dealer.shuffle_shoe()
     self.dealer.deal(self.players)
 
-    ServerLogger.debug(3)
     self.state = GameState.HUMAN_PLAYER_DECISIONS
-    ServerLogger.debug(4)
 
   def to_dict(self):
     return {
