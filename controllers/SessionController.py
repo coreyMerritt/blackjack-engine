@@ -22,4 +22,4 @@ class SessionController:
       max_bet
     )
 
-    return session_id
+    return { "session_id": session_id }

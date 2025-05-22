@@ -19,6 +19,7 @@ class Game:
   players: List[Player]     # Index 0 will always be the human player
   min_bet: int
   max_bet: int
+  shoe_reset_percentage: int
   state: GameState
 
   def __init__(self, deck_count, ai_player_count, min_bet, max_bet):
