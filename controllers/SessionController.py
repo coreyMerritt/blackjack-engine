@@ -1,4 +1,4 @@
-from services.SessionManagerSingleton import SessionManagerSingleton
+from entities.SessionManagerSingleton import SessionManagerSingleton
 
 session_manager = SessionManagerSingleton()
 
@@ -10,10 +10,10 @@ class SessionController:
     min_bet: int,
     max_bet: int
   ):
-    assert(isinstance(deck_count, int))
-    assert(isinstance(ai_player_count, int))
-    assert(isinstance(min_bet, int))
-    assert(isinstance(max_bet, int))
+    assert isinstance(deck_count, int)
+    assert isinstance(ai_player_count, int)
+    assert isinstance(min_bet, int)
+    assert isinstance(max_bet, int)
 
     session_id = session_manager.create_session(
       deck_count,

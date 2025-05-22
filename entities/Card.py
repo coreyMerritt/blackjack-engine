@@ -19,7 +19,7 @@ class Face(Enum):
   JACK = "J"
   QUEEN = "Q"
   KING = "K"
-  ACE = "A" 
+  ACE = "A"
 
 class Card:
   suit: Suit
@@ -27,8 +27,5 @@ class Card:
   value: int
 
   def __init__(self, suit: Suit, face: Face):
-    assert(isinstance(suit, Suit))
-    assert(isinstance(face, Face))
-
     self.suit = suit
     self.face = face
