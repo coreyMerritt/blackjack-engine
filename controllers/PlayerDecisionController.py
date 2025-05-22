@@ -10,10 +10,8 @@ class PlayerDecisionController:
     assert isinstance(session_id, str)
 
     game = session_manager.get_game(session_id)
-
     if not game:
       raise HTTPException(status_code=401, detail="Invalid session")
-
     if not game.state == GameState.HUMAN_PLAYER_DECISIONS:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
@@ -28,10 +26,8 @@ class PlayerDecisionController:
     assert isinstance(session_id, str)
 
     game = session_manager.get_game(session_id)
-
     if not game:
       raise HTTPException(status_code=401, detail="Invalid session")
-
     if not game.state == GameState.HUMAN_PLAYER_DECISIONS:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
@@ -45,3 +41,5 @@ class PlayerDecisionController:
     game.dealer.handle_ai_decisions(ai_players)
     game.state = GameState.DEALER_DECISIONS
     game.dealer.handle_dealer_decisions()
+    game.state = GameState.PAYOUTS
+    # TODO: Implement Payouts
