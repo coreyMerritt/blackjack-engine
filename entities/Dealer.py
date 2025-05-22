@@ -1,6 +1,5 @@
 from random import shuffle
 from typing import List
-from services.ServerLogger import ServerLogger
 from entities.Player import PlayerDecisions
 from entities.Shoe import Shoe
 from entities.Player import Player

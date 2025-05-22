@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 from typing import List
-from services.ServerLogger import ServerLogger
 from entities.Card import Card
 
 class PlayerDecisions(Enum):
