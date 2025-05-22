@@ -45,9 +45,6 @@ class Game:
     self.dealer.shoe.reset_percentage = shoe_reset_percentage
     self.state = GameState.NOT_STARTED
 
-  def start(self):
-    self.state = GameState.BETTING
-
   def place_bets(self, bet: int):
     # Human player bet
     self.players[0].place_bet(self.min_bet, self.max_bet, bet)
@@ -56,18 +53,13 @@ class Game:
     for i in range (1, len(self.players)):
       self.players[i].place_bet(self.min_bet, self.max_bet)
 
-    self.deal_cards()
-
   def deal_cards(self):
-    self.state = GameState.DEALING
     full_shoe = self.dealer.shoe.full_size
     shoe_is_above_reset_point = len(self.dealer.shoe.cards) > (full_shoe / (100 / self.dealer.shoe.reset_percentage))
     if not shoe_is_above_reset_point:
       self.dealer.load_shoe()
       self.dealer.shuffle_shoe()
     self.dealer.deal(self.players)
-
-    self.state = GameState.HUMAN_PLAYER_DECISIONS
 
   def to_dict(self):
     return {

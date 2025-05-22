@@ -1,13 +1,13 @@
 from fastapi import APIRouter
-from controllers.PlaceBetController import PlaceBetController
+from controllers.PlayerDecisionController import PlayerDecisionController
 
 router = APIRouter()
-controller = PlaceBetController()
+controller = PlayerDecisionController()
 
 @router.post("/session/{session_id}/decisions/hit")
-async def hit(session_id: str, bet: int):
-  return await controller.place_bet(session_id, bet)
+async def hit(session_id: str):
+  return await controller.hit(session_id)
 
 @router.post("/session/{session_id}/decisions/stand")
-async def stand(session_id: str, bet: int):
-  return await controller.place_bet(session_id, bet)
+async def stand(session_id: str):
+  return await controller.stand(session_id)

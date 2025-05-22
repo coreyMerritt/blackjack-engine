@@ -19,5 +19,8 @@ class PlaceBetController:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
     game.place_bets(bet)
+    game.state = GameState.DEALING
+    game.deal_cards()
+    game.state = GameState.HUMAN_PLAYER_DECISIONS
 
     return JSONResponse(content=game.to_dict())

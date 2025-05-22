@@ -2,14 +2,7 @@
 
 source ./game_start.sh
 
-if [[ "$1" ]]; then
-  bet="$1"
-else
-  echo -e "\n\tProvide bet as arg1."
-fi
-
-curl -X POST "http://localhost:8000/session/$session_id/place_bet/$bet" \
+curl -s -X POST "http://localhost:8000/session/$session_id/place_bet/300" \
   -H "Content-Type: application/json" |
   jq
-echo
 

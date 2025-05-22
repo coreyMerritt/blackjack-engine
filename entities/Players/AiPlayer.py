@@ -1,5 +1,6 @@
 import random
 from entities.Player import Player
+from entities.Player import PlayerDecisions
 
 class AiPlayer(Player):
   def place_bet(self, min_possible, max_possible, bet=None):
@@ -9,3 +10,9 @@ class AiPlayer(Player):
 
     random_bet = random.randint(min_possible, max_possible)
     self.current_bet = random_bet
+
+  def get_decision(self):
+    if self.get_hand_value() >= 17:
+      return PlayerDecisions.STAND
+
+    return PlayerDecisions.HIT
