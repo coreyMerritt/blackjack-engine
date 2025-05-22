@@ -1,11 +1,12 @@
 from fastapi import HTTPException
+from fastapi.responses import JSONResponse
 from entities.Game import GameState
-from entities.SessionManagerSingleton import SessionManagerSingleton
+from services.SessionManagerSingleton import SessionManagerSingleton
 
 session_manager = SessionManagerSingleton()
 
 class PlaceBetController:
-  async def place_bets(self, session_id: str, bet: int):
+  async def place_bet(self, session_id: str, bet: int):
     assert isinstance(session_id, str)
     assert isinstance(bet, int)
 
@@ -19,4 +20,4 @@ class PlaceBetController:
 
     game.place_bets(bet)
 
-    return game
+    return JSONResponse(content=game.to_dict())

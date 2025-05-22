@@ -1,4 +1,4 @@
 #!/bin/bash
 
-uvicorn Start:app --reload
+uvicorn main:app --reload
 

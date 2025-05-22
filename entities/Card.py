@@ -1,10 +1,10 @@
 from enum import Enum
 
 class Suit(Enum):
-  CLUBS = "♣"
-  DIAMONDS = "♦"
-  HEARTS = "♥"
-  SPADES = "♠"
+  CLUBS = "Clubs"
+  DIAMONDS = "Diamonds"
+  HEARTS = "Hearts"
+  SPADES = "Spades"
 
 class Face(Enum):
   TWO = "2"
@@ -29,3 +29,24 @@ class Card:
   def __init__(self, suit: Suit, face: Face):
     self.suit = suit
     self.face = face
+    self.set_value()
+
+  def set_value(self):
+    match self.face.value:
+      case "J":
+        self.value = 10
+      case "Q":
+        self.value = 10
+      case "K":
+        self.value = 10
+      case "A":
+        self.value = 11
+      case _:
+        self.value = int(self.face.value)
+
+  def to_dict(self):
+    return {
+      "suit": self.suit.value,
+      "face": self.face.value,
+      "value": self.value
+    }

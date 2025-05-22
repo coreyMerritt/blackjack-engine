@@ -1,5 +1,6 @@
 from fastapi import HTTPException
-from entities.SessionManagerSingleton import SessionManagerSingleton
+from services.SessionManagerSingleton import SessionManagerSingleton
+from services.ServerLogger import ServerLogger
 
 session_manager = SessionManagerSingleton()
 
@@ -12,4 +13,6 @@ class StartGameController:
       raise HTTPException(status_code=401, detail="Invalid session")
 
     game.start()
+    ServerLogger.debug(6)
+
     return 200
