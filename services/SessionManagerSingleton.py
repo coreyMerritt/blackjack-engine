@@ -3,6 +3,7 @@ from entities.Game import Game
 
 class SessionManagerSingleton:
   _instance: "SessionManagerSingleton" = None
+  sessions: dict
 
   def __new__(cls):
     if cls._instance is None:
