@@ -1,40 +1,34 @@
 from random import shuffle
 from typing import List
+from entities.Shoe import Shoe
 from entities.Player import Player
 from entities.Card import Card, Face, Suit
 
 class Dealer:
-  shoe: List[Card]
-  full_shoe_size: int
+  shoe: Shoe
   hand: List[Card]
-  previous_deck_count: int
 
   def __init__(self):
-    self.shoe = []
     self.hand = []
+    self.shoe = Shoe()
+
+  def deal(self, players: List[Player]):
+    for player in players:
+      for _ in range(2):
+        player.hand.append(self.shoe.cards.pop())
+
+  def shuffle_shoe(self):
+    shuffle(self.shoe.cards)
 
   def load_shoe(self, deck_count: int) -> List[str]:
-    self.previous_deck_count = deck_count
-    self.shoe = []
+    self.shoe.previous_deck_count = deck_count
+    self.shoe.cards = []
 
     for _ in range(deck_count):
       for suit in Suit:
         for face in Face:
           card = Card(suit, face)
-          self.shoe.append(card)
+          self.shoe.cards.append(card)
 
-    self.full_shoe_size = 52 * deck_count
-    assert self.full_shoe_size == len(self.shoe)
-
-  def deal(self, players: List[Player], shoe_reset_percentage: int):
-    shoe_is_above_reset_point = len(self.shoe) > (self.full_shoe_size / (100 / shoe_reset_percentage))
-    if not shoe_is_above_reset_point:
-      self.shuffle_shoe()
-
-    for player in players:
-      for _ in range(2):
-        player.hand.append(self.shoe.pop())
-
-  def shuffle_shoe(self):
-    self.load_shoe(self.previous_deck_count)
-    shuffle(self.shoe)
+    self.shoe.full_size = 52 * deck_count
+    assert self.shoe.full_size == len(self.shoe.cards)

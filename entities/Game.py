@@ -16,6 +16,7 @@ class GameState(Enum):
   PAYOUTS = 6
 
 class Game:
+  deck_count: int
   dealer: Dealer
   players: List[Player]     # Index 0 will always be the human player
   min_bet: int
@@ -40,6 +41,7 @@ class Game:
 
     self.dealer = Dealer()
     self.dealer.load_shoe(deck_count)
+    self.dealer.shuffle_shoe()
 
     self.min_bet = min_bet
     self.max_bet = max_bet
@@ -64,8 +66,15 @@ class Game:
   def deal_cards(self):
     ServerLogger.debug(1)
     self.state = GameState.DEALING
+
     ServerLogger.debug(2)
-    self.dealer.deal(self.players, self.shoe_reset_percentage)
+    full_shoe = self.dealer.shoe.full_size
+    shoe_is_above_reset_point = len(self.dealer.shoe.cards) > (full_shoe / (100 / self.shoe_reset_percentage))
+    if not shoe_is_above_reset_point:
+      self.dealer.load_shoe(self.deck_count)
+      self.dealer.shuffle_shoe()
+    self.dealer.deal(self.players)
+
     ServerLogger.debug(3)
     self.state = GameState.HUMAN_PLAYER_DECISIONS
     ServerLogger.debug(4)
