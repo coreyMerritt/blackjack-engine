@@ -5,6 +5,7 @@ from entities.Players.AiPlayer import AiPlayer
 from entities.Players.HumanPlayer import HumanPlayer
 from models.api.PlayerInfo import PlayerInfo
 from models.enums.GameState import GameState
+from services.BlackjackLogger import blackjack_logger
 
 class Game:
   min_bet: int
@@ -38,7 +39,7 @@ class Game:
     self.dealer.shoe.reset_percentage = shoe_reset_percentage
     self.state = GameState.NOT_STARTED
 
-  def place_bets(self, bet: int):
+  def place_bet(self, bet: int):
     # Human player bet
     self.players[0].place_bet(self.min_bet, self.max_bet, bet)
 
@@ -47,12 +48,46 @@ class Game:
       self.players[i].place_bet(self.min_bet, self.max_bet)
 
   def deal_cards(self):
+    self.state = GameState.DEALING
     full_shoe = self.dealer.shoe.full_size
-    shoe_is_above_reset_point = len(self.dealer.shoe.cards) > (full_shoe / (100 / self.dealer.shoe.reset_percentage))
+    shoe_card_count = len(self.dealer.shoe.cards)
+    stopping_point = full_shoe / (100 / self.dealer.shoe.reset_percentage)
+    shoe_is_above_reset_point = shoe_card_count > stopping_point
+    blackjack_logger.debug(f"shoe_card_count: {shoe_card_count}")
+    blackjack_logger.debug(f"stopping_point: {stopping_point}")
     if not shoe_is_above_reset_point:
+      blackjack_logger.debug("Shuffling shoe...")
       self.dealer.load_shoe()
       self.dealer.shuffle_shoe()
+    else:
+      blackjack_logger.debug("Shoe IS above reset point")
     self.dealer.deal(self.players)
+
+    if self.players[0].get_hand_value() < 21:
+      self.state = GameState.HUMAN_PLAYER_DECISIONS
+      return self.players[0].get_hand_value()
+
+    self.finish_round()
+    return 21
+
+  def hit(self):
+    human_player = self.players[0]
+    self.dealer.hit(human_player)
+    hand_value = human_player.get_hand_value()
+
+    return hand_value
+
+  def finish_round(self):
+    self.state = GameState.AI_PLAYER_DECISIONS
+    ai_players = self.players[1:]
+    self.dealer.handle_ai_decisions(ai_players)
+    self.state = GameState.DEALER_DECISIONS
+    self.dealer.handle_dealer_decisions()
+    self.state = GameState.PAYOUTS
+    self.dealer.handle_payouts(self.players)
+    self.state = GameState.CLEANUP
+    self.dealer.reset_hands(self.players)
+    self.state = GameState.BETTING
 
   def to_dict(self):
     return {

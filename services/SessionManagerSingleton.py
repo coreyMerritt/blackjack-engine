@@ -20,11 +20,11 @@ class SessionManagerSingleton:
       max_bet: int,
       shoe_reset_percentage: int,
       player_info: PlayerInfo
-    ):
+    ) -> str:
     session_id = str(uuid.uuid4())
     game = Game(deck_count, ai_player_count, min_bet, max_bet, shoe_reset_percentage, player_info)
     self.sessions[session_id] = game
     return session_id
 
-  def get_game(self, session_id: str):
+  def get_game(self, session_id: str) -> Game:
     return self.sessions.get(session_id)

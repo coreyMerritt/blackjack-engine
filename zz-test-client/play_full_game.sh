@@ -12,6 +12,7 @@ gameplayLoop() {
   while [[ $money -gt 0 ]]; do
     hand_value=$(placeBet "50")
     while [[ $hand_value -lt 17 ]]; do
+#      echo "Hitting on $hand_value"
       hand_value=$(hit)
     done
 
@@ -27,6 +28,7 @@ gameplayLoop() {
       money=$(getMoney)
     fi
     echo $money
+    sleep 0.1
   done
 }
 
