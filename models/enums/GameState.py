@@ -1,0 +1,11 @@
+from enum import Enum
+
+class GameState(Enum):
+  NOT_STARTED = 0
+  BETTING = 1
+  DEALING = 2
+  HUMAN_PLAYER_DECISIONS = 3
+  AI_PLAYER_DECISIONS = 4
+  DEALER_DECISIONS = 5
+  PAYOUTS = 6
+  CLEANUP = 7

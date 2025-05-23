@@ -7,6 +7,9 @@ curl -s -X POST "http://localhost:8000/session/create" \
         "ai_player_count": 2,
         "min_bet": 50,
         "max_bet": 600,
-        "shoe_reset_percentage": 20
+        "shoe_reset_percentage": 20,
+        "player_info": {
+          "money": 10000
+        }
       }'
 

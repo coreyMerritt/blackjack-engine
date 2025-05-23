@@ -1,18 +1,10 @@
-from enum import Enum
 from typing import List
 from entities.Player import Player
 from entities.Dealer import Dealer
 from entities.Players.AiPlayer import AiPlayer
 from entities.Players.HumanPlayer import HumanPlayer
-
-class GameState(Enum):
-  NOT_STARTED = 0
-  BETTING = 1
-  DEALING = 2
-  HUMAN_PLAYER_DECISIONS = 3
-  AI_PLAYER_DECISIONS = 4
-  DEALER_DECISIONS = 5
-  PAYOUTS = 6
+from models.api.PlayerInfo import PlayerInfo
+from models.enums.GameState import GameState
 
 class Game:
   min_bet: int
@@ -23,17 +15,18 @@ class Game:
 
   def __init__(
     self,
-    deck_count,
-    ai_player_count,
-    min_bet,
-    max_bet,
-    shoe_reset_percentage
+    deck_count: int,
+    ai_player_count: int,
+    min_bet: int,
+    max_bet: int,
+    shoe_reset_percentage: int,
+    player_info: PlayerInfo
   ):
     self.players = []
-    self.players.append(HumanPlayer())
+    self.players.append(HumanPlayer(player_info))
 
     for _ in range(ai_player_count):
-      ai_player = AiPlayer()
+      ai_player = AiPlayer(player_info)   # TODO: AI players should probably get their own info
       self.players.append(ai_player)
 
     self.dealer = Dealer(deck_count)

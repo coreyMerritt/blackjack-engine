@@ -68,6 +68,26 @@ class Dealer:
 
     return value
 
+  def handle_payouts(self, players: List[Player]):
+    dealer_hand_value = self.get_hand_value()
+    dealer_busted = dealer_hand_value > 21
+    for player in players:
+      player_hand_value = player.get_hand_value()
+      player_busted = player_hand_value > 21
+      player_beat_dealer = player_hand_value > dealer_hand_value
+      if not player_busted and (dealer_busted or player_beat_dealer):
+        player.money += player.current_bet
+      elif not player_busted and not dealer_busted and not player_beat_dealer:
+        player.money -= player.current_bet
+      elif player_busted:
+        player.money -= player.current_bet
+      else:
+        raise NotImplementedError("Expected conditions at dealer.handle_payout")
+
+  def reset_hands(self, players: List[Player]):
+    for player in players:
+      player.hand = []
+
   def to_dict(self):
     return {
       "shoe": self.shoe.to_dict(),

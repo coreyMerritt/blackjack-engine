@@ -1,4 +1,5 @@
 import uuid
+from models.api.PlayerInfo import PlayerInfo
 from entities.Game import Game
 
 class SessionManagerSingleton:
@@ -17,10 +18,11 @@ class SessionManagerSingleton:
       ai_player_count: int,
       min_bet: int,
       max_bet: int,
-      shoe_reset_percentage: int
+      shoe_reset_percentage: int,
+      player_info: PlayerInfo
     ):
     session_id = str(uuid.uuid4())
-    game = Game(deck_count, ai_player_count, min_bet, max_bet, shoe_reset_percentage)
+    game = Game(deck_count, ai_player_count, min_bet, max_bet, shoe_reset_percentage, player_info)
     self.sessions[session_id] = game
     return session_id
 
