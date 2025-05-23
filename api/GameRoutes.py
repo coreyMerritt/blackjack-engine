@@ -19,3 +19,11 @@ async def hit(session_id: str):
 @router.post("/session/{session_id}/game/stand")
 async def stand(session_id: str):
   return await controller.stand(session_id)
+
+@router.post("/session/{session_id}/game/get")
+async def get(session_id: str):
+  return await controller.get(session_id)
+
+@router.post("/session/{session_id}/game/get_money")
+async def get_money(session_id: str):
+  return await controller.get_money(session_id)

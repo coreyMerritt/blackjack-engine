@@ -8,15 +8,26 @@ main() {
 }
 
 gameplayLoop() {
-  hand_value=$(placeBet "300")
-  while [[ $hand_value -lt 17 ]]; do
-    hand_value=$(hit)
+  money=10000
+  while [[ $money -gt 0 ]]; do
+    hand_value=$(placeBet "50")
+    while [[ $hand_value -lt 17 ]]; do
+      hand_value=$(hit)
+    done
+
+#    echo "hand value: $hand_value"
+#    game="$(getGame)"
+#    dealer_hand="$(echo $game | jq .dealer.hand)"
+#    echo "dealer hand: $dealer_hand"
+
+    if [[ $hand_value -lt 21 ]]; then
+      money=$(stand)
+    else
+      sleep 0.1
+      money=$(getMoney)
+    fi
+    echo $money
   done
-  if [[ $hand_value -lt 22 ]]; then
-    stand
-  else
-    getMoney
-  fi
 }
 
 startGame() {
@@ -41,13 +52,18 @@ hit() {
 stand() {
   curl -s -X POST "http://localhost:8000/session/$session_id/game/stand" \
   -H "Content-Type: application/json" |
-  jq
+  jq .money
+}
+
+getGame() {
+  curl -s -X POST "http://localhost:8000/session/$session_id/game/get" \
+  -H "Content-Type: application/json"
 }
 
 getMoney() {
   curl -s -X POST "http://localhost:8000/session/$session_id/game/get_money" \
   -H "Content-Type: application/json" |
-  jq
+  jq .money
 }
 
 

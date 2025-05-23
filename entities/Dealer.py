@@ -87,6 +87,7 @@ class Dealer:
   def reset_hands(self, players: List[Player]):
     for player in players:
       player.hand = []
+    self.hand = []
 
   def to_dict(self):
     return {

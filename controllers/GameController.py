@@ -45,10 +45,12 @@ class GameController:
 
     human_player = game.players[0]
     game.dealer.hit(human_player)
-    if human_player.get_hand_value() > 20:
+    return_hand_value = human_player.get_hand_value()
+
+    if return_hand_value > 20:
       self._finish_round(game)
 
-    return JSONResponse(content={"hand_value": game.players[0].get_hand_value()})
+    return JSONResponse(content={"hand_value": return_hand_value})
 
   async def stand(self, session_id: str):
     assert isinstance(session_id, str)
@@ -59,11 +61,27 @@ class GameController:
     if not game.state == GameState.HUMAN_PLAYER_DECISIONS:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
-    await self._finish_round(game)
+    self._finish_round(game)
 
     return JSONResponse(content={"money": game.players[0].money})
 
-  async def _finish_round(self, game):
+  async def get(self, session_id: str):
+    assert isinstance(session_id, str)
+
+    game = session_manager.get_game(session_id)
+    if not game:
+      raise HTTPException(status_code=401, detail="Invalid session")
+    return JSONResponse(content=game.to_dict())
+
+  async def get_money(self, session_id: str):
+    assert isinstance(session_id, str)
+
+    game = session_manager.get_game(session_id)
+    if not game:
+      raise HTTPException(status_code=401, detail="Invalid session")
+    return JSONResponse(content={"money": game.players[0].money})
+
+  def _finish_round(self, game):
     game.state = GameState.AI_PLAYER_DECISIONS
     ai_players = game.players[1:]
     game.dealer.handle_ai_decisions(ai_players)
