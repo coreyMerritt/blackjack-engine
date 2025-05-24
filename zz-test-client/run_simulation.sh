@@ -8,10 +8,15 @@ curl -s -X POST "http://localhost:8000/simulation/run" \
         "min_bet": 50,
         "max_bet": 600,
         "shoe_reset_percentage": 20,
-        "money_goal": 999999999,
         "player_info": {
           "money": 10000000
         },
+        "double_down_restrictions": {
+          "first_two_cards_only": true,
+          "allow_after_split": false,
+          "nine_ten_eleven_only": true
+        },
+        "money_goal": 999999999,
         "bet_spread": {
           "true_zero": 50,
           "true_one": 100,
@@ -20,6 +25,6 @@ curl -s -X POST "http://localhost:8000/simulation/run" \
           "true_four": 400,
           "true_five": 500,
           "true_six": 600
-        }
+        } 
       }' | jq
 

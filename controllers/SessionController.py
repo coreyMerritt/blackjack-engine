@@ -1,6 +1,7 @@
 from fastapi.responses import JSONResponse
 from models.api.CreateSessionReq import CreateSessionReq
-from models.api.PlayerInfo import PlayerInfo
+from models.core.DoubleDownRestrictions import DoubleDownRestrictions
+from models.core.PlayerInfo import PlayerInfo
 from services.SessionManagerSingleton import SessionManagerSingleton
 
 
@@ -13,6 +14,7 @@ class SessionController:
     assert isinstance(req.min_bet, int)
     assert isinstance(req.max_bet, int)
     assert isinstance(req.shoe_reset_percentage, int)
+    assert isinstance(req.double_down_restrictions, DoubleDownRestrictions)
     assert isinstance(req.player_info, PlayerInfo)
 
     session_id = session_manager.create_session(
@@ -21,6 +23,7 @@ class SessionController:
       req.min_bet,
       req.max_bet,
       req.shoe_reset_percentage,
+      req.double_down_restrictions,
       req.player_info
     )
 

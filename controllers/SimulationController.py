@@ -1,8 +1,9 @@
 from fastapi.responses import JSONResponse
 from entities.Game import Game
-from models.api.BetSpread import BetSpread
+from models.core.BetSpread import BetSpread
 from models.api.RunSimulationReq import RunSimulationReq
-from models.api.PlayerInfo import PlayerInfo
+from models.core.DoubleDownRestrictions import DoubleDownRestrictions
+from models.core.PlayerInfo import PlayerInfo
 from services.SimulationEngine import SimulationEngine
 
 
@@ -13,9 +14,11 @@ class SimulationController:
     assert isinstance(req.min_bet, int)
     assert isinstance(req.max_bet, int)
     assert isinstance(req.shoe_reset_percentage, int)
-    assert isinstance(req.money_goal, int)
     assert isinstance(req.player_info, PlayerInfo)
+    assert isinstance(req.double_down_restrictions, DoubleDownRestrictions)
+
     assert isinstance(req.bet_spread, BetSpread)
+    assert isinstance(req.money_goal, int)
 
     game = Game(
       req.deck_count,
@@ -23,6 +26,7 @@ class SimulationController:
       req.min_bet,
       req.max_bet,
       req.shoe_reset_percentage,
+      req.double_down_restrictions,
       req.player_info
     )
 

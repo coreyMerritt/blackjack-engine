@@ -4,7 +4,7 @@ from entities.Player import Player
 from entities.Shoe import Shoe
 from entities.Players.AiPlayer import AiPlayer
 from entities.Card import Card, Face, Suit
-from models.enums.PlayerDecisions import PlayerDecisions
+from models.enums.PlayerDecision import PlayerDecision
 from services.BlackjackLogger import blackjack_logger
 
 
@@ -47,28 +47,28 @@ class Dealer:
 
   def handle_ai_decisions(self, ai_players: List[AiPlayer]) -> None:
     for i, ai_player in enumerate(ai_players):
-      decision = PlayerDecisions.PLACEHOLDER
-      while decision != PlayerDecisions.STAND:
+      decision = PlayerDecision.PLACEHOLDER
+      while decision != PlayerDecision.STAND:
         match decision:
-          case PlayerDecisions.HIT:
+          case PlayerDecision.HIT:
             blackjack_logger.debug(f"Shoe size: {len(self.shoe.cards)}")
             blackjack_logger.debug(f"Hitting the AI #{i} from: {ai_player.get_hand_value()}")
             ai_player.hand.append(self.shoe.cards.pop())
         decision = ai_player.get_decision()
 
   def handle_dealer_decisions(self) -> None:
-    decision = PlayerDecisions.PLACEHOLDER
-    while decision != PlayerDecisions.STAND:
+    decision = PlayerDecision.PLACEHOLDER
+    while decision != PlayerDecision.STAND:
       decision = self.get_decision()
       match decision:
-        case PlayerDecisions.HIT:
+        case PlayerDecision.HIT:
           self.hand.append(self.shoe.cards.pop())
 
-  def get_decision(self) -> PlayerDecisions:
+  def get_decision(self) -> PlayerDecision:
     if self.get_hand_value() >= 17:
-      return PlayerDecisions.STAND
+      return PlayerDecision.STAND
     else:
-      return PlayerDecisions.HIT
+      return PlayerDecision.HIT
 
   def get_hand_value(self) -> int:
     value = 0

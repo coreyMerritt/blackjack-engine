@@ -1,6 +1,6 @@
 import random
 from entities.Player import Player
-from models.enums.PlayerDecisions import PlayerDecisions
+from models.enums.PlayerDecision import PlayerDecision
 
 
 class AiPlayer(Player):
@@ -12,8 +12,8 @@ class AiPlayer(Player):
     random_bet = random.randint(min_possible, max_possible)
     self.current_bet = random_bet
 
-  def get_decision(self) -> PlayerDecisions:
+  def get_decision(self) -> PlayerDecision:
     if self.get_hand_value() >= 17:
-      return PlayerDecisions.STAND
+      return PlayerDecision.STAND
 
-    return PlayerDecisions.HIT
+    return PlayerDecision.HIT

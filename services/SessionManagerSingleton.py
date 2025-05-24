@@ -1,5 +1,5 @@
 import uuid
-from models.api.PlayerInfo import PlayerInfo
+from models.api.CreateSessionReq import CreateSessionReq
 from entities.Game import Game
 
 class SessionManagerSingleton:
@@ -14,15 +14,24 @@ class SessionManagerSingleton:
 
   def create_session(
       self,
-      deck_count: int,
-      ai_player_count: int,
-      min_bet: int,
-      max_bet: int,
-      shoe_reset_percentage: int,
-      player_info: PlayerInfo
+      deck_count,
+      ai_player_count,
+      min_bet,
+      max_bet,
+      shoe_reset_percentage,
+      double_down_restrictions,
+      player_info
     ) -> str:
     session_id = str(uuid.uuid4())
-    game = Game(deck_count, ai_player_count, min_bet, max_bet, shoe_reset_percentage, player_info)
+    game = Game(
+      deck_count,
+      ai_player_count,
+      min_bet,
+      max_bet,
+      shoe_reset_percentage,
+      double_down_restrictions,
+      player_info
+    )
     self.sessions[session_id] = game
     return session_id
 

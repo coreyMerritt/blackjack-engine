@@ -1,6 +1,6 @@
 import time
 from entities.Game import Game
-from models.api.BetSpread import BetSpread
+from models.core.BetSpread import BetSpread
 from models.api.SimulationResultsRes import SimulationResults
 from models.enums.GameState import GameState
 

@@ -3,7 +3,8 @@ from entities.Player import Player
 from entities.Dealer import Dealer
 from entities.Players.AiPlayer import AiPlayer
 from entities.Players.HumanPlayer import HumanPlayer
-from models.api.PlayerInfo import PlayerInfo
+from models.core.DoubleDownRestrictions import DoubleDownRestrictions
+from models.core.PlayerInfo import PlayerInfo
 from models.enums.GameState import GameState
 from services.BlackjackLogger import blackjack_logger
 
@@ -13,6 +14,7 @@ class Game:
   state: GameState
   dealer: Dealer
   players: List[Player]     # Index 0 will always be the human player
+  double_down_restrictions: DoubleDownRestrictions
 
   def __init__(
     self,
@@ -21,13 +23,14 @@ class Game:
     min_bet: int,
     max_bet: int,
     shoe_reset_percentage: int,
+    double_down_restrictions: DoubleDownRestrictions,
     player_info: PlayerInfo
   ) -> None:
     self.players = []
     self.players.append(HumanPlayer(player_info))
 
     for _ in range(ai_player_count):
-      ai_player = AiPlayer(player_info)   # TODO: AI players should probably get their own info
+      ai_player = AiPlayer(player_info)   # TODO: AI players should get their own info
       self.players.append(ai_player)
 
     self.dealer = Dealer(deck_count)
@@ -37,6 +40,7 @@ class Game:
     self.min_bet = min_bet
     self.max_bet = max_bet
     self.dealer.shoe.reset_percentage = shoe_reset_percentage
+    self.double_down_restrictions = double_down_restrictions
     self.state = GameState.NOT_STARTED
 
   def place_bet(self, bet: int) -> None:
