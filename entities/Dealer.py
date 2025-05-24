@@ -1,7 +1,6 @@
 from random import shuffle
 from typing import List
 
-from pydantic_core import to_json
 from entities.Player import Player
 from entities.Shoe import Shoe
 from entities.Players.AiPlayer import AiPlayer
@@ -26,8 +25,10 @@ class Dealer:
         card = self.shoe.cards.pop()
         player.hand.append(card)
         BlackjackLogger.debug(f"Dealt player-{i}: {card.value}")
+
     for _ in range(2):
-      self.hand.append(self.shoe.cards.pop())
+      card = self.shoe.cards.pop()
+      self.hand.append(card)
       BlackjackLogger.debug(f"Dealt dealer: {card.value}")
 
   def shuffle_shoe(self) -> None:
@@ -69,6 +70,7 @@ class Dealer:
             BlackjackLogger.debug(f"Shoe size: {len(self.shoe.cards)}")
             BlackjackLogger.debug(f"Hitting the AI #{i} from: {ai_player.get_hand_value()}")
             ai_player.hand.append(self.shoe.cards.pop())
+            BlackjackLogger.debug(f"Hit the AI #{i} to: {ai_player.get_hand_value()}")
           case PlayerDecision.STAND:
             break
           case PlayerDecision.DOUBLE_DOWN_HIT:
@@ -76,6 +78,7 @@ class Dealer:
             BlackjackLogger.debug(f"Shoe size: {len(self.shoe.cards)}")
             BlackjackLogger.debug(f"Hitting the AI #{i} from: {ai_player.get_hand_value()}")
             ai_player.hand.append(self.shoe.cards.pop())
+            BlackjackLogger.debug(f"Hit the AI #{i} to: {ai_player.get_hand_value()}")
           case PlayerDecision.DOUBLE_DOWN_STAND:
             # TODO: This isn't a proper implementation -- just stands for now
             break
@@ -86,10 +89,13 @@ class Dealer:
             # TODO: This isn't a proper implementation -- just stands for now
             break
 
+        if ai_player.get_hand_value() >= 21:
+          break
+
         player_decision = BasicStrategyEngine.get_play(
           ai_player.basic_strategy_skill_level,
           ai_player.hand,
-          self.hand[1],
+          self.hand[1].value,
           True,   # TODO: Implement
           False   # TODO: Implement
         )
@@ -152,7 +158,7 @@ class Dealer:
       player.hand = []
       BlackjackLogger.debug(f"Reset player-{i} hand to: []")
     self.hand = []
-    BlackjackLogger.debug(f"Reset dealer hand to: []")
+    BlackjackLogger.debug("Reset dealer hand to: []")
 
   def to_dict(self) -> dict:
     return {

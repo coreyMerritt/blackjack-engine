@@ -1,8 +1,10 @@
+import random
 from typing import List
 from entities.Card import Card
 from models.core.BasicStrategy import BasicStrategy
 from models.enums.PlayerDecision import PlayerDecision
 from models.enums.PairSplittingDecision import PairSplittingDecision
+from services.BlackjackLogger import BlackjackLogger
 
 
 class BasicStrategyEngine():
@@ -32,20 +34,36 @@ class BasicStrategyEngine():
     if split:
       return PlayerDecision.SPLIT
 
-    if basic_strategy_skill_level == 10:
-      hand_is_soft = False
-      player_hand_value = 0
-      for card in player_hand:
-        player_hand_value += card.value
-        if card.value_can_reset:
-          hand_is_soft = True
-      if hand_is_soft:
-        player_decision = BasicStrategy.soft_totals[(dealer_face_card_value, player_hand_value)]
-      else:
-        player_decision = BasicStrategy.hard_totals[(dealer_face_card_value, player_hand_value)]
-      return player_decision
+    hand_is_soft = False
+    player_hand_value = 0
+    for card in player_hand:
+      player_hand_value += card.value
+      if card.value_can_reset:
+        hand_is_soft = True
 
-    return PlayerDecision.STAND     # TODO: Implement
+    accuracy_roll = random.randint(basic_strategy_skill_level, 100)
+    BlackjackLogger.debug(f"Accuracy roll: {accuracy_roll}")
+    spread = (100 - accuracy_roll) / 10
+    plus_or_minus_roll = random.randint(1, 2)
+    if plus_or_minus_roll == 1:
+      drunken_player_hand_value = int(player_hand_value + spread)
+    else:
+      drunken_player_hand_value = int(player_hand_value - spread)
+
+    if drunken_player_hand_value > 21:
+      drunken_player_hand_value = 21
+    elif drunken_player_hand_value < 4 and not hand_is_soft:
+      drunken_player_hand_value = 4
+    elif drunken_player_hand_value < 13 and hand_is_soft:
+      drunken_player_hand_value = 13
+    BlackjackLogger.debug(f"100% Acc: {drunken_player_hand_value == player_hand_value}")
+    BlackjackLogger.debug(f"Dealer is showing: {dealer_face_card_value}")
+
+    if hand_is_soft:
+      player_decision = BasicStrategy.soft_totals[(dealer_face_card_value, drunken_player_hand_value)]
+    else:
+      player_decision = BasicStrategy.hard_totals[(dealer_face_card_value, drunken_player_hand_value)]
+    return player_decision
 
   @staticmethod
   def _check_for_surrender(

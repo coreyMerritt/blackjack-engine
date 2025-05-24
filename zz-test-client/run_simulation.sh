@@ -17,7 +17,7 @@ curl -s -X POST "http://localhost:8000/simulation/run" \
         "ai_player_info": [
           {
             "money": 1000000,
-            "basic_strategy_skill_level": 1
+            "basic_strategy_skill_level": 100
           }
         ],
         "money_goal": 999999999,
