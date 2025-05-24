@@ -1,100 +1,50 @@
 from typing import List
-from entities.Player import Player
 from entities.Dealer import Dealer
 from entities.Players.AiPlayer import AiPlayer
 from entities.Players.HumanPlayer import HumanPlayer
+from models.core.AiPlayerInfo import AiPlayerInfo
 from models.core.DoubleDownRestrictions import DoubleDownRestrictions
-from models.core.PlayerInfo import PlayerInfo
+from models.core.GameRules import GameRules
+from models.core.HumanPlayerInfo import HumanPlayerInfo
 from models.enums.GameState import GameState
-from services.BlackjackLogger import blackjack_logger
+from services.BasicStrategyEngine import BasicStrategyEngine
+
 
 class Game:
   min_bet: int
   max_bet: int
   state: GameState
   dealer: Dealer
-  players: List[Player]     # Index 0 will always be the human player
+  human_players: List[HumanPlayer]
+  ai_players: List[AiPlayer]
   double_down_restrictions: DoubleDownRestrictions
+  basic_strategy_engine: BasicStrategyEngine
 
   def __init__(
     self,
-    deck_count: int,
-    ai_player_count: int,
-    min_bet: int,
-    max_bet: int,
-    shoe_reset_percentage: int,
-    double_down_restrictions: DoubleDownRestrictions,
-    player_info: PlayerInfo
+    rules: GameRules,
+    human_player_info: List[HumanPlayerInfo] | None,
+    ai_player_info: List[AiPlayerInfo] | None
   ) -> None:
-    self.players = []
-    self.players.append(HumanPlayer(player_info))
+    self.human_players = []
+    if human_player_info is not None:
+      for single_human_player_info in human_player_info:
+        human_player = HumanPlayer(single_human_player_info)   # TODO: AI players should get their own info
+        self.human_players.append(human_player)
 
-    for _ in range(ai_player_count):
-      ai_player = AiPlayer(player_info)   # TODO: AI players should get their own info
-      self.players.append(ai_player)
+    self.ai_players = []
+    if ai_player_info is not None:
+      for single_ai_player_info in ai_player_info:
+        ai_player = AiPlayer(single_ai_player_info)   # TODO: AI players should get their own info
+        self.ai_players.append(ai_player)
 
-    self.dealer = Dealer(deck_count)
+    self.dealer = Dealer(rules.deck_count, rules.shoe_reset_percentage)
     self.dealer.load_shoe()
     self.dealer.shuffle_shoe()
 
-    self.min_bet = min_bet
-    self.max_bet = max_bet
-    self.dealer.shoe.reset_percentage = shoe_reset_percentage
-    self.double_down_restrictions = double_down_restrictions
+    self.rules = rules
+    self.basic_strategy_engine = BasicStrategyEngine()
     self.state = GameState.NOT_STARTED
-
-  def place_bet(self, bet: int) -> None:
-    # Human player bet
-    self.players[0].place_bet(self.min_bet, self.max_bet, bet)
-
-    # AI bets
-    for i in range (1, len(self.players)):
-      self.players[i].place_bet(self.min_bet, self.max_bet)
-
-  # TODO: Why is this returning the hand value???
-  def deal_cards(self) -> int:
-    self.state = GameState.DEALING
-    full_shoe = self.dealer.shoe.full_size
-    shoe_card_count = len(self.dealer.shoe.cards)
-    stopping_point = full_shoe / (100 / self.dealer.shoe.reset_percentage)
-    shoe_is_above_reset_point = shoe_card_count > stopping_point
-    blackjack_logger.debug(f"shoe_card_count: {shoe_card_count}")
-    blackjack_logger.debug(f"stopping_point: {stopping_point}")
-    if not shoe_is_above_reset_point:
-      blackjack_logger.debug("Shuffling shoe...")
-      self.dealer.load_shoe()
-      self.dealer.shuffle_shoe()
-    else:
-      blackjack_logger.debug("Shoe IS above reset point")
-    self.dealer.deal(self.players)
-
-    hand_value = self.players[0].get_hand_value()
-    if hand_value < 21:
-      self.state = GameState.HUMAN_PLAYER_DECISIONS
-      return hand_value
-
-    self.finish_round()
-    return 21
-
-  # TODO: Why is this returning the hand value???
-  def hit(self) -> int:
-    human_player = self.players[0]
-    self.dealer.hit(human_player)
-    hand_value = human_player.get_hand_value()
-
-    return hand_value
-
-  def finish_round(self) -> None:
-    self.state = GameState.AI_PLAYER_DECISIONS
-    ai_players = self.players[1:]
-    self.dealer.handle_ai_decisions(ai_players)
-    self.state = GameState.DEALER_DECISIONS
-    self.dealer.handle_dealer_decisions()
-    self.state = GameState.PAYOUTS
-    self.dealer.handle_payouts(self.players)
-    self.state = GameState.CLEANUP
-    self.dealer.reset_hands(self.players)
-    self.state = GameState.BETTING
 
   def to_dict(self) -> dict:
     return {
@@ -102,5 +52,6 @@ class Game:
       "min_bet": self.min_bet,
       "state": self.state.name,
       "dealer": self.dealer.to_dict(),
-      "players": [p.to_dict() for p in self.players]
+      "human_players": [p.to_dict() for p in self.human_players],
+      "ai_players": [p.to_dict() for p in self.ai_players]
     }

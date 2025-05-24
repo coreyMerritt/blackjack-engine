@@ -1,13 +1,11 @@
+from typing import List
 from pydantic import BaseModel
 
-from models.core.DoubleDownRestrictions import DoubleDownRestrictions
-from models.core.PlayerInfo import PlayerInfo
+from models.core.AiPlayerInfo import AiPlayerInfo
+from models.core.GameRules import GameRules
+from models.core.HumanPlayerInfo import HumanPlayerInfo
 
 class CreateSessionReq(BaseModel):
-  deck_count: int
-  ai_player_count: int
-  min_bet: int
-  max_bet: int
-  shoe_reset_percentage: int
-  double_down_restrictions: DoubleDownRestrictions
-  player_info: PlayerInfo
+  rules: GameRules
+  human_player_info: HumanPlayerInfo
+  ai_player_info: List[AiPlayerInfo]

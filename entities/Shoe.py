@@ -2,13 +2,15 @@ from typing import List
 from entities.Card import Card
 
 class Shoe:
-  full_size: int
   deck_count: int
+  full_size: int
   reset_percentage: int
   cards: List[Card]
 
-  def __init__(self, deck_count) -> None:
+  def __init__(self, deck_count: int, reset_percentage: int) -> None:
     self.deck_count = deck_count
+    self.full_size = deck_count * 52
+    self.reset_percentage = reset_percentage
     self.cards = []
 
   def to_dict(self) -> dict:

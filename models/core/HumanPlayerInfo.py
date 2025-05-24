@@ -1,4 +1,4 @@
 from pydantic import BaseModel
 
-class PlayerInfo(BaseModel):
+class HumanPlayerInfo(BaseModel):
   money: int

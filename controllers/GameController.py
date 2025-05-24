@@ -1,6 +1,7 @@
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from models.enums.GameState import GameState
+from services.BlackjackEngine import BlackjackEngine
 from services.SessionManagerSingleton import SessionManagerSingleton
 
 
@@ -28,8 +29,9 @@ class GameController:
     if not game.state == GameState.BETTING:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
-    game.place_bet(bet)
-    return_hand_value = game.deal_cards()
+    BlackjackEngine.place_bets(game, bet)
+    return_hand_value = BlackjackEngine.deal_cards(game)
+    BlackjackEngine.finish_round(game)
 
     return JSONResponse(content={"hand_value": return_hand_value})
 
@@ -42,9 +44,9 @@ class GameController:
     if not game.state == GameState.HUMAN_PLAYER_DECISIONS:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
-    return_hand_value = game.hit()
-    if return_hand_value > 20:
-      game.finish_round()
+    return_hand_value = BlackjackEngine.hit_first_human_player(game)
+    if return_hand_value >= 21:
+      BlackjackEngine.finish_round(game)
 
     return JSONResponse(content={"hand_value": return_hand_value})
 
@@ -57,9 +59,9 @@ class GameController:
     if not game.state == GameState.HUMAN_PLAYER_DECISIONS:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
-    game.finish_round()
+    BlackjackEngine.finish_round(game)
 
-    return JSONResponse(content={"money": game.players[0].money})
+    return JSONResponse(content={"money": game.human_players[0].money})
 
   async def get(self, session_id: str) -> JSONResponse:
     assert isinstance(session_id, str)
@@ -77,4 +79,4 @@ class GameController:
     if not game:
       raise HTTPException(status_code=401, detail="Invalid session")
 
-    return JSONResponse(content={"money": game.players[0].money})
+    return JSONResponse(content={"money": game.human_players[0].money})

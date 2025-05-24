@@ -1,34 +1,41 @@
 from random import shuffle
 from typing import List
+
+from pydantic_core import to_json
 from entities.Player import Player
 from entities.Shoe import Shoe
 from entities.Players.AiPlayer import AiPlayer
 from entities.Card import Card, Face, Suit
+from models.core.GameRules import GameRules
 from models.enums.PlayerDecision import PlayerDecision
-from services.BlackjackLogger import blackjack_logger
+from services.BasicStrategyEngine import BasicStrategyEngine
+from services.BlackjackLogger import BlackjackLogger
 
 
 class Dealer:
   shoe: Shoe
   hand: List[Card]
 
-  def __init__(self, deck_count) -> None:
+  def __init__(self, shoe_deck_count: int, shoe_reset_percentage: int) -> None:
     self.hand = []
-    self.shoe = Shoe(deck_count)
+    self.shoe = Shoe(shoe_deck_count, shoe_reset_percentage)
 
   def deal(self, players: List[Player]) -> None:
-    for player in players:
+    for i, player in enumerate(players):
       for _ in range(2):
-        player.hand.append(self.shoe.cards.pop())
+        card = self.shoe.cards.pop()
+        player.hand.append(card)
+        BlackjackLogger.debug(f"Dealt player-{i}: {card.value}")
     for _ in range(2):
       self.hand.append(self.shoe.cards.pop())
+      BlackjackLogger.debug(f"Dealt dealer: {card.value}")
 
   def shuffle_shoe(self) -> None:
-    blackjack_logger.debug("Shuffling shoe...")
+    BlackjackLogger.debug("Shuffling shoe...")
     shuffle(self.shoe.cards)
 
   def load_shoe(self) -> None:
-    blackjack_logger.debug("Loading shoe...")
+    BlackjackLogger.debug("Loading shoe...")
     self.shoe.cards = []
 
     for _ in range(self.shoe.deck_count):
@@ -41,20 +48,52 @@ class Dealer:
     assert self.shoe.full_size == len(self.shoe.cards)
 
   def hit(self, player: Player) -> None:
-    blackjack_logger.debug(f"Shoe size: {len(self.shoe.cards)}")
-    blackjack_logger.debug(f"Hitting the player from: {player.get_hand_value()}")
+    BlackjackLogger.debug(f"Shoe size: {len(self.shoe.cards)}")
+    BlackjackLogger.debug(f"Hitting the player from: {player.get_hand_value()}")
     player.hand.append(self.shoe.cards.pop())
+    if player.get_hand_value() > 21:
+      for card in player.hand:
+        if card.value_can_reset:
+          card.value_can_reset = False
+          card.value = 1
+          break
 
-  def handle_ai_decisions(self, ai_players: List[AiPlayer]) -> None:
+  def handle_ai_decisions(self, ai_players: List[AiPlayer], rules: GameRules) -> None:
     for i, ai_player in enumerate(ai_players):
-      decision = PlayerDecision.PLACEHOLDER
-      while decision != PlayerDecision.STAND:
-        match decision:
+      player_decision = PlayerDecision.PLACEHOLDER
+      while True:
+        match player_decision:
+          case PlayerDecision.PLACEHOLDER:
+            pass
           case PlayerDecision.HIT:
-            blackjack_logger.debug(f"Shoe size: {len(self.shoe.cards)}")
-            blackjack_logger.debug(f"Hitting the AI #{i} from: {ai_player.get_hand_value()}")
+            BlackjackLogger.debug(f"Shoe size: {len(self.shoe.cards)}")
+            BlackjackLogger.debug(f"Hitting the AI #{i} from: {ai_player.get_hand_value()}")
             ai_player.hand.append(self.shoe.cards.pop())
-        decision = ai_player.get_decision()
+          case PlayerDecision.STAND:
+            break
+          case PlayerDecision.DOUBLE_DOWN_HIT:
+            # TODO: This isn't a proper implementation -- just hits for now
+            BlackjackLogger.debug(f"Shoe size: {len(self.shoe.cards)}")
+            BlackjackLogger.debug(f"Hitting the AI #{i} from: {ai_player.get_hand_value()}")
+            ai_player.hand.append(self.shoe.cards.pop())
+          case PlayerDecision.DOUBLE_DOWN_STAND:
+            # TODO: This isn't a proper implementation -- just stands for now
+            break
+          case PlayerDecision.SPLIT:
+            # TODO: This isn't a proper implementation -- just stands for now
+            break
+          case PlayerDecision.SURRENDER:
+            # TODO: This isn't a proper implementation -- just stands for now
+            break
+
+        player_decision = BasicStrategyEngine.get_play(
+          ai_player.basic_strategy_skill_level,
+          ai_player.hand,
+          self.hand[1],
+          True,   # TODO: Implement
+          False   # TODO: Implement
+        )
+        BlackjackLogger.debug(f"Decision: {player_decision}")
 
   def handle_dealer_decisions(self) -> None:
     decision = PlayerDecision.PLACEHOLDER
@@ -109,9 +148,11 @@ class Dealer:
         raise NotImplementedError("Unexpected conditions @dealer.handle_payout")
 
   def reset_hands(self, players: List[Player]) -> None:
-    for player in players:
+    for i, player in enumerate(players):
       player.hand = []
+      BlackjackLogger.debug(f"Reset player-{i} hand to: []")
     self.hand = []
+    BlackjackLogger.debug(f"Reset dealer hand to: []")
 
   def to_dict(self) -> dict:
     return {

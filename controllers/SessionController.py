@@ -1,7 +1,9 @@
+from typing import List
 from fastapi.responses import JSONResponse
 from models.api.CreateSessionReq import CreateSessionReq
-from models.core.DoubleDownRestrictions import DoubleDownRestrictions
-from models.core.PlayerInfo import PlayerInfo
+from models.core.AiPlayerInfo import AiPlayerInfo
+from models.core.GameRules import GameRules
+from models.core.HumanPlayerInfo import HumanPlayerInfo
 from services.SessionManagerSingleton import SessionManagerSingleton
 
 
@@ -9,22 +11,14 @@ session_manager = SessionManagerSingleton()
 
 class SessionController:
   async def create_session(self, req: CreateSessionReq) -> JSONResponse:
-    assert isinstance(req.deck_count, int)
-    assert isinstance(req.ai_player_count, int)
-    assert isinstance(req.min_bet, int)
-    assert isinstance(req.max_bet, int)
-    assert isinstance(req.shoe_reset_percentage, int)
-    assert isinstance(req.double_down_restrictions, DoubleDownRestrictions)
-    assert isinstance(req.player_info, PlayerInfo)
+    assert isinstance(req.rules, GameRules)
+    assert isinstance(req.human_player_info, HumanPlayerInfo)
+    assert isinstance(req.ai_player_info, List[AiPlayerInfo])
 
     session_id = session_manager.create_session(
-      req.deck_count,
-      req.ai_player_count,
-      req.min_bet,
-      req.max_bet,
-      req.shoe_reset_percentage,
-      req.double_down_restrictions,
-      req.player_info
+      req.rules,
+      req.human_player_info,
+      req.ai_player_info
     )
 
     return JSONResponse(content=session_id)

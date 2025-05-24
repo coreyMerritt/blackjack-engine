@@ -1,6 +1,9 @@
+from typing import List
 import uuid
-from models.api.CreateSessionReq import CreateSessionReq
 from entities.Game import Game
+from models.core.AiPlayerInfo import AiPlayerInfo
+from models.core.GameRules import GameRules
+from models.core.HumanPlayerInfo import HumanPlayerInfo
 
 class SessionManagerSingleton:
   _instance: "SessionManagerSingleton" = None
@@ -14,23 +17,15 @@ class SessionManagerSingleton:
 
   def create_session(
       self,
-      deck_count,
-      ai_player_count,
-      min_bet,
-      max_bet,
-      shoe_reset_percentage,
-      double_down_restrictions,
-      player_info
+      rules: GameRules,
+      human_player_info: List[HumanPlayerInfo],
+      ai_player_info: List[AiPlayerInfo]
     ) -> str:
     session_id = str(uuid.uuid4())
     game = Game(
-      deck_count,
-      ai_player_count,
-      min_bet,
-      max_bet,
-      shoe_reset_percentage,
-      double_down_restrictions,
-      player_info
+      rules,
+      human_player_info,
+      ai_player_info
     )
     self.sessions[session_id] = game
     return session_id

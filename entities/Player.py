@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 from entities.Card import Card
-from models.core.PlayerInfo import PlayerInfo
+from models.core.GameRules import GameRules
 
 
 class Player(ABC):
@@ -10,11 +10,10 @@ class Player(ABC):
   money: int
   doubled_down: bool
 
-  def __init__(self, player_info: PlayerInfo) -> None:
-    self.hand: List[Card] = []
-    self.money = player_info.money
-    self.current_bet = 0
-    self.doubled_down = False
+  # This can be HumanPlayerInfo or AiPlayerInfo
+  @abstractmethod
+  def __init__(self, human_player_info) -> None:
+    pass
 
   def get_hand_value(self) -> int:
     value = 0
@@ -30,5 +29,5 @@ class Player(ABC):
     }
 
   @abstractmethod
-  def place_bet(self, min_possible, max_possible, bet=None) -> None:
+  def place_bet(self, bet: int | None, rules: GameRules) -> None:
     pass
