@@ -3,10 +3,11 @@ from fastapi.responses import JSONResponse
 from models.enums.GameState import GameState
 from services.SessionManagerSingleton import SessionManagerSingleton
 
+
 session_manager = SessionManagerSingleton()
 
 class GameController:
-  async def start_game(self, session_id: str):
+  async def start_game(self, session_id: str) -> JSONResponse:
     assert isinstance(session_id, str)
 
     game = session_manager.get_game(session_id)
@@ -15,9 +16,9 @@ class GameController:
 
     game.state = GameState.BETTING
 
-    return 200
+    return JSONResponse(content={"game": game})
 
-  async def place_bet(self, session_id: str, bet: int):
+  async def place_bet(self, session_id: str, bet: int) -> JSONResponse:
     assert isinstance(session_id, str)
     assert isinstance(bet, int)
 
@@ -32,7 +33,7 @@ class GameController:
 
     return JSONResponse(content={"hand_value": return_hand_value})
 
-  async def hit(self, session_id: str):
+  async def hit(self, session_id: str) -> JSONResponse:
     assert isinstance(session_id, str)
 
     game = session_manager.get_game(session_id)
@@ -47,7 +48,7 @@ class GameController:
 
     return JSONResponse(content={"hand_value": return_hand_value})
 
-  async def stand(self, session_id: str):
+  async def stand(self, session_id: str) -> JSONResponse:
     assert isinstance(session_id, str)
 
     game = session_manager.get_game(session_id)
@@ -60,7 +61,7 @@ class GameController:
 
     return JSONResponse(content={"money": game.players[0].money})
 
-  async def get(self, session_id: str):
+  async def get(self, session_id: str) -> JSONResponse:
     assert isinstance(session_id, str)
 
     game = session_manager.get_game(session_id)
@@ -69,7 +70,7 @@ class GameController:
 
     return JSONResponse(content=game.to_dict())
 
-  async def get_money(self, session_id: str):
+  async def get_money(self, session_id: str) -> JSONResponse:
     assert isinstance(session_id, str)
 
     game = session_manager.get_game(session_id)

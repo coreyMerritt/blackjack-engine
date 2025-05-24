@@ -3,10 +3,11 @@ from models.api.CreateSessionReq import CreateSessionReq
 from models.api.PlayerInfo import PlayerInfo
 from services.SessionManagerSingleton import SessionManagerSingleton
 
+
 session_manager = SessionManagerSingleton()
 
 class SessionController:
-  async def create_session(self, req: CreateSessionReq):
+  async def create_session(self, req: CreateSessionReq) -> JSONResponse:
     assert isinstance(req.deck_count, int)
     assert isinstance(req.ai_player_count, int)
     assert isinstance(req.min_bet, int)

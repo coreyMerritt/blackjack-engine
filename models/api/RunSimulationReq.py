@@ -9,6 +9,6 @@ class RunSimulationReq(BaseModel):
   min_bet: int
   max_bet: int
   shoe_reset_percentage: int
-  win_value: int
+  money_goal: int
   player_info: PlayerInfo
   bet_spread: BetSpread

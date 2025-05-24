@@ -6,7 +6,7 @@ class SessionManagerSingleton:
   _instance: "SessionManagerSingleton" = None
   sessions: dict
 
-  def __new__(cls):
+  def __new__(cls) -> "SessionManagerSingleton":
     if cls._instance is None:
       cls._instance = super().__new__(cls)
       cls._instance.sessions = {}

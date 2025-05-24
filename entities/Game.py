@@ -22,7 +22,7 @@ class Game:
     max_bet: int,
     shoe_reset_percentage: int,
     player_info: PlayerInfo
-  ):
+  ) -> None:
     self.players = []
     self.players.append(HumanPlayer(player_info))
 
@@ -39,7 +39,7 @@ class Game:
     self.dealer.shoe.reset_percentage = shoe_reset_percentage
     self.state = GameState.NOT_STARTED
 
-  def place_bet(self, bet: int):
+  def place_bet(self, bet: int) -> None:
     # Human player bet
     self.players[0].place_bet(self.min_bet, self.max_bet, bet)
 
@@ -47,7 +47,8 @@ class Game:
     for i in range (1, len(self.players)):
       self.players[i].place_bet(self.min_bet, self.max_bet)
 
-  def deal_cards(self):
+  # TODO: Why is this returning the hand value???
+  def deal_cards(self) -> int:
     self.state = GameState.DEALING
     full_shoe = self.dealer.shoe.full_size
     shoe_card_count = len(self.dealer.shoe.cards)
@@ -63,21 +64,23 @@ class Game:
       blackjack_logger.debug("Shoe IS above reset point")
     self.dealer.deal(self.players)
 
-    if self.players[0].get_hand_value() < 21:
+    hand_value = self.players[0].get_hand_value()
+    if hand_value < 21:
       self.state = GameState.HUMAN_PLAYER_DECISIONS
-      return self.players[0].get_hand_value()
+      return hand_value
 
     self.finish_round()
     return 21
 
-  def hit(self):
+  # TODO: Why is this returning the hand value???
+  def hit(self) -> int:
     human_player = self.players[0]
     self.dealer.hit(human_player)
     hand_value = human_player.get_hand_value()
 
     return hand_value
 
-  def finish_round(self):
+  def finish_round(self) -> None:
     self.state = GameState.AI_PLAYER_DECISIONS
     ai_players = self.players[1:]
     self.dealer.handle_ai_decisions(ai_players)
@@ -89,7 +92,7 @@ class Game:
     self.dealer.reset_hands(self.players)
     self.state = GameState.BETTING
 
-  def to_dict(self):
+  def to_dict(self) -> dict:
     return {
       "max_bet": self.max_bet,
       "min_bet": self.min_bet,

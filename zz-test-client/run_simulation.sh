@@ -8,7 +8,7 @@ curl -s -X POST "http://localhost:8000/simulation/run" \
         "min_bet": 50,
         "max_bet": 600,
         "shoe_reset_percentage": 20,
-        "win_value": 999999999,
+        "money_goal": 999999999,
         "player_info": {
           "money": 10000000
         },
