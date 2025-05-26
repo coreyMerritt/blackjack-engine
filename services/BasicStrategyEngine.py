@@ -34,12 +34,12 @@ class BasicStrategyEngine():
     if split:
       return PlayerDecision.SPLIT
 
-    hand_is_soft = False
+    is_soft = False
     player_hand_value = 0
     for card in player_hand:
       player_hand_value += card.value
       if card.value_can_reset:
-        hand_is_soft = True
+        is_soft = True
 
     accuracy_roll = random.randint(basic_strategy_skill_level, 100)
     BlackjackLogger.debug(f"Accuracy roll: {accuracy_roll}")
@@ -52,14 +52,14 @@ class BasicStrategyEngine():
 
     if drunken_player_hand_value > 21:
       drunken_player_hand_value = 21
-    elif drunken_player_hand_value < 4 and not hand_is_soft:
+    elif drunken_player_hand_value < 4 and not is_soft:
       drunken_player_hand_value = 4
-    elif drunken_player_hand_value < 13 and hand_is_soft:
+    elif drunken_player_hand_value < 13 and is_soft:
       drunken_player_hand_value = 13
     BlackjackLogger.debug(f"100% Acc: {drunken_player_hand_value == player_hand_value}")
     BlackjackLogger.debug(f"Dealer is showing: {dealer_face_card_value}")
 
-    if hand_is_soft:
+    if is_soft:
       player_decision = BasicStrategy.soft_totals[(dealer_face_card_value, drunken_player_hand_value)]
     else:
       player_decision = BasicStrategy.hard_totals[(dealer_face_card_value, drunken_player_hand_value)]

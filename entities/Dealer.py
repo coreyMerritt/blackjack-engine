@@ -6,8 +6,7 @@ from entities.Player import Player
 from entities.Shoe import Shoe
 from entities.Players.AiPlayer import AiPlayer
 from entities.Card import Card, Face, Suit
-from models.core.DoubleDownRestrictions import DoubleDownRules
-from models.core.GameRules import GameRules
+from models.core.DoubleDownRules import DoubleDownRules
 from models.enums.PlayerDecision import PlayerDecision
 from services.BasicStrategyEngine import BasicStrategyEngine
 from services.BlackjackEngine import BlackjackEngine
@@ -15,51 +14,56 @@ from services.BlackjackLogger import BlackjackLogger
 
 
 class Dealer:
-  shoe: Shoe
-  hands: List[Hand]
+  _shoe: Shoe
+  _hands: List[Hand]
 
   def __init__(self, shoe_deck_count: int, shoe_reset_percentage: int) -> None:
-    self.hands = []
-    self.shoe = Shoe(shoe_deck_count, shoe_reset_percentage)
+    self._hands = []
+    self._shoe = Shoe(shoe_deck_count, shoe_reset_percentage)
+
+  def get_full_shoe_size(self) -> int:
+    return self._shoe.get_full_size()
+
+  def get_shoe_card_count(self) -> int:
+    return self._shoe.get_card_count()
+
+  def get_shoe_reset_percentage(self) -> int:
+    return self._shoe.get_reset_percentage()
 
   def deal(self, players: List[Player]) -> None:
     for i, player in enumerate(players):
       player.hands[0] = Hand([], False, False)
       for _ in range(2):
-        card = self.shoe.cards.pop()
+        card = self._shoe.cards.pop()
         player.hands[0].add_card(card)
         BlackjackLogger.debug(f"Dealt player-{i}: {card.value}")
 
-    self.hands[0] = Hand([], False, False)
+    self._hands[0] = Hand([], False, False)
     for _ in range(2):
-      card = self.shoe.cards.pop()
-      self.hands[0].add_card(card)
+      card = self._shoe.cards.pop()
+      self._hands[0].add_card(card)
       BlackjackLogger.debug(f"Dealt dealer: {card.value}")
 
   def shuffle_shoe(self) -> None:
     BlackjackLogger.debug("Shuffling shoe...")
-    shuffle(self.shoe.cards)
+    shuffle(self._shoe.cards)
 
   def load_shoe(self) -> None:
     BlackjackLogger.debug("Loading shoe...")
-    self.shoe.cards = []
+    self._shoe.cards = []
 
-    for _ in range(self.shoe.deck_count):
+    for _ in range(self._shoe.deck_count):
       for suit in Suit:
         for face in Face:
           card = Card(suit, face)
-          self.shoe.cards.append(card)
+          self._shoe.cards.append(card)
 
-    self.shoe.full_size = 52 * self.shoe.deck_count
-    assert self.shoe.full_size == len(self.shoe.cards)
+    self._shoe.full_size = 52 * self._shoe.deck_count
+    assert self._shoe.full_size == len(self._shoe.cards)
 
-  def hit(self, player: Player, hand_index: int) -> None:
-    BlackjackLogger.debug(f"Shoe size: {len(self.shoe.cards)}")
-    BlackjackLogger.debug(f"Hitting the player from: {player.get_hand_value(hand_index)}")
-    player.hands[hand_index].cards.append(self.shoe.cards.pop())
-    if player.get_hand_value(hand_index) > 21:
-      if player.hands[hand_index].hand_is_soft:
-        player.hands[hand_index].reset_an_ace()
+  def hit_player(self, player: Player) -> None:
+    card = self._shoe.draw()
+    player.add_to_active_hand(card)
 
   def stand(self, player: Player, hand_index: int) -> None:
     # TODO: We really need to fix hands to implement this
@@ -98,7 +102,7 @@ class Dealer:
             ai_player.basic_strategy_skill_level,
             hand,
             # TODO: Lets abstract how the dealer gets his face card
-            self.hands[0].cards[1].value,
+            self._hands[0].cards[1].value,
             True,   # TODO: Implement
             False   # TODO: Implement
           )
@@ -107,11 +111,12 @@ class Dealer:
   def handle_dealer_decisions(self) -> None:
     decision = PlayerDecision.PLACEHOLDER
     while decision != PlayerDecision.STAND:
+      # TODO: This name is awful
       decision = self.get_decision()
       match decision:
         case PlayerDecision.HIT:
           # TODO: Shouldn't we use self.hit here?
-          self.hands[0].cards.append(self.shoe.cards.pop())
+          self._hands[0].cards.append(self._shoe.cards.pop())
           self.hit(self, 0)
 
   def get_decision(self) -> PlayerDecision:
@@ -123,7 +128,7 @@ class Dealer:
   # TODO: This should be simpler now
   def get_hand_value(self) -> int:
     value = 0
-    for card in self.hands[0].cards:
+    for card in self._hands[0].cards:
       value += card.value
 
     return value
@@ -131,7 +136,7 @@ class Dealer:
   def handle_payouts(self, players: List[Player]) -> None:
     dealer_hand_value = self.get_hand_value()
     dealer_busted = dealer_hand_value > 21
-    dealer_has_blackjack = dealer_hand_value == 21 and len(self.hands[0].cards) == 2
+    dealer_has_blackjack = dealer_hand_value == 21 and len(self._hands[0].cards) == 2
     for player in players:
       for i, player_hand in enumerate(player.hands):
         player_hand_value = player.get_hand_value(i)
@@ -164,11 +169,11 @@ class Dealer:
     for i, player in enumerate(players):
       player.hands = []
       BlackjackLogger.debug(f"Reset player-{i} hand to: []")
-    self.hands = []
+    self._hands = []
     BlackjackLogger.debug("Reset dealer hand to: []")
 
   def to_dict(self) -> dict:
     return {
-      "shoe": self.shoe.to_dict(),
-      "hand": [c.to_dict() for hand in self.hands for c in hand.cards]
+      "shoe": self._shoe.to_dict(),
+      "hand": [c.to_dict() for hand in self._hands for c in hand.cards]
     }

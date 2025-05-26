@@ -3,37 +3,37 @@ from models.enums.Suit import Suit
 
 
 class Card:
-  suit: Suit
-  face: Face
-  value: int
-  value_can_reset: bool
+  _suit: Suit
+  _face: Face
+  _value: int
+  _value_can_reset: bool
 
   def __init__(self, suit: Suit, face: Face) -> None:
-    self.suit = suit
-    self.face = face
+    self._suit = suit
+    self._face = face
     self.set_value()
 
   def set_value(self) -> None:
-    match self.face.value:
+    match self._face.value:
       case "J":
-        self.value = 10
-        self.value_can_reset = False
+        self._value = 10
+        self._value_can_reset = False
       case "Q":
-        self.value = 10
-        self.value_can_reset = False
+        self._value = 10
+        self._value_can_reset = False
       case "K":
-        self.value = 10
-        self.value_can_reset = False
+        self._value = 10
+        self._value_can_reset = False
       case "A":
-        self.value = 11
-        self.value_can_reset = True
+        self._value = 11
+        self._value_can_reset = True
       case _:
-        self.value = int(self.face.value)
-        self.value_can_reset = False
+        self._value = int(self._face.value)
+        self._value_can_reset = False
 
   def to_dict(self) -> dict:
     return {
-      "suit": self.suit.value,
-      "face": self.face.value,
-      "value": self.value
+      "suit": self._suit.value,
+      "face": self._face.value,
+      "value": self._value
     }

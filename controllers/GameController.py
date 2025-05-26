@@ -15,9 +15,9 @@ class GameController:
     if not game:
       raise HTTPException(status_code=401, detail="Invalid session")
 
-    game.state = GameState.BETTING
+    game.set_state(GameState.BETTING)
 
-    return JSONResponse(content={"game": game})
+    return 200
 
   async def place_bet(self, session_id: str, bet: int) -> JSONResponse:
     assert isinstance(session_id, str)
@@ -26,14 +26,14 @@ class GameController:
     game = session_manager.get_game(session_id)
     if not game:
       raise HTTPException(status_code=401, detail="Invalid session")
-    if not game.state == GameState.BETTING:
+    if not game.get_state() == GameState.BETTING:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
-    BlackjackEngine.place_bets(game, bet)
-    return_hand_value = BlackjackEngine.deal_cards(game)
+    game.place_bets(bet)
+    BlackjackEngine.deal_cards(game)
     BlackjackEngine.finish_round(game)
 
-    return JSONResponse(content={"hand_value": return_hand_value})
+    return 200
 
   async def hit(self, session_id: str, hand_index: int) -> JSONResponse:
     assert isinstance(session_id, str)
@@ -42,14 +42,12 @@ class GameController:
     game = session_manager.get_game(session_id)
     if not game:
       raise HTTPException(status_code=401, detail="Invalid session")
-    if not game.state == GameState.HUMAN_PLAYER_DECISIONS:
+    if not game.get_state() == GameState.HUMAN_PLAYER_DECISIONS:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
-    return_hand_value = BlackjackEngine.hit_first_human_player(game, hand_index)
-    if return_hand_value >= 21:
-      BlackjackEngine.finish_round(game)
+    game.hit_player()
 
-    return JSONResponse(content={"hand_value": return_hand_value})
+    return 200
 
   async def stand(self, session_id: str, hand_index: int) -> JSONResponse:
     assert isinstance(session_id, str)
