@@ -1,5 +1,4 @@
-from pydantic import BaseModel
+from models.core.PlayerInfo import PlayerInfo
 
-class AiPlayerInfo(BaseModel):
-  money: int
-  basic_strategy_skill_level: int   # 1-10
+class AiPlayerInfo(PlayerInfo):
+  basic_strategy_skill_level: int

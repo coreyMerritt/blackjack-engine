@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from models.core.PlayerInfo import PlayerInfo
 
-class HumanPlayerInfo(BaseModel):
-  money: int
+class HumanPlayerInfo(PlayerInfo):
+  pass

@@ -5,54 +5,79 @@ from models.enums.Face import Face
 
 
 class Hand():
-  _cards: List[Card]
-  _soft: bool
-  _from_split: bool
-  _doubled_down: bool
-  _finalized: bool
-  _value: int
-  _active_ace_count: int
+  __cards: List[Card]
+  __bet: int
+  __soft: bool
+  __from_split: bool
+  __doubled_down: bool
+  __finalized: bool
+  __value: int
+  __active_ace_count: int
 
   def __init__(self, cards: List[Card], soft: bool, from_split: bool):
-    self._cards = cards
-    self._soft = soft
-    self._from_split = from_split
-    self._value = 0
-    self._active_ace_count = 0
+    self.__cards = cards
+    self.__soft = soft
+    self.__from_split = from_split
+    self.__value = 0
+    self.__active_ace_count = 0
 
-  def add_card(self, card: Card):
-    self._cards.append(card)
-    self._value += card.value
+  def get_value(self) -> int:
+    return self.__value
+
+  def get_active_ace_count(self) -> int:
+    return self.__active_ace_count
+
+  def get_bet(self) -> int:
+    return self.__bet
+
+  def get_card(self, card_index: int) -> int:
+    return self.__cards[card_index]
+
+  def get_card_count(self) -> int:
+    return len(self.__cards)
+
+  def get_card_face(self, card_index: int) -> Face:
+    return self.__cards[card_index].get_face()
+
+  def get_card_value(self, card_index: int) -> int:
+    return self.__cards[card_index].get_value()
+
+  def set_finalized(self, value: bool) -> None:
+    self.__finalized = value
+
+  def add_card(self, card: Card) -> None:
+    self.__cards.append(card)
+    self.__value += card.value
     if card.face == Face.ACE:
-      self._soft = True
-    self._active_ace_count += 1
+      self.__soft = True
+    self.__active_ace_count += 1
 
-  def reset_an_ace(self):
-    if self._value > 21:
-      if self._soft:
-        for card in self._cards:
+  def reset_an_ace(self) -> None:
+    if self.__value > 21:
+      if self.__soft:
+        for card in self.__cards:
           if card.value_can_reset:
             card.value_can_reset = False
             card.value = 1
-            self._active_ace_count -= 1
+            self.__active_ace_count -= 1
             break
-        if self._active_ace_count == 0:
-          self._soft = False
+        if self.__active_ace_count == 0:
+          self.__soft = False
 
-  def is_soft(self):
-    return self._soft
+  def is_soft(self) -> bool:
+    return self.__soft
 
-  def is_from_split(self):
-    return self._from_split
+  def is_from_split(self) -> bool:
+    return self.__from_split
 
-  def is_doubled_down(self):
-    return self._doubled_down
+  def is_doubled_down(self) -> bool:
+    return self.__doubled_down
 
-  def is_finalized(self):
-    return self._finalized
+  def is_finalized(self) -> bool:
+    return self.__finalized
 
-  def get_value(self):
-    return self._value
-
-  def get_active_ace_count(self):
-    return self._active_ace_count
+  def is_pair(self) -> bool:
+    return (
+      len(self.__cards) == 2
+      and self.__cards[0].get_value() == self.__cards[1].get_value()
+    )

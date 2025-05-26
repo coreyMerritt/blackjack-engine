@@ -43,11 +43,11 @@ class SimulationEngine():
   def run_core_gameplay_loop(self) -> None:
     self.game.state = GameState.BETTING
     current_bet = self._get_bet()
-    BlackjackEngine.place_bets(self.game, current_bet)
+    self.game.place_bets(current_bet)
 
     self.game.state = GameState.DEALING
-    BlackjackEngine.deal_cards(self.game)
-    BlackjackEngine.finish_round(self.game)
+    self.game.deal_cards()
+    self.game.finish_round()
 
   def get_results(self) -> SimulationResults:
     return self.results

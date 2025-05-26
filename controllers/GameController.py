@@ -30,8 +30,7 @@ class GameController:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
     game.place_bets(bet)
-    BlackjackEngine.deal_cards(game)
-    BlackjackEngine.finish_round(game)
+    game.deal_cards()
 
     return 200
 
@@ -59,9 +58,9 @@ class GameController:
     if not game.state == GameState.HUMAN_PLAYER_DECISIONS:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
-    BlackjackEngine.stand_first_human_player(game, hand_index)
+    game.stand_active_hand()
 
-    return JSONResponse(content={"money": game.human_players[0].money})
+    return 200
 
   async def get(self, session_id: str) -> JSONResponse:
     assert isinstance(session_id, str)
