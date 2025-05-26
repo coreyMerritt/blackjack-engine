@@ -14,13 +14,13 @@ async def start_game(session_id: str) -> JSONResponse:
 async def place_bet(session_id: str, bet: int) -> JSONResponse:
   return await controller.place_bet(session_id, bet)
 
-@router.post("/session/{session_id}/game/hit")
-async def hit(session_id: str) -> JSONResponse:
-  return await controller.hit(session_id)
+@router.post("/session/{session_id}/game/hit/{hand_index}")
+async def hit(session_id: str, hand_index: int) -> JSONResponse:
+  return await controller.hit(session_id, hand_index)
 
-@router.post("/session/{session_id}/game/stand")
-async def stand(session_id: str) -> JSONResponse:
-  return await controller.stand(session_id)
+@router.post("/session/{session_id}/game/stand/{hand_index}")
+async def stand(session_id: str, hand_index: int) -> JSONResponse:
+  return await controller.stand(session_id, hand_index)
 
 @router.post("/session/{session_id}/game/get")
 async def get(session_id: str) -> JSONResponse:

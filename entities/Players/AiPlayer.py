@@ -10,7 +10,7 @@ class AiPlayer(Player):
   basic_strategy_skill_level: int
 
   def __init__(self, ai_player_info: AiPlayerInfo) -> None:
-    self.hand: List[Card] = []
+    self.hands: List[List[Card]] = []
     self.money = ai_player_info.money
     self.current_bet = 0
     self.doubled_down = False

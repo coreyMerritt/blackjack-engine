@@ -1,4 +1,5 @@
 from entities.Game import Game
+from models.core.DoubleDownRestrictions import DoubleDownRestrictions
 from models.enums.GameState import GameState
 from services.BlackjackLogger import BlackjackLogger
 
@@ -37,14 +38,15 @@ class BlackjackEngine():
 
     return 21
 
-  # TODO: Why is this returning the hand value???
   @staticmethod
-  def hit_first_human_player(game: Game) -> int:
+  def hit_first_human_player(game: Game, hand_index: int) -> None:
     human_player = game.human_players[0]
-    game.dealer.hit(human_player)
-    player_hand_value = human_player.get_hand_value()
+    game.dealer.hit(human_player, hand_index)
 
-    return player_hand_value
+  @staticmethod
+  def stand_first_human_player(game: Game, hand_index: int) -> None:
+    human_player = game.human_players[0]
+    game.dealer.stand(human_player, hand_index)
 
   # TODO: We should make this more "state aware" and callable from any state
   @staticmethod
@@ -59,3 +61,10 @@ class BlackjackEngine():
     game.state = GameState.CLEANUP
     game.dealer.reset_hands(all_players)
     game.state = GameState.BETTING
+
+  # TODO: Heck
+  # @staticmethod
+  # def can_double_down(double_down_restrictions: DoubleDownRestrictions, ???) -> bool:
+  #   if not double_down_restrictions.allow_after_split and ???
+  #   if double_down_restrictions.nine_ten_eleven_only:
+  #     ???

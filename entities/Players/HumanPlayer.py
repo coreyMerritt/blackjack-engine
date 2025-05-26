@@ -7,7 +7,7 @@ from models.core.HumanPlayerInfo import HumanPlayerInfo
 
 class HumanPlayer(Player):
   def __init__(self, human_player_info: HumanPlayerInfo) -> None:
-    self.hand: List[Card] = []
+    self.hands: List[List[Card]] = []
     self.money = human_player_info.money
     self.current_bet = 0
     self.doubled_down = False

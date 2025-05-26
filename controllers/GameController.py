@@ -35,8 +35,9 @@ class GameController:
 
     return JSONResponse(content={"hand_value": return_hand_value})
 
-  async def hit(self, session_id: str) -> JSONResponse:
+  async def hit(self, session_id: str, hand_index: int) -> JSONResponse:
     assert isinstance(session_id, str)
+    assert isinstance(hand_index, int)
 
     game = session_manager.get_game(session_id)
     if not game:
@@ -44,14 +45,15 @@ class GameController:
     if not game.state == GameState.HUMAN_PLAYER_DECISIONS:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
-    return_hand_value = BlackjackEngine.hit_first_human_player(game)
+    return_hand_value = BlackjackEngine.hit_first_human_player(game, hand_index)
     if return_hand_value >= 21:
       BlackjackEngine.finish_round(game)
 
     return JSONResponse(content={"hand_value": return_hand_value})
 
-  async def stand(self, session_id: str) -> JSONResponse:
+  async def stand(self, session_id: str, hand_index: int) -> JSONResponse:
     assert isinstance(session_id, str)
+    assert isinstance(hand_index, int)
 
     game = session_manager.get_game(session_id)
     if not game:
@@ -59,7 +61,7 @@ class GameController:
     if not game.state == GameState.HUMAN_PLAYER_DECISIONS:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
-    BlackjackEngine.finish_round(game)
+    BlackjackEngine.stand_first_human_player(game, hand_index)
 
     return JSONResponse(content={"money": game.human_players[0].money})
 

@@ -5,7 +5,7 @@ from models.core.GameRules import GameRules
 
 
 class Player(ABC):
-  hand: List[Card]
+  hands: List[List[Card]]
   current_bet: int
   money: int
   doubled_down: bool
@@ -15,16 +15,16 @@ class Player(ABC):
   def __init__(self, human_player_info) -> None:
     pass
 
-  def get_hand_value(self) -> int:
+  def get_hand_value(self, hand_index: int) -> int:
     value = 0
-    for card in self.hand:
+    for card in self.hands[hand_index]:
       value += card.value
 
     return value
 
   def to_dict(self) -> dict:
     return {
-      "hand": [h.to_dict() for h in self.hand],
+      "hand": [c.to_dict() for subhand in self.hands for c in subhand],
       "current_bet": self.current_bet
     }
 

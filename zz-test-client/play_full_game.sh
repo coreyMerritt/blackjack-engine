@@ -12,14 +12,8 @@ gameplayLoop() {
   while [[ $money -gt 0 ]]; do
     hand_value=$(placeBet "50")
     while [[ $hand_value -lt 17 ]]; do
-#      echo "Hitting on $hand_value"
       hand_value=$(hit)
     done
-
-#    echo "hand value: $hand_value"
-#    game="$(getGame)"
-#    dealer_hand="$(echo $game | jq .dealer.hand)"
-#    echo "dealer hand: $dealer_hand"
 
     if [[ $hand_value -lt 21 ]]; then
       money=$(stand)

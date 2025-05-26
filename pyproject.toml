@@ -1,0 +1,5 @@
+[project]
+dependencies = ["pylint>=3.3"]
+
+[tool.pylint.'MAIN']
+
