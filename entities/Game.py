@@ -4,7 +4,9 @@ from entities.Hand import Hand
 from entities.Player import Player
 from entities.Players.AiPlayer import AiPlayer
 from entities.Players.HumanPlayer import HumanPlayer
+from models.core.BettingRules import BettingRules
 from models.core.AiPlayerInfo import AiPlayerInfo
+from models.core.DealerRules import DealerRules
 from models.core.DoubleDownRules import DoubleDownRules
 from models.core.GameRules import GameRules
 from models.core.HumanPlayerInfo import HumanPlayerInfo
@@ -16,8 +18,8 @@ from services.BlackjackLogger import BlackjackLogger
 
 
 class Game:
-  __min_bet: int
-  __max_bet: int
+  __betting_rules: BettingRules
+  __dealer_rules: DealerRules
   __state: GameState
   __dealer: Dealer
   __human_players: List[HumanPlayer]
@@ -31,31 +33,31 @@ class Game:
     human_player_info: List[HumanPlayerInfo] | None,
     ai_player_info: List[AiPlayerInfo] | None
   ) -> None:
+    self.__betting_rules = rules.betting_rules
+    self.__dealer_rules = rules.dealer_rules
+    self.__state = GameState.NOT_STARTED
+    self.__dealer = Dealer(self.__dealer_rules)
+    self.__dealer.load_shoe()
+    self.__dealer.shuffle_shoe()
     self.__human_players = []
     if human_player_info is not None:
       for single_human_player_info in human_player_info:
         human_player = HumanPlayer(single_human_player_info)   # TODO: AI players should get their own info
         self.__human_players.append(human_player)
-
     self.__ai_players = []
     if ai_player_info is not None:
       for single_ai_player_info in ai_player_info:
         ai_player = AiPlayer(single_ai_player_info)   # TODO: AI players should get their own info
         self.__ai_players.append(ai_player)
-
-    self.__dealer = Dealer(rules.deck_count, rules.shoe_reset_percentage)
-    self.__dealer.load_shoe()
-    self.__dealer.shuffle_shoe()
-
-    self._rules = rules
+    self.__double_down_rules = rules.double_down_rules
     self.__basic_strategy_engine = BasicStrategyEngine()
-    self.__state = GameState.NOT_STARTED
+
 
   def get_min_bet(self) -> int:
-    return self.__min_bet
+    return self.__betting_rules.min_bet
 
   def get_max_bet(self) -> int:
-    return self.__max_bet
+    return self.__betting_rules.max_bet
 
   def get_state(self) -> GameState:
     return self.__state
@@ -78,15 +80,15 @@ class Game:
   def get_first_human_player_hand_value(self) -> int:
     return self.__human_players[0].get_hands()
 
-  def get_active_hand(self) -> Hand:
+  def get_active_hand(self) -> Hand | None:
     active_player = self.get_active_player()
     return active_player.get_active_hand()
 
-  def get_active_player(self) -> Player:
+  def get_active_player(self) -> Player | None:
     for player in self.get_all_players_except_dealer():
-      active_hand = player.get_active_hand()
-      if active_hand is not None:
+      if player.has_active_hand():
         return player
+    return None
 
   def get_all_players_except_dealer(self) -> List[Player]:
     return self.__human_players + self.__ai_players
@@ -119,10 +121,12 @@ class Game:
 
     return True
 
-  def place_bets(self, bet: int) -> None:
-    all_players_except_dealer = self.__human_players + self.__ai_players
-    for player in all_players_except_dealer:
-      player.place_bet(bet, self._rules)
+  def place_bets(self) -> None:
+    # Note: human players should set their bets before this via the API
+    # if this is triggered before then, their bets will remain the same
+    for player in self.__ai_players:
+      bet = player.determine_bet(self.__betting_rules)
+      player.set_bet(bet)
 
   def deal_cards(self) -> int:
     self.set_state(GameState.DEALING)
@@ -187,23 +191,31 @@ class Game:
           )
           BlackjackLogger.debug(f"Decision: {player_decision}")
 
-  # TODO: We should make this more "state aware" and callable from any state
   def finish_round(self) -> None:
-    self.set_state(GameState.AI_PLAYER_DECISIONS)
-    self.handle_ai_decisions()
-    self.set_state(GameState.DEALER_DECISIONS)
-    self.__dealer.handle_dealer_decisions()
-    self.set_state(GameState.PAYOUTS)
-    all_players = self.__human_players + self.__ai_players
-    self.__dealer.handle_payouts(all_players)
-    self.set_state(GameState.CLEANUP)
-    self.__dealer.reset_hands(all_players)
-    self.set_state(GameState.BETTING)
+    if self.get_state() == GameState.NOT_STARTED:
+      self.set_state(GameState.BETTING)
+    if self.get_state() == GameState.BETTING:
+      self.place_bets()
+      self.set_state(GameState.HUMAN_PLAYER_DECISIONS)
+    if self.get_state() == GameState.HUMAN_PLAYER_DECISIONS:
+      self.set_state(GameState.AI_PLAYER_DECISIONS)
+    if self.get_state() == GameState.AI_PLAYER_DECISIONS:
+      self.handle_ai_decisions()
+      self.set_state(GameState.DEALER_DECISIONS)
+    if self.get_state() == GameState.DEALER_DECISIONS:
+      self.__dealer.handle_decisions()
+      self.set_state(GameState.PAYOUTS)
+    if self.get_state() == GameState.PAYOUTS:
+      self.__dealer.handle_payouts(self.__human_players + self.__ai_players)
+      self.set_state(GameState.CLEANUP)
+    if self.get_state() == GameState.CLEANUP:
+      self.__dealer.reset_hands(self.__human_players + self.__ai_players)
+      self.set_state(GameState.BETTING)
 
   def to_dict(self) -> dict:
     return {
-      "max_bet": self.__max_bet,
-      "min_bet": self.__min_bet,
+      "max_bet": self.__betting_rules.max_bet,
+      "min_bet": self.__betting_rules.min_bet,
       "state": self.__state.name,
       "dealer": self.__dealer.to_dict(),
       "human_players": [p.to_dict() for p in self.__human_players],

@@ -4,22 +4,27 @@ from typing import List
 from entities.Hand import Hand
 from entities.Player import Player
 from entities.Shoe import Shoe
-from entities.Players.AiPlayer import AiPlayer
 from entities.Card import Card, Face, Suit
-from models.core.DoubleDownRules import DoubleDownRules
+from models.core.DealerRules import DealerRules
 from models.enums.PlayerDecision import PlayerDecision
-from services.BasicStrategyEngine import BasicStrategyEngine
-from services.BlackjackEngine import BlackjackEngine
 from services.BlackjackLogger import BlackjackLogger
 
 
-class Dealer:
+class Dealer(Player):
+  __hits_soft_seventeen: bool
   __shoe: Shoe
   __hands: List[Hand]
 
-  def __init__(self, shoe_deck_count: int, shoe_reset_percentage: int) -> None:
-    self.__hands = []
-    self.__shoe = Shoe(shoe_deck_count, shoe_reset_percentage)
+  def __init__(self, rules: DealerRules) -> None:
+    super().__init__({ "money": 999999999 })
+    self.__hits_soft_seventeen = rules.dealer_hits_soft_seventeen
+    self.__shoe = Shoe(rules.deck_count, rules.shoe_reset_percentage)
+
+  def get_shoe(self) -> Shoe:
+    return self.__shoe
+
+  def get_hands(self) -> List[Hand]:
+    return self.__hands
 
   def get_full_shoe_size(self) -> int:
     return self.__shoe.get_full_size()
@@ -29,6 +34,20 @@ class Dealer:
 
   def get_shoe_reset_percentage(self) -> int:
     return self.__shoe.get_reset_percentage()
+
+  def get_facecard(self) -> Card:
+    return self.__hands[0].get_card(1)
+
+  def get_active_hand_decision(self) -> PlayerDecision:
+    if self.__hands[0].is_soft():
+      if self.__hands[0].get_value() == 17:
+        if self.__hits_soft_seventeen:
+          return PlayerDecision.HIT
+        return PlayerDecision.STAND
+    if self.get_hand_value(0) >= 17:
+      return PlayerDecision.STAND
+    else:
+      return PlayerDecision.HIT
 
   def deal(self, players: List[Player]) -> None:
     for i, player in enumerate(players):
@@ -66,40 +85,19 @@ class Dealer:
     card = self.__shoe.draw()
     player.add_to_active_hand(card)
 
-  def stand(self, player: Player, hand_index: int) -> None:
-    # TODO: We really need to fix hands to implement this
-    pass
+  def stand_player(self, player: Player) -> None:
+    player.finalize_active_hand()
 
-  def handle_dealer_decisions(self) -> None:
+  def handle_decisions(self) -> None:
     decision = PlayerDecision.PLACEHOLDER
     while decision != PlayerDecision.STAND:
-      # TODO: This name is awful
-      decision = self.get_decision()
+      decision = self.get_active_hand_decision()
       match decision:
         case PlayerDecision.HIT:
-          # TODO: Shouldn't we use self.hit here?
-          self.__hands[0].cards.append(self.__shoe.cards.pop())
           self.hit_player(self)
 
-  def get_decision(self) -> PlayerDecision:
-    if self.get_hand_value() >= 17:
-      return PlayerDecision.STAND
-    else:
-      return PlayerDecision.HIT
-
-  # TODO: This should be simpler now
-  def get_hand_value(self) -> int:
-    value = 0
-    for card in self.__hands[0].cards:
-      value += card.value
-
-    return value
-
-  def get_facecard(self) -> Card:
-    return self.__hands[0].get_card(1)
-
   def handle_payouts(self, players: List[Player]) -> None:
-    dealer_hand_value = self.get_hand_value()
+    dealer_hand_value = self.get_hand_value(0)
     dealer_busted = dealer_hand_value > 21
     dealer_has_blackjack = dealer_hand_value == 21 and len(self.__hands[0].cards) == 2
     for player in players:
@@ -116,23 +114,23 @@ class Dealer:
         player_lost = not dealer_busted and not player_beat_dealer
 
         if player_busted:
-          player.money -= player.current_bet
+          player.decrement_money(player.get_current_bet())
         elif both_have_blackjack:
           pass  # Push/Tie
         elif only_player_has_blackjack:
-          player.money += (player.current_bet * 1.5)
+          player.decrement_money(player.get_current_bet() * 1.5)
         elif player_won:
-          player.money += player.current_bet
+          player.increment_money(player.get_current_bet())
         elif player_tied_with_dealer:
           pass  # Push/Tie
         elif player_lost:
-          player.money -= player.current_bet
+          player.decrement_money(player.get_current_bet())
         else:
           raise NotImplementedError("Unexpected conditions @dealer.handle_payout")
 
   def reset_hands(self, players: List[Player]) -> None:
     for i, player in enumerate(players):
-      player.hands = []
+      player.set_hands([])
       BlackjackLogger.debug(f"Reset player-{i} hand to: []")
     self.__hands = []
     BlackjackLogger.debug("Reset dealer hand to: []")

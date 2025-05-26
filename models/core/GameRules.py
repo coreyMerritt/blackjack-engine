@@ -1,11 +1,11 @@
 from pydantic import BaseModel
 
+from models.core.BettingRules import BettingRules
+from models.core.DealerRules import DealerRules
 from models.core.DoubleDownRules import DoubleDownRules
 
 
 class GameRules(BaseModel):
-  min_bet: int
-  max_bet: int
-  deck_count: int
-  shoe_reset_percentage: int
+  dealer_rules: DealerRules
+  betting_rules: BettingRules
   double_down_rules: DoubleDownRules

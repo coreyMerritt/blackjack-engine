@@ -3,7 +3,6 @@ from entities.Game import Game
 from models.core.BetSpread import BetSpread
 from models.api.SimulationResultsRes import SimulationResults
 from models.enums.GameState import GameState
-from services.BlackjackEngine import BlackjackEngine
 
 
 class SimulationEngine():
@@ -42,8 +41,7 @@ class SimulationEngine():
 
   def run_core_gameplay_loop(self) -> None:
     self.game.state = GameState.BETTING
-    current_bet = self._get_bet()
-    self.game.place_bets(current_bet)
+    self.game.place_bets()
 
     self.game.state = GameState.DEALING
     self.game.deal_cards()

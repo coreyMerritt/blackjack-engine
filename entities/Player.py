@@ -40,13 +40,21 @@ class Player(ABC):
 
   def get_active_hand(self) -> Hand | None:
     for hand in self.__hands:
-      if hand.is_finalized():
-        continue
-      return hand
+      if not hand.is_finalized():
+        return hand
     return None
+
+  def set_hands(self, hands: List[Hand]) -> None:
+    self.__hands = hands
 
   def set_bet(self, bet: int, hand_index: int) -> None:
     self.__hands[hand_index].set_bet(bet)
+
+  def increment_money(self, amount: int) -> None:
+    self.__money += amount
+
+  def decrement_money(self, amount: int) -> None:
+    self.__money -= amount
 
   def add_to_active_hand(self, card: Card) -> None:
     active_hand = self.get_active_hand()
@@ -55,6 +63,12 @@ class Player(ABC):
   def finalize_active_hand(self) -> None:
     active_hand = self.get_active_hand()
     active_hand.set_finalized(True)
+
+  def has_active_hand(self) -> bool:
+    for hand in self.__hands:
+      if not hand.is_finalized():
+        return True
+    return False
 
   def to_dict(self) -> dict:
     return {
