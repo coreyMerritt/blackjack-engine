@@ -1,5 +1,7 @@
+from entities.Hand import Hand
 from entities.Game import Game
-from models.core.DoubleDownRestrictions import DoubleDownRestrictions
+from models.core.DoubleDownRestrictions import DoubleDownRules
+from models.enums.Face import Face
 from models.enums.GameState import GameState
 from services.BlackjackLogger import BlackjackLogger
 
@@ -52,7 +54,7 @@ class BlackjackEngine():
   @staticmethod
   def finish_round(game: Game) -> None:
     game.state = GameState.AI_PLAYER_DECISIONS
-    game.dealer.handle_ai_decisions(game.ai_players, game.rules)
+    game.dealer.handle_ai_decisions(game.ai_players, game.rules.double_down_rules)
     game.state = GameState.DEALER_DECISIONS
     game.dealer.handle_dealer_decisions()
     game.state = GameState.PAYOUTS
@@ -62,9 +64,26 @@ class BlackjackEngine():
     game.dealer.reset_hands(all_players)
     game.state = GameState.BETTING
 
-  # TODO: Heck
-  # @staticmethod
-  # def can_double_down(double_down_restrictions: DoubleDownRestrictions, ???) -> bool:
-  #   if not double_down_restrictions.allow_after_split and ???
-  #   if double_down_restrictions.nine_ten_eleven_only:
-  #     ???
+  @staticmethod
+  def can_double_down(double_down_rules: DoubleDownRules, hand: Hand) -> bool:
+    if hand.cards[0].value != hand.cards[1].value:
+      return False
+
+    if double_down_rules.first_two_cards_only and len(hand.cards) != 2:
+      return False
+
+    if not double_down_rules.allow_after_split and hand.is_from_split:
+      return False
+
+    # Its important that we check this by Face because aces can change value
+    both_cards_are_ace = hand.cards[0].value == Face.ACE and hand.cards[1].face == Face.ACE
+    both_cards_are_ten = hand.cards[0].value == 10 and hand.cards[1].value == 10
+    both_cards_are_nine = hand.cards[0].value == 9 and hand.cards[1].value == 9
+    if double_down_rules.nine_ten_eleven_only and not (
+      both_cards_are_ace
+      or both_cards_are_ten
+      or both_cards_are_nine
+    ):
+      return False
+
+    return True

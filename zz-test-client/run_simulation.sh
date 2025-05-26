@@ -8,7 +8,7 @@ curl -s -X POST "http://localhost:8000/simulation/run" \
           "max_bet": 600,
           "deck_count": 8,
           "shoe_reset_percentage": 20,
-          "double_down_restrictions": {
+          "double_down_rules": {
             "first_two_cards_only": true,
             "allow_after_split": false,
             "nine_ten_eleven_only": true

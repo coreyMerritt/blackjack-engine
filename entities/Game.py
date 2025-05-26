@@ -3,7 +3,7 @@ from entities.Dealer import Dealer
 from entities.Players.AiPlayer import AiPlayer
 from entities.Players.HumanPlayer import HumanPlayer
 from models.core.AiPlayerInfo import AiPlayerInfo
-from models.core.DoubleDownRestrictions import DoubleDownRestrictions
+from models.core.DoubleDownRules import DoubleDownRules
 from models.core.GameRules import GameRules
 from models.core.HumanPlayerInfo import HumanPlayerInfo
 from models.enums.GameState import GameState
@@ -17,7 +17,7 @@ class Game:
   dealer: Dealer
   human_players: List[HumanPlayer]
   ai_players: List[AiPlayer]
-  double_down_restrictions: DoubleDownRestrictions
+  double_down_rules: DoubleDownRules
   basic_strategy_engine: BasicStrategyEngine
 
   def __init__(

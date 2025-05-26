@@ -14,7 +14,7 @@ class BasicStrategyEngine():
     player_hand: List[Card],
     dealer_face_card_value: int,
     double_after_splitting_allowed: bool,
-    hand_is_from_split: bool
+    is_from_split: bool
   ) -> PlayerDecision:
     surrender = BasicStrategyEngine._check_for_surrender(
       basic_strategy_skill_level,
@@ -28,7 +28,7 @@ class BasicStrategyEngine():
       basic_strategy_skill_level,
       player_hand,
       dealer_face_card_value,
-      hand_is_from_split,
+      is_from_split,
       double_after_splitting_allowed
     )
     if split:
@@ -88,12 +88,12 @@ class BasicStrategyEngine():
     basic_strategy_skill_level: int,
     player_hand: List[Card],
     dealer_face_card_value: int,
-    hand_is_from_split: bool,
+    is_from_split: bool,
     double_after_splitting_allowed: bool
   ):
     if basic_strategy_skill_level == 10:
       cards_match = (player_hand[0].value == player_hand[1].value) and len(player_hand) == 2
-      splitting_is_allowed = cards_match and (not hand_is_from_split or double_after_splitting_allowed)
+      splitting_is_allowed = cards_match and (not is_from_split or double_after_splitting_allowed)
       if splitting_is_allowed:
         splitting_decision = BasicStrategy.pair_splitting[(dealer_face_card_value, player_hand[0].value)]
         if splitting_decision == PairSplittingDecision.YES:

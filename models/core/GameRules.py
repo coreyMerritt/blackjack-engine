@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from models.core.DoubleDownRestrictions import DoubleDownRestrictions
+from models.core.DoubleDownRules import DoubleDownRules
 
 
 class GameRules(BaseModel):
@@ -8,4 +8,4 @@ class GameRules(BaseModel):
   max_bet: int
   deck_count: int
   shoe_reset_percentage: int
-  double_down_restrictions: DoubleDownRestrictions
+  double_down_rules: DoubleDownRules
