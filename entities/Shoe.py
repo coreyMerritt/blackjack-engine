@@ -1,3 +1,4 @@
+from random import shuffle
 from typing import List
 from entities.Card import Card
 
@@ -25,8 +26,17 @@ class Shoe:
   def get_reset_percentage(self) -> int:
     return self.__reset_percentage
 
+  def set_cards(self, cards: List[Card]) -> None:
+    self.__cards = cards
+
+  def add_card(self, card: Card) -> None:
+    self.__cards.append(card)
+
   def draw(self) -> Card:
     return self.__cards.pop()
+
+  def shuffle(self) -> None:
+    shuffle(self.__cards)
 
   def to_dict(self) -> dict:
     return {

@@ -33,6 +33,9 @@ class Hand():
   def get_card(self, card_index: int) -> int:
     return self.__cards[card_index]
 
+  def get_cards(self) -> List[Card]:
+    return self.__cards
+
   def get_card_count(self) -> int:
     return len(self.__cards)
 

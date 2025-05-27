@@ -1,4 +1,3 @@
-from random import shuffle
 from typing import List
 
 from entities.Hand import Hand
@@ -19,6 +18,8 @@ class Dealer(Player):
     super().__init__({ "money": 999999999 })
     self.__hits_soft_seventeen = rules.dealer_hits_soft_seventeen
     self.__shoe = Shoe(rules.deck_count, rules.shoe_reset_percentage)
+    self.load_shoe()
+    self.shuffle_shoe()
 
   def get_shoe(self) -> Shoe:
     return self.__shoe
@@ -51,34 +52,33 @@ class Dealer(Player):
 
   def deal(self, players: List[Player]) -> None:
     for i, player in enumerate(players):
-      player.hands[0] = Hand([], False, False)
+      player.add_new_hand(Hand([], False, False))
       for _ in range(2):
-        card = self.__shoe.cards.pop()
-        player.hands[0].add_card(card)
-        BlackjackLogger.debug(f"Dealt player-{i}: {card.value}")
+        card = self.__shoe.draw()
+        player.add_to_active_hand(card)
+        BlackjackLogger.debug(f"Dealt player-{i}: {card.get_value()}")
 
     self.__hands[0] = Hand([], False, False)
     for _ in range(2):
-      card = self.__shoe.cards.pop()
+      card = self.__shoe.draw()
       self.__hands[0].add_card(card)
-      BlackjackLogger.debug(f"Dealt dealer: {card.value}")
+      BlackjackLogger.debug(f"Dealt dealer: {card.get_value()}")
 
   def shuffle_shoe(self) -> None:
     BlackjackLogger.debug("Shuffling shoe...")
-    shuffle(self.__shoe.cards)
+    self.__shoe.shuffle()
 
   def load_shoe(self) -> None:
     BlackjackLogger.debug("Loading shoe...")
     shoe_deck_count = self.__shoe.get_deck_count()
     shoe_full_size = self.__shoe.get_full_size()
-    self.__shoe.cards = []
+    self.__shoe.set_cards([])
 
     for _ in range(shoe_deck_count):
       for suit in Suit:
         for face in Face:
           card = Card(suit, face)
-          self.__shoe.cards.append(card)
-
+          self.__shoe.add_card(card)
     assert len(self.__shoe.get_card_count()) == shoe_full_size
 
   def hit_player(self, player: Player) -> None:
@@ -99,13 +99,13 @@ class Dealer(Player):
   def handle_payouts(self, players: List[Player]) -> None:
     dealer_hand_value = self.get_hand_value(0)
     dealer_busted = dealer_hand_value > 21
-    dealer_has_blackjack = dealer_hand_value == 21 and len(self.__hands[0].cards) == 2
+    dealer_has_blackjack = dealer_hand_value == 21 and self.__hands[0].get_card_count() == 2
     for player in players:
-      for i, player_hand in enumerate(player.hands):
+      for i, player_hand in enumerate(player.get_hands()):
         player_hand_value = player.get_hand_value(i)
         player_busted = player_hand_value > 21
         player_beat_dealer = player_hand_value > dealer_hand_value
-        player_has_blackjack = player_hand_value == 21 and len(player_hand) == 2
+        player_has_blackjack = player_hand_value == 21 and player_hand.get_card_count() == 2
         player_tied_with_dealer = player_hand_value == dealer_hand_value
 
         both_have_blackjack = player_has_blackjack and dealer_has_blackjack
@@ -138,5 +138,5 @@ class Dealer(Player):
   def to_dict(self) -> dict:
     return {
       "shoe": self.__shoe.to_dict(),
-      "hand": [c.to_dict() for hand in self.__hands for c in hand.cards]
+      "hand": [c.to_dict() for hand in self.__hands for c in hand.get_cards()]
     }

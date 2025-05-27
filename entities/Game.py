@@ -4,9 +4,7 @@ from entities.Hand import Hand
 from entities.Player import Player
 from entities.Players.AiPlayer import AiPlayer
 from entities.Players.HumanPlayer import HumanPlayer
-from models.core.BettingRules import BettingRules
 from models.core.AiPlayerInfo import AiPlayerInfo
-from models.core.DealerRules import DealerRules
 from models.core.DoubleDownRules import DoubleDownRules
 from models.core.GameRules import GameRules
 from models.core.HumanPlayerInfo import HumanPlayerInfo
@@ -15,18 +13,15 @@ from models.enums.GameState import GameState
 from models.enums.PlayerDecision import PlayerDecision
 from services.BasicStrategyEngine import BasicStrategyEngine
 from services.BlackjackLogger import BlackjackLogger
+from services.RulesEngine import RulesEngine
 
 
 class Game:
-  __hand_split_limit: int
-  __betting_rules: BettingRules
-  __dealer_rules: DealerRules
+  __rules_engine: RulesEngine
   __state: GameState
   __dealer: Dealer
   __human_players: List[HumanPlayer]
   __ai_players: List[AiPlayer]
-  __double_down_rules: DoubleDownRules
-  __basic_strategy_engine: BasicStrategyEngine
 
   def __init__(
     self,
@@ -34,18 +29,16 @@ class Game:
     human_player_info: List[HumanPlayerInfo] | None,
     ai_player_info: List[AiPlayerInfo] | None
   ) -> None:
-    self.__hand_split_limit = rules.hand_split_limit
-    self.__betting_rules = rules.betting_rules
-    self.__dealer_rules = rules.dealer_rules
+    self.__rules_engine = RulesEngine(rules)
     self.__state = GameState.NOT_STARTED
-    self.__dealer = Dealer(self.__dealer_rules)
-    self.__dealer.load_shoe()
-    self.__dealer.shuffle_shoe()
+    self.__dealer = Dealer(rules.dealer_rules)
+
     self.__human_players = []
     if human_player_info is not None:
       for single_human_player_info in human_player_info:
         human_player = HumanPlayer(single_human_player_info)
         self.__human_players.append(human_player)
+
     self.__ai_players = []
     if ai_player_info is not None:
       for single_ai_player_info in ai_player_info:
@@ -53,13 +46,6 @@ class Game:
         self.__ai_players.append(ai_player)
     self.__double_down_rules = rules.double_down_rules
     self.__basic_strategy_engine = BasicStrategyEngine()
-
-
-  def get_min_bet(self) -> int:
-    return self.__betting_rules.min_bet
-
-  def get_max_bet(self) -> int:
-    return self.__betting_rules.max_bet
 
   def get_state(self) -> GameState:
     return self.__state
@@ -126,25 +112,18 @@ class Game:
     # Note: human players should set their bets before this via the API
     # if this is triggered before then, their bets will remain the same
     for player in self.__ai_players:
-      bet = player.determine_bet(self.__betting_rules)
+      bet = player.determine_bet()
       player.set_bet(bet)
 
   def deal_cards(self) -> int:
     self.set_state(GameState.DEALING)
-    full_shoe = self.__dealer.get_full_shoe_size()
-    shoe_card_count = self.__dealer.get_shoe_card_count()
-    stopping_point = full_shoe / (100 / self.__dealer.get_shoe_reset_percentage())
-    shoe_is_above_reset_point = shoe_card_count > stopping_point
-    BlackjackLogger.debug(f"shoe_card_count: {shoe_card_count}")
-    BlackjackLogger.debug(f"stopping_point: {stopping_point}")
-    if not shoe_is_above_reset_point:
+    if self.__rules_engine.shoe_must_be_shuffled(self.__dealer.get_shoe()):
       BlackjackLogger.debug("Shuffling shoe...")
       self.__dealer.load_shoe()
       self.__dealer.shuffle_shoe()
     else:
       BlackjackLogger.debug("Shoe does not need to be shuffled")
-    all_players = self.__human_players + self.__ai_players
-    self.__dealer.deal(all_players)
+    self.__dealer.deal(self.__human_players + self.__ai_players)
 
   def hit_active_hand(self) -> None:
     active_player = self.get_active_player()
@@ -199,7 +178,7 @@ class Game:
             break
 
           player_decision = BasicStrategyEngine.get_play(
-            ai_player.basic_strategy_skill_level,
+            ai_player.get_basic_strategy_skill_level(),
             hand,
             self.__dealer.get_facecard(),
             True,   # TODO: Implement
@@ -251,8 +230,6 @@ class Game:
 
   def to_dict(self) -> dict:
     return {
-      "max_bet": self.__betting_rules.max_bet,
-      "min_bet": self.__betting_rules.min_bet,
       "state": self.__state.name,
       "dealer": self.__dealer.to_dict(),
       "human_players": [p.to_dict() for p in self.__human_players],

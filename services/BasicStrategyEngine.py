@@ -71,17 +71,24 @@ class BasicStrategyEngine():
     player_hand: List[Card],
     dealer_face_card_value: int
   ) -> bool:
-    if basic_strategy_skill_level == 10:
-      player_hand_value = 0
-      for card in player_hand:
-        player_hand_value += card.value
-      should_surrender = BasicStrategy.surrender[(dealer_face_card_value, player_hand_value)]
-      if should_surrender:
-        return True
 
-      return False
+    player_hand_value = 0
+    for card in player_hand:
+      player_hand_value += card.value
 
-    return False   # TODO: Implement
+    accuracy_roll = random.randint(basic_strategy_skill_level, 100)
+    BlackjackLogger.debug(f"Surrender accuracy roll: {accuracy_roll}")
+    spread = (100 - accuracy_roll) / 10
+    plus_or_minus_roll = random.randint(1, 2)
+    if plus_or_minus_roll == 1:
+      drunken_player_hand_value = int(player_hand_value + spread)
+    else:
+      drunken_player_hand_value = int(player_hand_value - spread)
+
+    should_surrender = BasicStrategy.surrender[(dealer_face_card_value, drunken_player_hand_value)]
+    if should_surrender:
+      return True
+    return False
 
   @staticmethod
   def _check_for_split(
@@ -91,19 +98,25 @@ class BasicStrategyEngine():
     is_from_split: bool,
     double_after_splitting_allowed: bool
   ):
-    if basic_strategy_skill_level == 10:
-      cards_match = (player_hand[0].value == player_hand[1].value) and len(player_hand) == 2
-      splitting_is_allowed = cards_match and (not is_from_split or double_after_splitting_allowed)
-      if splitting_is_allowed:
-        splitting_decision = BasicStrategy.pair_splitting[(dealer_face_card_value, player_hand[0].value)]
-        if splitting_decision == PairSplittingDecision.YES:
-          return True
-        if (
-          splitting_decision == PairSplittingDecision.IF_DOUBLE_AFTER_SPLITTING_ALLOWED
-          and double_after_splitting_allowed
-        ):
-          return True
+    cards_match = (player_hand[0].get_value() == player_hand[1].get_value()) and len(player_hand) == 2
+    splitting_is_allowed = cards_match and (not is_from_split or double_after_splitting_allowed)
+    if splitting_is_allowed:
+      accuracy_roll = random.randint(basic_strategy_skill_level, 100)
+      BlackjackLogger.debug(f"Surrender accuracy roll: {accuracy_roll}")
+      spread = (100 - accuracy_roll) / 10
+      plus_or_minus_roll = random.randint(1, 2)
+      if plus_or_minus_roll == 1:
+        drunken_player_hand_value = int(player_hand[0].get_value() + spread)
+      else:
+        drunken_player_hand_value = int(player_hand[0].get_value() - spread)
 
-      return False
+      splitting_decision = BasicStrategy.pair_splitting[(dealer_face_card_value, drunken_player_hand_value)]
+      if splitting_decision == PairSplittingDecision.YES:
+        return True
+      if (
+        splitting_decision == PairSplittingDecision.IF_DOUBLE_AFTER_SPLITTING_ALLOWED
+        and double_after_splitting_allowed
+      ):
+        return True
 
-    return False    # TODO: Implement
+    return False

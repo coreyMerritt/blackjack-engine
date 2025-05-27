@@ -1,15 +1,18 @@
 import random
 from entities.Player import Player
 from models.core.AiPlayerInfo import AiPlayerInfo
-from models.core.GameRules import GameRules
+from services.RulesEngine import RulesEngine
 
 
 class AiPlayer(Player):
-  _basic_strategy_skill_level: int
+  __basic_strategy_skill_level: int
 
   def __init__(self, ai_player_info: AiPlayerInfo) -> None:
     super().__init__(ai_player_info)
-    self._basic_strategy_skill_level = ai_player_info.basic_strategy_skill_level
+    self.__basic_strategy_skill_level = ai_player_info.basic_strategy_skill_level
 
-  def determine_bet(self, rules: GameRules) -> None:
-    return random.randint(rules.min_bet, rules.max_bet)
+  def get_basic_strategy_skill_level(self) -> int:
+    return self.__basic_strategy_skill_level
+
+  def determine_bet(self, rules_engine: RulesEngine) -> None:
+    return random.randint(rules_engine.get_min_bet(), rules_engine.get_max_bet())
