@@ -8,6 +8,8 @@ from models.core.GameRules import GameRules
 from models.core.SplittingRules import SplittingRules
 from models.core.SurrenderRules import SurrenderRules
 from models.enums.Face import Face
+from models.enums.GameState import GameState
+from models.enums.PlayerDecision import PlayerDecision
 
 
 class RulesEngine():
@@ -42,6 +44,15 @@ class RulesEngine():
     if shoe.get_card_count() <= card_shuffle_point:
       return True
     return False
+
+  def can_hit(self, hand: Hand) -> bool:
+    if hand.get_value() >= 21:
+      return False
+    if not self.__splitting_rules.can_hit_aces:
+      if hand.is_from_split():
+        if hand.get_card_face(0) == Face.ACE:
+          return False
+    return True
 
   def can_double_down(self, hand: Hand) -> bool:
     hand_value = hand.get_value()
@@ -81,8 +92,17 @@ class RulesEngine():
           return True
     return False
 
-  def can_early_surrender(self, hand: Hand) -> bool:
-    if not self.__surrender_rules.early_surrender_allowed:
+  def can_insure(self, hands: List[Hand], dealer_upcard_face: Face) -> bool:
+    if len(hands) > 1:
+      return False
+    if dealer_upcard_face != Face.ACE:
+      return False
+    if hands[0].get_insurance_bet() > 0:
+      return False
+    return True
+
+  def can_surrender(self, hand: Hand) -> bool:
+    if not self.__surrender_rules.surrender_allowed:
       return False
     if hand.get_card_count() != 2:
       return False
@@ -92,13 +112,25 @@ class RulesEngine():
       return False
     return True
 
-  def can_late_surrender(self, hand: Hand) -> bool:
-    if not self.__surrender_rules.late_surrender_allowed:
+  def is_legal_play(
+    self,
+    decision: PlayerDecision,
+    all_hands: List[Hand],
+    active_hand: Hand,
+    state: GameState
+  ) -> bool:
+    if state != GameState.HUMAN_PLAYER_DECISIONS and state != GameState.AI_PLAYER_DECISIONS:
       return False
-    if hand.get_card_count() != 2:
-      return False
-    if hand.is_from_split():
-      return False
-    if hand.is_doubled_down():
-      return False
-    return True
+    match decision:
+      case PlayerDecision.HIT:
+        return self.can_hit(active_hand)
+      case PlayerDecision.STAND:
+        return True
+      case PlayerDecision.DOUBLE_DOWN:
+        return self.can_double_down(active_hand)
+      case PlayerDecision.SPLIT:
+        return self.can_split(all_hands)
+      case PlayerDecision.SURRENDER:
+        return self.can_surrender(active_hand)
+      case _:
+        raise ValueError(f"PlayerDecision not implemented: {decision.value}")

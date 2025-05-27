@@ -42,10 +42,8 @@ class Game:
     self.__ai_players = []
     if ai_player_info is not None:
       for single_ai_player_info in ai_player_info:
-        ai_player = AiPlayer(single_ai_player_info)
+        ai_player = AiPlayer(single_ai_player_info,)
         self.__ai_players.append(ai_player)
-    self.__double_down_rules = rules.double_down_rules
-    self.__basic_strategy_engine = BasicStrategyEngine()
 
   def get_state(self) -> GameState:
     return self.__state
@@ -84,30 +82,6 @@ class Game:
   def set_state(self, state: GameState) -> None:
     self.__state = state
 
-  def active_hand_can_double_down(self) -> bool:
-    active_hand = self.get_active_hand()
-    if active_hand.is_doubled_down():
-      return False
-    if not active_hand.is_pair():
-      return False
-    if self.__double_down_rules.first_two_cards_only and active_hand.get_card_count() != 2:
-      return False
-    if not self.__double_down_rules.allow_after_split and active_hand.is_from_split():
-      return False
-
-    # Its important that we check this by Face because aces can change value
-    both_cards_are_ace = active_hand.get_card_face(0) == Face.ACE
-    both_cards_are_ten = active_hand.get_card_value(0) == 10
-    both_cards_are_nine = active_hand.get_card_value(0) == 9
-    if self.__double_down_rules.nine_ten_eleven_only and not (
-      both_cards_are_ace
-      or both_cards_are_ten
-      or both_cards_are_nine
-    ):
-      return False
-
-    return True
-
   def place_bets(self) -> None:
     # Note: human players should set their bets before this via the API
     # if this is triggered before then, their bets will remain the same
@@ -134,57 +108,58 @@ class Game:
     active_player.finalize_active_hand()
 
   def double_down_active_hand(self) -> None:
-    assert self.active_hand_can_double_down()
     active_hand = self.get_active_hand()
     active_hand.double_down()
     self.hit_active_hand()
     if active_hand.get_value() < 21:
       self.stand_active_hand()
 
+  def split_active_hand(self) -> None:
+    active_hand = self.get_active_hand()
+    active_player = self.get_active_player()
+    card = active_hand.remove_card()
+    new_hand = Hand([card], active_hand.get_bet(), True)
+    active_player.add_new_hand(new_hand)
+
+  def surrender_active_hand(self) -> None:
+    active_hand = self.get_active_hand()
+    active_player = self.get_active_player()
+    active_player.decrement_money(active_hand.get_bet() / 2)
+    active_player.set_hands(active_player.get_hands().remove(active_hand))
+
   def handle_ai_decisions(self) -> None:
-    for ai_player in self.__ai_players:
-      for hand_index, hand in enumerate(ai_player.get_hands()):
-        player_decision = [PlayerDecision.PLACEHOLDER]
-        while True:
-          for decision in player_decision:
-            match decision:
-              case PlayerDecision.PLACEHOLDER:
-                pass
-              case PlayerDecision.HIT:
-                self.hit_active_hand()
-              case PlayerDecision.STAND:
-                break
-              case PlayerDecision.DOUBLE_DOWN:
-                if self.active_hand_can_double_down():
-                  self.double_down_active_hand()
-                  break
-              case PlayerDecision.SPLIT:
-                card = hand.remove_card()
-                new_hand = Hand([card], hand.get_bet(), True)
-                ai_player.add_new_hand(new_hand)
-              case PlayerDecision.SURRENDER:
-                if self.__rules_engine.can_surrender():
+    while self.is_unhandled_player_hand():
+      active_player = self.get_active_player()
+      assert isinstance(active_player, AiPlayer) 
+      active_hand = self.get_active_hand()
+      decisions = active_player.get_decisions(active_hand, self.__dealer.get_facecard().get_face())
+      for decision in decisions:
+        if self.__rules_engine.is_legal_play(
+          decision,
+          active_player.get_hands(),
+          active_hand,
+          self.get_state()
+        ):
+          self.execute_decision(decision)
 
-                break
-
-          if ai_player.get_hand_value(hand_index) >= 21:
-            break
-
-          player_decision = BasicStrategyEngine.get_play(
-            ai_player.get_basic_strategy_skill_level(),
-            hand,
-            self.__dealer.get_facecard(),
-            True,   # TODO: Implement
-            False   # TODO: Implement
-          )
-          BlackjackLogger.debug(f"Decision: {player_decision}")
+  def execute_decision(self, decision: PlayerDecision) -> None:
+    match decision:
+      case PlayerDecision.HIT:
+        self.hit_active_hand()
+      case PlayerDecision.STAND:
+        self.get_active_hand().set_finalized(True)
+      case PlayerDecision.DOUBLE_DOWN:
+        self.double_down_active_hand()
+      case PlayerDecision.SPLIT:
+        self.split_active_hand()
+      case PlayerDecision.SURRENDER:
+        self.surrender_active_hand()
 
   def handle_early_insurance(self) -> None:
-    for player in self.__human_players + self.__ai_players:
+    for player in self.__ai_players:
       for hand in player.get_hands():
-        if hand.is_insured():
-          player.decrement_money(hand.get_bet() / 2)
-          player.set_hands(player.get_hands().remove(hand))
+        if player.wants_insurance():
+          hand.set_insurance_bet(player.get_insurance_bet())
 
   def next_state(self) -> None:
     if self.get_state() == GameState.NOT_STARTED:
@@ -260,7 +235,11 @@ class Game:
 
 
 
-
+  def is_unhandled_player_hand(self) -> bool:
+    hand = self.get_active_hand()
+    if hand is None:
+      return False
+    return True
 
   def to_dict(self) -> dict:
     return {
