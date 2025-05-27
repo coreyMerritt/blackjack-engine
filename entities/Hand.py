@@ -7,16 +7,16 @@ from models.enums.Face import Face
 class Hand():
   __cards: List[Card]
   __bet: int
-  __soft: bool
   __from_split: bool
   __doubled_down: bool
   __finalized: bool
   __value: int
   __active_ace_count: int
 
-  def __init__(self, cards: List[Card], soft: bool, from_split: bool):
+  def __init__(self, cards: List[Card], bet: int, from_split: bool):
     self.__cards = cards
-    self.__soft = soft
+    self.__bet = bet
+    self.__soft = False
     self.__from_split = from_split
     self.__value = 0
     self.__active_ace_count = 0
@@ -42,15 +42,31 @@ class Hand():
   def get_card_value(self, card_index: int) -> int:
     return self.__cards[card_index].get_value()
 
+  def double_down(self) -> None:
+    if not self.__doubled_down:
+      self.__doubled_down = True
+      self.__bet *= 2
+
+  def set_bet(self, bet: int) -> None:
+    self.__bet = bet
+
   def set_finalized(self, value: bool) -> None:
     self.__finalized = value
 
   def add_card(self, card: Card) -> None:
     self.__cards.append(card)
-    self.__value += card.value
-    if card.face == Face.ACE:
+    self.__value += card.get_value()
+    if card.get_face() == Face.ACE:
       self.__soft = True
     self.__active_ace_count += 1
+
+  def remove_card(self) -> Card:
+    card = self.__cards.pop()
+    self.__value -= card.get_value()
+    self.__active_ace_count -= 1
+    if self.get_active_ace_count() == 0:
+      self.__soft = False
+    return card
 
   def reset_an_ace(self) -> None:
     if self.__value > 21:
@@ -58,7 +74,7 @@ class Hand():
         for card in self.__cards:
           if card.value_can_reset:
             card.value_can_reset = False
-            card.value = 1
+            card.set_value(1)
             self.__active_ace_count -= 1
             break
         if self.__active_ace_count == 0:

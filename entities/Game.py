@@ -18,6 +18,7 @@ from services.BlackjackLogger import BlackjackLogger
 
 
 class Game:
+  __hand_split_limit: int
   __betting_rules: BettingRules
   __dealer_rules: DealerRules
   __state: GameState
@@ -33,6 +34,7 @@ class Game:
     human_player_info: List[HumanPlayerInfo] | None,
     ai_player_info: List[AiPlayerInfo] | None
   ) -> None:
+    self.__hand_split_limit = rules.hand_split_limit
     self.__betting_rules = rules.betting_rules
     self.__dealer_rules = rules.dealer_rules
     self.__state = GameState.NOT_STARTED
@@ -42,12 +44,12 @@ class Game:
     self.__human_players = []
     if human_player_info is not None:
       for single_human_player_info in human_player_info:
-        human_player = HumanPlayer(single_human_player_info)   # TODO: AI players should get their own info
+        human_player = HumanPlayer(single_human_player_info)
         self.__human_players.append(human_player)
     self.__ai_players = []
     if ai_player_info is not None:
       for single_ai_player_info in ai_player_info:
-        ai_player = AiPlayer(single_ai_player_info)   # TODO: AI players should get their own info
+        ai_player = AiPlayer(single_ai_player_info)
         self.__ai_players.append(ai_player)
     self.__double_down_rules = rules.double_down_rules
     self.__basic_strategy_engine = BasicStrategyEngine()
@@ -93,7 +95,6 @@ class Game:
   def get_all_players_except_dealer(self) -> List[Player]:
     return self.__human_players + self.__ai_players
 
-  # TODO: We need to completely rework how state is handled, maybe remove SimulationEngine?
   def set_state(self, state: GameState) -> None:
     self.__state = state
 
@@ -153,28 +154,43 @@ class Game:
     active_player = self.get_active_player()
     active_player.finalize_active_hand()
 
+  def double_down_active_hand(self) -> None:
+    assert self.active_hand_can_double_down()
+    active_hand = self.get_active_hand()
+    active_hand.double_down()
+    self.hit_active_hand()
+    if active_hand.get_value() < 21:
+      self.stand_active_hand()
+
   def handle_ai_decisions(self) -> None:
     for ai_player in self.__ai_players:
-      for hand_index, hand in enumerate(ai_player.hands):
+      for hand_index, hand in enumerate(ai_player.get_hands()):
         player_decision = PlayerDecision.PLACEHOLDER
         while True:
           match player_decision:
             case PlayerDecision.PLACEHOLDER:
               pass
             case PlayerDecision.HIT:
-              self.__dealer.hit_player(ai_player)
+              self.hit_active_hand()
             case PlayerDecision.STAND:
               break
             case PlayerDecision.DOUBLE_DOWN_HIT:
-              # TODO: This isn't a proper implementation -- just hits for now
-              if hand.can_double_down(self.__double_down_rules):    # Not implemented
-                pass
+              if self.active_hand_can_double_down():
+                self.double_down_active_hand()
+                break
+              else:
+                self.hit_active_hand()
             case PlayerDecision.DOUBLE_DOWN_STAND:
-              # TODO: This isn't a proper implementation -- just stands for now
+              if self.active_hand_can_double_down():
+                self.double_down_active_hand()
+              else:
+                self.stand_active_hand()
               break
             case PlayerDecision.SPLIT:
-              # TODO: This isn't a proper implementation -- just stands for now
-              break
+              card = hand.remove_card()
+              new_hand = Hand([card], hand.get_bet(), True)
+              ai_player.add_new_hand(new_hand)
+
             case PlayerDecision.SURRENDER:
               # TODO: This isn't a proper implementation -- just stands for now
               break
@@ -190,6 +206,27 @@ class Game:
             False   # TODO: Implement
           )
           BlackjackLogger.debug(f"Decision: {player_decision}")
+
+  def handle_current_state(self) -> None:
+    if self.get_state() == GameState.NOT_STARTED:
+      self.set_state(GameState.BETTING)
+    elif self.get_state() == GameState.BETTING:
+      self.place_bets()
+      self.set_state(GameState.HUMAN_PLAYER_DECISIONS)
+    elif self.get_state() == GameState.HUMAN_PLAYER_DECISIONS:
+      self.set_state(GameState.AI_PLAYER_DECISIONS)
+    elif self.get_state() == GameState.AI_PLAYER_DECISIONS:
+      self.handle_ai_decisions()
+      self.set_state(GameState.DEALER_DECISIONS)
+    elif self.get_state() == GameState.DEALER_DECISIONS:
+      self.__dealer.handle_decisions()
+      self.set_state(GameState.PAYOUTS)
+    elif self.get_state() == GameState.PAYOUTS:
+      self.__dealer.handle_payouts(self.__human_players + self.__ai_players)
+      self.set_state(GameState.CLEANUP)
+    elif self.get_state() == GameState.CLEANUP:
+      self.__dealer.reset_hands(self.__human_players + self.__ai_players)
+      self.set_state(GameState.BETTING)
 
   def finish_round(self) -> None:
     if self.get_state() == GameState.NOT_STARTED:

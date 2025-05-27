@@ -50,6 +50,9 @@ class Player(ABC):
   def set_bet(self, bet: int, hand_index: int) -> None:
     self.__hands[hand_index].set_bet(bet)
 
+  def add_new_hand(self, hand: Hand) -> None:
+    self.__hands.append(hand)
+
   def increment_money(self, amount: int) -> None:
     self.__money += amount
 
