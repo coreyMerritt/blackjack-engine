@@ -4,6 +4,7 @@ from models.core.BettingRules import BettingRules
 from models.core.DealerRules import DealerRules
 from models.core.DoubleDownRules import DoubleDownRules
 from models.core.SplittingRules import SplittingRules
+from models.core.SurrenderRules import SurrenderRules
 
 
 class GameRules(BaseModel):
@@ -11,3 +12,4 @@ class GameRules(BaseModel):
   dealer_rules: DealerRules
   double_down_rules: DoubleDownRules
   splitting_rules: SplittingRules
+  surrender_rules: SurrenderRules

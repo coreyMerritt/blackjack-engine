@@ -6,6 +6,7 @@ from models.core.DealerRules import DealerRules
 from models.core.DoubleDownRules import DoubleDownRules
 from models.core.GameRules import GameRules
 from models.core.SplittingRules import SplittingRules
+from models.core.SurrenderRules import SurrenderRules
 from models.enums.Face import Face
 
 
@@ -14,6 +15,7 @@ class RulesEngine():
   __dealer_rules: DealerRules
   __double_down_rules: DoubleDownRules
   __splitting_rules: SplittingRules
+  __surrender_rules: SurrenderRules
 
   def __init__(self, rules: GameRules):
     self.__betting_rules = rules.betting_rules
@@ -78,3 +80,25 @@ class RulesEngine():
         if hand.get_card_value(0) == hand.get_card_value(1):
           return True
     return False
+
+  def can_early_surrender(self, hand: Hand) -> bool:
+    if not self.__surrender_rules.early_surrender_allowed:
+      return False
+    if hand.get_card_count() != 2:
+      return False
+    if hand.is_from_split():
+      return False
+    if hand.is_doubled_down():
+      return False
+    return True
+
+  def can_late_surrender(self, hand: Hand) -> bool:
+    if not self.__surrender_rules.late_surrender_allowed:
+      return False
+    if hand.get_card_count() != 2:
+      return False
+    if hand.is_from_split():
+      return False
+    if hand.is_doubled_down():
+      return False
+    return True

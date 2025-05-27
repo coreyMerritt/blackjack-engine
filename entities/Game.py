@@ -144,35 +144,28 @@ class Game:
   def handle_ai_decisions(self) -> None:
     for ai_player in self.__ai_players:
       for hand_index, hand in enumerate(ai_player.get_hands()):
-        player_decision = PlayerDecision.PLACEHOLDER
+        player_decision = [PlayerDecision.PLACEHOLDER]
         while True:
-          match player_decision:
-            case PlayerDecision.PLACEHOLDER:
-              pass
-            case PlayerDecision.HIT:
-              self.hit_active_hand()
-            case PlayerDecision.STAND:
-              break
-            case PlayerDecision.DOUBLE_DOWN_HIT:
-              if self.active_hand_can_double_down():
-                self.double_down_active_hand()
-                break
-              else:
+          for decision in player_decision:
+            match decision:
+              case PlayerDecision.PLACEHOLDER:
+                pass
+              case PlayerDecision.HIT:
                 self.hit_active_hand()
-            case PlayerDecision.DOUBLE_DOWN_STAND:
-              if self.active_hand_can_double_down():
-                self.double_down_active_hand()
-              else:
-                self.stand_active_hand()
-              break
-            case PlayerDecision.SPLIT:
-              card = hand.remove_card()
-              new_hand = Hand([card], hand.get_bet(), True)
-              ai_player.add_new_hand(new_hand)
+              case PlayerDecision.STAND:
+                break
+              case PlayerDecision.DOUBLE_DOWN:
+                if self.active_hand_can_double_down():
+                  self.double_down_active_hand()
+                  break
+              case PlayerDecision.SPLIT:
+                card = hand.remove_card()
+                new_hand = Hand([card], hand.get_bet(), True)
+                ai_player.add_new_hand(new_hand)
+              case PlayerDecision.SURRENDER:
+                if self.__rules_engine.can_surrender():
 
-            case PlayerDecision.SURRENDER:
-              # TODO: This isn't a proper implementation -- just stands for now
-              break
+                break
 
           if ai_player.get_hand_value(hand_index) >= 21:
             break
@@ -186,11 +179,28 @@ class Game:
           )
           BlackjackLogger.debug(f"Decision: {player_decision}")
 
-  def handle_current_state(self) -> None:
+  def handle_early_insurance(self) -> None:
+    for player in self.__human_players + self.__ai_players:
+      for hand in player.get_hands():
+        if hand.is_insured():
+          player.decrement_money(hand.get_bet() / 2)
+          player.set_hands(player.get_hands().remove(hand))
+
+  def next_state(self) -> None:
     if self.get_state() == GameState.NOT_STARTED:
       self.set_state(GameState.BETTING)
     elif self.get_state() == GameState.BETTING:
       self.place_bets()
+    elif self.get_state() == GameState.INSURANCE:
+      self.handle_insurance()
+    elif self.get_state() == GameState.EARLY_SURRENDER:
+      self.handle_early_surrender()
+      self.set_state(GameState.DEALER_BLACKJACK_CHECK)
+    elif self.get_state() == GameState.DEALER_BLACKJACK_CHECK:
+      self.dealer_blackjack_check()
+      self.set_state(GameState.LATE_SURRENDER)
+    elif self.get_state() == GameState.LATE_SURRENDER:
+      self.handle_late_surrender()
       self.set_state(GameState.HUMAN_PLAYER_DECISIONS)
     elif self.get_state() == GameState.HUMAN_PLAYER_DECISIONS:
       self.set_state(GameState.AI_PLAYER_DECISIONS)
@@ -212,6 +222,15 @@ class Game:
       self.set_state(GameState.BETTING)
     if self.get_state() == GameState.BETTING:
       self.place_bets()
+      self.set_state(GameState.EARLY_INSURANCE)
+    if self.get_state() == GameState.EARLY_INSURANCE:
+      self.handle_early_insurance()
+      self.set_state(GameState.DEALER_BLACKJACK_CHECK)
+    if self.get_state() == GameState.DEALER_BLACKJACK_CHECK:
+      self.dealer_blackjack_check()
+      self.set_state(GameState.LATE_INSURANCE)
+    if self.get_state() == GameState.LATE_INSURANCE:
+      self.handle_late_insurance()
       self.set_state(GameState.HUMAN_PLAYER_DECISIONS)
     if self.get_state() == GameState.HUMAN_PLAYER_DECISIONS:
       self.set_state(GameState.AI_PLAYER_DECISIONS)
@@ -227,6 +246,21 @@ class Game:
     if self.get_state() == GameState.CLEANUP:
       self.__dealer.reset_hands(self.__human_players + self.__ai_players)
       self.set_state(GameState.BETTING)
+
+
+
+  EARLY_INSURANCE = 3
+  DEALER_BLACKJACK_CHECK = 4
+  LATE_INSURANCE = 5
+
+
+
+
+
+
+
+
+
 
   def to_dict(self) -> dict:
     return {

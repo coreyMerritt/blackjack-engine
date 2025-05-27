@@ -8,24 +8,26 @@ from services.BlackjackLogger import BlackjackLogger
 
 
 class BasicStrategyEngine():
-  @staticmethod
+  __skill_level: int
+
+  def __init__(self, skill_level: int):
+    self.__skill_level = skill_level
+
   def get_play(
-    basic_strategy_skill_level: int,
+    self,
     player_hand: List[Card],
     dealer_face_card_value: int,
     double_after_splitting_allowed: bool,
     is_from_split: bool
   ) -> PlayerDecision:
-    surrender = BasicStrategyEngine._check_for_surrender(
-      basic_strategy_skill_level,
+    surrender = self._check_for_surrender(
       player_hand,
       dealer_face_card_value
     )
     if surrender:
       return PlayerDecision.SURRENDER
 
-    split = BasicStrategyEngine._check_for_split(
-      basic_strategy_skill_level,
+    split = self._check_for_split(
       player_hand,
       dealer_face_card_value,
       is_from_split,
@@ -37,11 +39,11 @@ class BasicStrategyEngine():
     is_soft = False
     player_hand_value = 0
     for card in player_hand:
-      player_hand_value += card.value
-      if card.value_can_reset:
+      player_hand_value += card.get_value()
+      if card.value_can_reset():
         is_soft = True
 
-    accuracy_roll = random.randint(basic_strategy_skill_level, 100)
+    accuracy_roll = random.randint(self.__skill_level, 100)
     BlackjackLogger.debug(f"Accuracy roll: {accuracy_roll}")
     spread = (100 - accuracy_roll) / 10
     plus_or_minus_roll = random.randint(1, 2)
@@ -65,18 +67,17 @@ class BasicStrategyEngine():
       player_decision = BasicStrategy.hard_totals[(dealer_face_card_value, drunken_player_hand_value)]
     return player_decision
 
-  @staticmethod
   def _check_for_surrender(
-    basic_strategy_skill_level: int,
+    self,
     player_hand: List[Card],
     dealer_face_card_value: int
   ) -> bool:
 
     player_hand_value = 0
     for card in player_hand:
-      player_hand_value += card.value
+      player_hand_value += card.get_value()
 
-    accuracy_roll = random.randint(basic_strategy_skill_level, 100)
+    accuracy_roll = random.randint(self.__skill_level, 100)
     BlackjackLogger.debug(f"Surrender accuracy roll: {accuracy_roll}")
     spread = (100 - accuracy_roll) / 10
     plus_or_minus_roll = random.randint(1, 2)
@@ -90,9 +91,8 @@ class BasicStrategyEngine():
       return True
     return False
 
-  @staticmethod
   def _check_for_split(
-    basic_strategy_skill_level: int,
+    self,
     player_hand: List[Card],
     dealer_face_card_value: int,
     is_from_split: bool,
@@ -101,7 +101,7 @@ class BasicStrategyEngine():
     cards_match = (player_hand[0].get_value() == player_hand[1].get_value()) and len(player_hand) == 2
     splitting_is_allowed = cards_match and (not is_from_split or double_after_splitting_allowed)
     if splitting_is_allowed:
-      accuracy_roll = random.randint(basic_strategy_skill_level, 100)
+      accuracy_roll = random.randint(self.__skill_level, 100)
       BlackjackLogger.debug(f"Surrender accuracy roll: {accuracy_roll}")
       spread = (100 - accuracy_roll) / 10
       plus_or_minus_roll = random.randint(1, 2)

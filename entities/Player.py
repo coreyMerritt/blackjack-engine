@@ -44,6 +44,9 @@ class Player(ABC):
         return hand
     return None
 
+  def get_hand_count(self) -> int:
+    return len(self.__hands)
+
   def set_hands(self, hands: List[Hand]) -> None:
     self.__hands = hands
 

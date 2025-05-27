@@ -12,6 +12,7 @@ class Hand():
   __finalized: bool
   __value: int
   __active_ace_count: int
+  __insurance_bet: int
 
   def __init__(self, cards: List[Card], bet: int, from_split: bool):
     self.__cards = cards
@@ -20,6 +21,7 @@ class Hand():
     self.__from_split = from_split
     self.__value = 0
     self.__active_ace_count = 0
+    self.__insurance_bet = 0
 
   def get_value(self) -> int:
     return self.__value
@@ -45,6 +47,9 @@ class Hand():
   def get_card_value(self, card_index: int) -> int:
     return self.__cards[card_index].get_value()
 
+  def get_insurance_bet(self) -> int:
+    return self.__insurance_bet
+
   def double_down(self) -> None:
     if not self.__doubled_down:
       self.__doubled_down = True
@@ -55,6 +60,9 @@ class Hand():
 
   def set_finalized(self, value: bool) -> None:
     self.__finalized = value
+
+  def set_insurance_bet(self, bet: int) -> None:
+    self.__insurance_bet = bet
 
   def add_card(self, card: Card) -> None:
     self.__cards.append(card)
