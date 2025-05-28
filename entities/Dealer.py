@@ -68,11 +68,9 @@ class Dealer(Player):
       BlackjackLogger.debug(f"Dealt dealer: {card.get_value()}")
 
   def shuffle_shoe(self) -> None:
-    BlackjackLogger.debug("Shuffling shoe...")
     self.__shoe.shuffle()
 
   def load_shoe(self) -> None:
-    BlackjackLogger.debug("Loading shoe...")
     shoe_deck_count = self.__shoe.get_deck_count()
     shoe_full_size = self.__shoe.get_full_size()
     self.__shoe.set_cards([])
@@ -186,7 +184,7 @@ class Dealer(Player):
       player.set_hands([])
       BlackjackLogger.debug(f"Reset player-{i} hand to: []")
     self.set_hands([])
-    BlackjackLogger.debug("Reset dealer hand to: []\n\n")   
+    BlackjackLogger.debug("Reset dealer hand to: []\n\n")
 
   def to_dict(self) -> dict:
     return {

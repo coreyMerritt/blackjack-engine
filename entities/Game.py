@@ -84,7 +84,6 @@ class Game:
       player.set_bet(bet, 0)
 
   def deal_cards(self) -> int:
-    self.set_state(GameState.DEALING)
     if self.__rules_engine.shoe_must_be_shuffled(self.__dealer.get_shoe()):
       BlackjackLogger.debug("Shuffling shoe...")
       self.__dealer.load_shoe()

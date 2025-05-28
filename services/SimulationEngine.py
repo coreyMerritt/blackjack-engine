@@ -1,3 +1,4 @@
+import asyncio
 from copy import deepcopy
 import time
 from entities.Game import Game
@@ -12,6 +13,7 @@ class SimulationEngine():
   __game: Game
   __game_starting_point: Game
   __results: SimulationResultsRes
+  __results_status: int
 
 
   def __init__(self, game: Game, money_goal: int):
@@ -19,18 +21,19 @@ class SimulationEngine():
     self.__game = game
     self.__game_starting_point = deepcopy(game)
     self.__results = None
+    self.__results_status = 0
 
   def reset(self) -> None:
     self.__game = deepcopy(self.__game_starting_point)
 
   async def multi_run(self, runs: int) -> None:
     results = []
-    for _ in range(runs):
+    for run_number in range(1, runs + 1):
       self.reset()
       await self.run()
       results.append(self.get_results())
-    average_results = self.__get_average_results(results)
-    self.__results = average_results
+      self.__results_status = int((run_number / runs) * 100)
+    self.__set_average_results(results)
 
   async def run(self) -> None:
     start_time = time.time()
@@ -57,6 +60,9 @@ class SimulationEngine():
           elif hand_result == HandResult.DREW:
             hands_drawn_count += 1
       self.__game.finish_round()
+      total_hands_played = hands_won_count + hands_lost_count + hands_drawn_count
+      if total_hands_played % 100 == 0:
+        await asyncio.sleep(0)
 
     simulation_time = round(time.time() - start_time, 2)
     total_hands_played = hands_won_count + hands_lost_count + hands_drawn_count
@@ -104,35 +110,35 @@ class SimulationEngine():
     return self.__results
 
   def get_results_formatted(self) -> SimulationResultsFormattedRes:
-    total_hands_played = self.__results["total_hands_played"]
-    hands_won_count = self.__results["hands_won"]["count"]
-    hands_won_percent = self.__results["hands_won"]["percent"]
-    hands_lost_count = self.__results["hands_lost"]["count"]
-    hands_lost_percent = self.__results["hands_lost"]["percent"]
-    hands_drawn_count = self.__results["hands_drawn"]["count"]
-    hands_drawn_percent = self.__results["hands_drawn"]["percent"]
-    starting_money = self.__results["money"]["starting"]
-    ending_money = self.__results["money"]["ending"]
-    total_profit = self.__results["money"]["total_profit"]
-    profit_per_hand = self.__results["money"]["profit_per_hand"]
-    profit_per_hour = self.__results["money"]["profit_per_hour"]
-    peak = self.__results["money"]["peak"]
-    human_time = self.__results["time"]["human_time"]
-    simulation_time = self.__results["time"]["simulation_time"]
+    total_hands_played = int(self.__results["total_hands_played"])
+    hands_won_count = int(self.__results["hands_won"]["count"])
+    hands_won_percent = float(self.__results["hands_won"]["percent"])
+    hands_lost_count = int(self.__results["hands_lost"]["count"])
+    hands_lost_percent = float(self.__results["hands_lost"]["percent"])
+    hands_drawn_count = int(self.__results["hands_drawn"]["count"])
+    hands_drawn_percent = float(self.__results["hands_drawn"]["percent"])
+    starting_money = float(self.__results["money"]["starting"])
+    ending_money = float(self.__results["money"]["ending"])
+    total_profit = float(self.__results["money"]["total_profit"])
+    profit_per_hand = float(self.__results["money"]["profit_per_hand"])
+    profit_per_hour = float(self.__results["money"]["profit_per_hour"])
+    peak = float(self.__results["money"]["peak"])
+    human_time = float(self.__results["time"]["human_time"])
+    simulation_time = float(self.__results["time"]["simulation_time"])
 
     return {
       "total_hands_played": f"{total_hands_played:,}",
       "hands_won": {
         "count": f"{hands_won_count:,}",
-        "percent": f"{round(hands_won_percent, 2)}%"
+        "percent": f"{round(hands_won_percent, 2):.2f}%"
       },
       "hands_lost": {
         "count": f"{hands_lost_count:,}",
-        "percent": f"{round(hands_lost_percent, 2)}%"
+        "percent": f"{round(hands_lost_percent, 2):.2f}%"
       },
       "hands_drawn": {
         "count": f"{hands_drawn_count:,}",
-        "percent": f"{round(hands_drawn_percent, 2)}%"
+        "percent": f"{round(hands_drawn_percent, 2):.2f}%"
       },
       "money": {
         "starting": self.__format_money(starting_money),
@@ -143,13 +149,15 @@ class SimulationEngine():
         "peak": self.__format_money(peak)
       },
       "time": {
-        "human_time": f"{human_time}hrs",
-        "simulation_time": f"{simulation_time}s"
+        "human_time": f"{human_time:,.2f}hrs",
+        "simulation_time": f"{simulation_time:,.2f}s"
       }
     }
 
-  def __get_average_results(self, results_list) -> dict:
+  def get_results_status(self) -> int:
+    return self.__results_status
 
+  def __set_average_results(self, results_list) -> dict:
     total_runs = len(results_list)
     if total_runs == 0:
       return {}
@@ -181,7 +189,6 @@ class SimulationEngine():
         "simulation_time": 0.0
       }
     }
-
     for r in results_list:
       summed["total_hands_played"] += int(r["total_hands_played"])
       summed["hands_won"]["count"] += int(r["hands_won"]["count"])
@@ -199,8 +206,50 @@ class SimulationEngine():
       summed["time"]["human_time"] += float(r["time"]["human_time"])
       summed["time"]["simulation_time"] += float(r["time"]["simulation_time"])
 
-    self.__results = summed
-    return self.get_results_formatted()
+    averaged = {
+      "total_hands_played": 0,
+      "hands_won": {
+        "count": 0,
+        "percent": 0
+      },
+      "hands_lost": {
+        "count": 0,
+        "percent": 0
+      },
+      "hands_drawn": {
+        "count": 0,
+        "percent": 0
+      },
+      "money": {
+        "starting": 0.0,
+        "ending": 0.0,
+        "total_profit": 0.0,
+        "profit_per_hand": 0.0,
+        "profit_per_hour": 0.0,
+        "peak": 0.0
+      },
+      "time": {
+        "human_time": 0.0,
+        "simulation_time": 0.0
+      }
+    }
+    averaged["total_hands_played"] = summed["total_hands_played"] // total_runs
+    averaged["hands_won"]["count"] = summed["hands_won"]["count"] // total_runs
+    averaged["hands_won"]["percent"] = summed["hands_won"]["percent"] / total_runs
+    averaged["hands_lost"]["count"] = summed["hands_lost"]["count"] // total_runs
+    averaged["hands_lost"]["percent"] = summed["hands_lost"]["percent"] / total_runs
+    averaged["hands_drawn"]["count"] = summed["hands_drawn"]["count"] // total_runs
+    averaged["hands_drawn"]["percent"] = summed["hands_drawn"]["percent"] / total_runs
+    averaged["money"]["starting"] = summed["money"]["starting"] / total_runs
+    averaged["money"]["ending"] = summed["money"]["ending"] / total_runs
+    averaged["money"]["total_profit"] = summed["money"]["total_profit"] / total_runs
+    averaged["money"]["profit_per_hand"] = summed["money"]["profit_per_hand"] / total_runs
+    averaged["money"]["profit_per_hour"] = summed["money"]["profit_per_hour"] / total_runs
+    averaged["money"]["peak"] = summed["money"]["peak"] / total_runs
+    averaged["time"]["human_time"] = summed["time"]["human_time"] / total_runs
+    averaged["time"]["simulation_time"] = summed["time"]["simulation_time"] / total_runs
+
+    self.__results = averaged
 
   def __format_money(self, value: float) -> str:
     return f"-${abs(value):,.2f}" if value < 0 else f"${value:,.2f}"

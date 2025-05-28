@@ -22,10 +22,10 @@ async def hit(session_id: str, hand_index: int) -> JSONResponse:
 async def stand(session_id: str, hand_index: int) -> JSONResponse:
   return await controller.stand(session_id, hand_index)
 
-@router.post("/session/{session_id}/game/get")
+@router.get("/session/{session_id}/game/get")
 async def get(session_id: str) -> JSONResponse:
   return await controller.get(session_id)
 
-@router.post("/session/{session_id}/game/get_money")
+@router.get("/session/{session_id}/game/get_money")
 async def get_money(session_id: str) -> JSONResponse:
   return await controller.get_money(session_id)
