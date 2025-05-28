@@ -2,7 +2,7 @@ from typing import List
 from fastapi.responses import JSONResponse
 from models.api.CreateSessionReq import CreateSessionReq
 from models.core.AiPlayerInfo import AiPlayerInfo
-from models.core.GameRules import GameRules
+from models.core.rules.GameRules import GameRules
 from models.core.HumanPlayerInfo import HumanPlayerInfo
 from services.SessionManagerSingleton import SessionManagerSingleton
 

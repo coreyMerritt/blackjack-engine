@@ -108,3 +108,6 @@ class Hand():
       len(self.__cards) == 2
       and self.__cards[0].get_value() == self.__cards[1].get_value()
     )
+
+  def is_insured(self) -> bool:
+    return self.__insurance_bet > 0

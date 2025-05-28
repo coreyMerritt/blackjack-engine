@@ -17,15 +17,10 @@ class AiPlayer(Player):
     self.__basic_strategy_engine = BasicStrategyEngine(ai_player_info.basic_strategy_skill_level, rules_engine)
 
   def get_decisions(self, active_hand: Hand, dealer_upcard_face: Face) -> List[PlayerDecision]:
-    self.__basic_strategy_engine.get_play(
-      active_hand,
-      dealer_upcard_face,
-      True,   # TODO: Implement
-      False   # TODO: Implement
-    )
+    self.__basic_strategy_engine.get_play(self.__hands, active_hand, dealer_upcard_face)
 
   def get_insurance_bet(self) -> int:
-    # TODO: Should we allow other insurance bets?
+    # Should we allow other insurance bets?
     return self.get_hands()[0].get_bet() / 2
 
   def determine_bet(self, rules_engine: RulesEngine) -> None:
@@ -33,4 +28,8 @@ class AiPlayer(Player):
 
   def wants_insurance(self) -> bool:
     assert self.get_hand_count() == 1
-    return self.__basic_strategy_engine.wants_insurance
+    return self.__basic_strategy_engine.wants_insurance()
+
+  def wants_to_surrender(self, dealer_face_card_value: int) -> bool:
+    assert self.get_hand_count() == 1
+    return self.__basic_strategy_engine.wants_to_surrender(dealer_face_card_value, self.get_hand_value(0))

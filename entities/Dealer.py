@@ -10,12 +10,14 @@ from services.BlackjackLogger import BlackjackLogger
 
 
 class Dealer(Player):
+  __blackjack_pays_multiplier: float
   __hits_soft_seventeen: bool
   __shoe: Shoe
   __hands: List[Hand]
 
   def __init__(self, rules: DealerRules) -> None:
     super().__init__({ "money": 999999999 })
+    self.__blackjack_pays_multiplier = rules.blackjack_pays_multiplier
     self.__hits_soft_seventeen = rules.dealer_hits_soft_seventeen
     self.__shoe = Shoe(rules.deck_count, rules.shoe_reset_percentage)
     self.load_shoe()
@@ -38,6 +40,9 @@ class Dealer(Player):
 
   def get_facecard(self) -> Card:
     return self.__hands[0].get_card(1)
+
+  def get_money(self) -> int:
+    return self.__money
 
   def get_active_hand_decision(self) -> PlayerDecision:
     if self.__hands[0].is_soft():
@@ -101,32 +106,62 @@ class Dealer(Player):
     dealer_busted = dealer_hand_value > 21
     dealer_has_blackjack = dealer_hand_value == 21 and self.__hands[0].get_card_count() == 2
     for player in players:
-      for i, player_hand in enumerate(player.get_hands()):
-        player_hand_value = player.get_hand_value(i)
-        player_busted = player_hand_value > 21
-        player_beat_dealer = player_hand_value > dealer_hand_value
-        player_has_blackjack = player_hand_value == 21 and player_hand.get_card_count() == 2
-        player_tied_with_dealer = player_hand_value == dealer_hand_value
+      for player_hand_index, player_hand in enumerate(player.get_hands()):
+        self.handle_single_standard_payout(
+          player,
+          player_hand,
+          player_hand_index,
+          dealer_hand_value,
+          dealer_has_blackjack,
+          dealer_busted
+        )
+        self.handle_single_insurance_payout(player, player_hand, dealer_has_blackjack)
 
-        both_have_blackjack = player_has_blackjack and dealer_has_blackjack
-        only_player_has_blackjack = player_has_blackjack and not dealer_has_blackjack
-        player_won = dealer_busted or player_beat_dealer
-        player_lost = not dealer_busted and not player_beat_dealer
+  def handle_single_standard_payout(self,
+    player: Player,
+    player_hand: Hand,
+    hand_index: int,
+    dealer_hand_value: int,
+    dealer_has_blackjack: bool,
+    dealer_busted: bool
+  ) -> None:
+    player_hand_value = player.get_hand_value(hand_index)
+    player_beat_dealer = player_hand_value > dealer_hand_value
+    player_has_blackjack = player_hand_value == 21 and player_hand.get_card_count() == 2
 
-        if player_busted:
-          player.decrement_money(player.get_current_bet())
-        elif both_have_blackjack:
-          pass  # Push/Tie
-        elif only_player_has_blackjack:
-          player.decrement_money(player.get_current_bet() * 1.5)
-        elif player_won:
-          player.increment_money(player.get_current_bet())
-        elif player_tied_with_dealer:
-          pass  # Push/Tie
-        elif player_lost:
-          player.decrement_money(player.get_current_bet())
-        else:
-          raise NotImplementedError("Unexpected conditions @dealer.handle_payout")
+    player_busted = player_hand_value > 21
+    player_tied_with_dealer = player_hand_value == dealer_hand_value
+    both_have_blackjack = player_has_blackjack and dealer_has_blackjack
+    only_player_has_blackjack = player_has_blackjack and not dealer_has_blackjack
+    player_won = dealer_busted or player_beat_dealer
+    player_lost = not dealer_busted and not player_beat_dealer
+
+    if player_busted:
+      pass
+    elif both_have_blackjack:
+      player.increment_money(player_hand.get_bet())  # Return the original bet
+    elif player_tied_with_dealer:
+      player.increment_money(player_hand.get_bet())  # Return the original bet
+    elif only_player_has_blackjack:
+      player.increment_money(player_hand.get_bet() + (player_hand.get_bet() * self.__blackjack_pays_multiplier))
+    elif player_won:
+      player.increment_money(player_hand.get_bet() * 2)
+    elif player_lost:
+      pass
+    else:
+      raise NotImplementedError("Unexpected conditions @dealer.handle_payout")
+    self.__money += player_hand.get_bet()
+    player.set_bet(0)
+
+  def handle_single_insurance_payout(self,
+    player: Player,
+    player_hand: Hand,
+    dealer_has_blackjack: bool
+  ) -> None:
+    if player_hand.is_insured():
+      if dealer_has_blackjack:
+        player.increment_money(player_hand.get_insurance_bet() * 2)
+      player_hand.set_insurance_bet(0)
 
   def reset_hands(self, players: List[Player]) -> None:
     for i, player in enumerate(players):

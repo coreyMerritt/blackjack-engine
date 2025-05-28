@@ -101,8 +101,8 @@ class RulesEngine():
       return False
     return True
 
-  def can_surrender(self, hand: Hand) -> bool:
-    if not self.__surrender_rules.surrender_allowed:
+  def can_early_surrender(self, hand: Hand) -> bool:
+    if not self.__surrender_rules.early_surrender_allowed:
       return False
     if hand.get_card_count() != 2:
       return False
@@ -111,6 +111,24 @@ class RulesEngine():
     if hand.is_doubled_down():
       return False
     return True
+
+  def can_late_surrender(self, hand: Hand) -> bool:
+    if not self.__surrender_rules.late_surrender_allowed:
+      return False
+    if hand.get_card_count() != 2:
+      return False
+    if hand.is_from_split():
+      return False
+    if hand.is_doubled_down():
+      return False
+    return True
+
+  def can_double_after_split(self) -> bool:
+    if self.__double_down_rules.double_after_split_including_aces:
+      return True
+    if self.__double_down_rules.double_after_split_except_aces:
+      return True
+    return False
 
   def is_legal_play(
     self,
@@ -131,6 +149,6 @@ class RulesEngine():
       case PlayerDecision.SPLIT:
         return self.can_split(all_hands)
       case PlayerDecision.SURRENDER:
-        return self.can_surrender(active_hand)
+        return self.can_late_surrender(active_hand)
       case _:
         raise ValueError(f"PlayerDecision not implemented: {decision.value}")

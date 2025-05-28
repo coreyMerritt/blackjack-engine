@@ -2,7 +2,7 @@ from typing import List
 import uuid
 from entities.Game import Game
 from models.core.AiPlayerInfo import AiPlayerInfo
-from models.core.GameRules import GameRules
+from models.core.rules.GameRules import GameRules
 from models.core.HumanPlayerInfo import HumanPlayerInfo
 
 class SessionManagerSingleton:

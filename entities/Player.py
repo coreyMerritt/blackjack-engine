@@ -8,35 +8,19 @@ from models.core.PlayerInfo import PlayerInfo
 class Player(ABC):
   __hands: List[Hand]
   __money: int
-  # TODO: This should be an attribute of a hand, not a player
-  __doubled_down: bool
 
   def __init__(self, player_info: PlayerInfo) -> None:
     self.__hands = []
     self.__money = player_info.money
-    self.__bet = 0
-    self.__doubled_down = False
 
   def get_hands(self) -> List[Hand]:
     return self.__hands
 
-  def get_current_bet(self) -> int:
-    return self.__bet
-
   def get_money(self) -> int:
     return self.__money
 
-  # TODO: Get rid of this member completely
-  def get_doubled_down(self) -> bool:
-    return self.__doubled_down
-
-  # TODO: Simpler implementation
   def get_hand_value(self, hand_index: int) -> int:
-    value = 0
-    for card in self.__hands[hand_index]:
-      value += card.value
-
-    return value
+    return self.__hands[hand_index].get_value()
 
   def get_active_hand(self) -> Hand | None:
     for hand in self.__hands:
@@ -52,6 +36,7 @@ class Player(ABC):
 
   def set_bet(self, bet: int, hand_index: int) -> None:
     self.__hands[hand_index].set_bet(bet)
+    self.__money -= bet
 
   def add_new_hand(self, hand: Hand) -> None:
     self.__hands.append(hand)
@@ -76,8 +61,15 @@ class Player(ABC):
         return True
     return False
 
+  def has_blackjack(self) -> bool:
+    if self.get_hand_count() == 1:
+      if self.__hands[0].get_card_count() == 2:
+        if self.__hands[0].get_card_value() == 21:
+          return True
+    return False
+
   def to_dict(self) -> dict:
     return {
       "hand": [c.to_dict() for hand in self.__hands for c in hand.cards],
-      "current_bet": self.__bet
+      "money": self.__money
     }

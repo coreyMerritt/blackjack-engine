@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
 
-# TODO: Implement real rules
 class SurrenderRules(BaseModel):
-  surrender_allowed: bool
+  early_surrender_allowed: bool
+  late_surrender_allowed: bool

@@ -5,13 +5,10 @@ from entities.Player import Player
 from entities.Players.AiPlayer import AiPlayer
 from entities.Players.HumanPlayer import HumanPlayer
 from models.core.AiPlayerInfo import AiPlayerInfo
-from models.core.DoubleDownRules import DoubleDownRules
 from models.core.GameRules import GameRules
 from models.core.HumanPlayerInfo import HumanPlayerInfo
-from models.enums.Face import Face
 from models.enums.GameState import GameState
 from models.enums.PlayerDecision import PlayerDecision
-from services.BasicStrategyEngine import BasicStrategyEngine
 from services.BlackjackLogger import BlackjackLogger
 from services.RulesEngine import RulesEngine
 
@@ -42,7 +39,7 @@ class Game:
     self.__ai_players = []
     if ai_player_info is not None:
       for single_ai_player_info in ai_player_info:
-        ai_player = AiPlayer(single_ai_player_info,)
+        ai_player = AiPlayer(single_ai_player_info, self.__rules_engine)
         self.__ai_players.append(ai_player)
 
   def get_state(self) -> GameState:
@@ -56,12 +53,6 @@ class Game:
 
   def get_ai_players(self) -> List[AiPlayer]:
     return self.__ai_players
-
-  def get_double_down_rules(self) -> DoubleDownRules:
-    return self.__double_down_rules
-
-  def get_basic_strategy_engine(self) -> BasicStrategyEngine:
-    return self.__basic_strategy_engine
 
   def get_first_human_player_hand_value(self) -> int:
     return self.__human_players[0].get_hands()
@@ -82,12 +73,12 @@ class Game:
   def set_state(self, state: GameState) -> None:
     self.__state = state
 
-  def place_bets(self) -> None:
+  def handle_ai_bets(self) -> None:
     # Note: human players should set their bets before this via the API
     # if this is triggered before then, their bets will remain the same
     for player in self.__ai_players:
       bet = player.determine_bet()
-      player.set_bet(bet)
+      player.set_bet(bet, player.get_money())
 
   def deal_cards(self) -> int:
     self.set_state(GameState.DEALING)
@@ -128,9 +119,9 @@ class Game:
     active_player.set_hands(active_player.get_hands().remove(active_hand))
 
   def handle_ai_decisions(self) -> None:
-    while self.is_unhandled_player_hand():
+    while self.is_unhandled_active_player_hand():
       active_player = self.get_active_player()
-      assert isinstance(active_player, AiPlayer) 
+      assert isinstance(active_player, AiPlayer)
       active_hand = self.get_active_hand()
       decisions = active_player.get_decisions(active_hand, self.__dealer.get_facecard().get_face())
       for decision in decisions:
@@ -155,17 +146,51 @@ class Game:
       case PlayerDecision.SURRENDER:
         self.surrender_active_hand()
 
-  def handle_early_insurance(self) -> None:
+  def handle_insurance(self) -> None:
     for player in self.__ai_players:
-      for hand in player.get_hands():
-        if player.wants_insurance():
-          hand.set_insurance_bet(player.get_insurance_bet())
+      hands = player.get_hands()
+      for hand in hands:
+        if self.__rules_engine.can_insure(hands, self.__dealer.get_facecard().get_face()):
+          if player.wants_insurance():
+            hand.set_insurance_bet(player.get_insurance_bet())
+
+  def handle_early_surrender(self) -> None:
+    for player in self.__ai_players:
+      hands = player.get_hands()
+      if player.get_hand_count() > 1:
+        return False
+      if self.__rules_engine.can_early_surrender(hands[0]):
+        if player.wants_to_surrender(self.__dealer.get_facecard().get_value()):
+          player.increment_money(hands[0].get_bet() / 2)
+          player.set_hands([])
+
+  def dealer_blackjack_check(self) -> None:
+    if self.__dealer.has_blackjack():
+      for player in self.__human_players + self.__ai_players:
+        if player.has_blackjack():
+          player.increment_money(player.get_hands()[0].get_bet())
+          player.set_hands([])
+      self.finish_round()
+
+  def handle_late_surrender(self) -> None:
+    for player in self.__ai_players:
+      hands = player.get_hands()
+      if player.get_hand_count() > 1:
+        return False
+      if self.__rules_engine.can_late_surrender(hands[0]):
+        if player.wants_to_surrender(self.__dealer.get_facecard().get_value()):
+          player.increment_money(hands[0].get_bet() / 2)
+          player.set_hands([])
 
   def next_state(self) -> None:
     if self.get_state() == GameState.NOT_STARTED:
       self.set_state(GameState.BETTING)
     elif self.get_state() == GameState.BETTING:
-      self.place_bets()
+      self.handle_ai_bets()
+      self.set_state(GameState.DEALING)
+    elif self.get_state() == GameState.DEALING:
+      self.deal_cards()
+      self.set_state(GameState.INSURANCE)
     elif self.get_state() == GameState.INSURANCE:
       self.handle_insurance()
     elif self.get_state() == GameState.EARLY_SURRENDER:
@@ -196,16 +221,21 @@ class Game:
     if self.get_state() == GameState.NOT_STARTED:
       self.set_state(GameState.BETTING)
     if self.get_state() == GameState.BETTING:
-      self.place_bets()
-      self.set_state(GameState.EARLY_INSURANCE)
-    if self.get_state() == GameState.EARLY_INSURANCE:
-      self.handle_early_insurance()
+      self.handle_ai_bets()
+      self.set_state(GameState.DEALING)
+    if self.get_state() == GameState.DEALING:
+      self.deal_cards()
+      self.set_state(GameState.INSURANCE)
+    if self.get_state() == GameState.INSURANCE:
+      self.handle_insurance()
+    if self.get_state() == GameState.EARLY_SURRENDER:
+      self.handle_early_surrender()
       self.set_state(GameState.DEALER_BLACKJACK_CHECK)
     if self.get_state() == GameState.DEALER_BLACKJACK_CHECK:
       self.dealer_blackjack_check()
-      self.set_state(GameState.LATE_INSURANCE)
-    if self.get_state() == GameState.LATE_INSURANCE:
-      self.handle_late_insurance()
+      self.set_state(GameState.LATE_SURRENDER)
+    if self.get_state() == GameState.LATE_SURRENDER:
+      self.handle_late_surrender()
       self.set_state(GameState.HUMAN_PLAYER_DECISIONS)
     if self.get_state() == GameState.HUMAN_PLAYER_DECISIONS:
       self.set_state(GameState.AI_PLAYER_DECISIONS)
@@ -222,20 +252,7 @@ class Game:
       self.__dealer.reset_hands(self.__human_players + self.__ai_players)
       self.set_state(GameState.BETTING)
 
-
-
-  EARLY_INSURANCE = 3
-  DEALER_BLACKJACK_CHECK = 4
-  LATE_INSURANCE = 5
-
-
-
-
-
-
-
-
-  def is_unhandled_player_hand(self) -> bool:
+  def is_unhandled_active_player_hand(self) -> bool:
     hand = self.get_active_hand()
     if hand is None:
       return False

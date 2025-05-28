@@ -3,7 +3,7 @@ from typing import List
 from pydantic import BaseModel
 from models.core.AiPlayerInfo import AiPlayerInfo
 from models.core.BetSpread import BetSpread
-from models.core.GameRules import GameRules
+from models.core.rules.GameRules import GameRules
 
 class RunSimulationReq(BaseModel):
   rules: GameRules

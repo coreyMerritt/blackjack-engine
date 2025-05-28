@@ -2,7 +2,7 @@ from fastapi.responses import JSONResponse
 from entities.Game import Game
 from models.core.BetSpread import BetSpread
 from models.api.RunSimulationReq import RunSimulationReq
-from models.core.GameRules import GameRules
+from models.core.rules.GameRules import GameRules
 from services.SimulationEngine import SimulationEngine
 
 

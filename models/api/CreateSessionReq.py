@@ -2,7 +2,7 @@ from typing import List
 from pydantic import BaseModel
 
 from models.core.AiPlayerInfo import AiPlayerInfo
-from models.core.GameRules import GameRules
+from models.core.rules.GameRules import GameRules
 from models.core.HumanPlayerInfo import HumanPlayerInfo
 
 class CreateSessionReq(BaseModel):
