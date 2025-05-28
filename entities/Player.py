@@ -1,17 +1,27 @@
 from abc import ABC
 from typing import List
+from uuid import UUID, uuid4
 from entities.Card import Card
 from entities.Hand import Hand
 from models.core.PlayerInfo import PlayerInfo
+from services.BlackjackLogger import BlackjackLogger
 
 
 class Player(ABC):
-  __hands: List[Hand]
+  __id: UUID
   __money: int
+  __hands: List[Hand]
 
   def __init__(self, player_info: PlayerInfo) -> None:
     self.__hands = []
     self.__money = player_info.money
+    self.__id = uuid4()
+
+  def get_id(self) -> UUID:
+    return self.__id
+
+  def get_hand(self, hand_index: int) -> Hand:
+    return self.__hands[hand_index]
 
   def get_hands(self) -> List[Hand]:
     return self.__hands
@@ -20,6 +30,7 @@ class Player(ABC):
     return self.__money
 
   def get_hand_value(self, hand_index: int) -> int:
+    assert hand_index + 1 <= self.get_hand_count()
     return self.__hands[hand_index].get_value()
 
   def get_active_hand(self) -> Hand | None:
@@ -37,15 +48,17 @@ class Player(ABC):
   def set_bet(self, bet: int, hand_index: int) -> None:
     if hand_index + 1 > self.get_hand_count():
       self.add_new_hand(Hand([], bet, False))
-    self.__money -= bet
+    self.decrement_money(bet)
 
   def add_new_hand(self, hand: Hand) -> None:
     self.__hands.append(hand)
 
   def increment_money(self, amount: int) -> None:
+    BlackjackLogger.debug(f"Adjusting money from: {self.__money} -> {self.__money + amount}")
     self.__money += amount
 
   def decrement_money(self, amount: int) -> None:
+    BlackjackLogger.debug(f"Adjusting money from: {self.__money} -> {self.__money - amount}")
     self.__money -= amount
 
   def add_to_active_hand(self, card: Card) -> None:
@@ -65,12 +78,12 @@ class Player(ABC):
   def has_blackjack(self) -> bool:
     if self.get_hand_count() == 1:
       if self.__hands[0].get_card_count() == 2:
-        if self.__hands[0].get_card_value() == 21:
+        if self.get_hand_value(0) == 21:
           return True
     return False
 
   def to_dict(self) -> dict:
     return {
-      "hand": [c.to_dict() for hand in self.__hands for c in hand.cards],
+      "hand": [c.to_dict() for hand in self.__hands for c in hand.get_cards()],
       "money": self.__money
     }

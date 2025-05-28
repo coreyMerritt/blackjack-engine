@@ -20,8 +20,8 @@ class AiPlayer(Player):
     self.__basic_strategy_engine = BasicStrategyEngine(ai_player_info.basic_strategy_skill_level, rules_engine)
     self.__bet_spread = ai_player_info.bet_spread
 
-  def get_decisions(self, active_hand: Hand, dealer_upcard_face: Face) -> List[PlayerDecision]:
-    self.__basic_strategy_engine.get_play(self.__hands, active_hand, dealer_upcard_face)
+  def get_decisions(self, active_hand: Hand, dealer_facecard_value: int) -> List[PlayerDecision]:
+    return self.__basic_strategy_engine.get_play(self.get_hands(), active_hand, dealer_facecard_value)
 
   def get_insurance_bet(self) -> int:
     # Should we allow other insurance bets?
@@ -33,10 +33,10 @@ class AiPlayer(Player):
   def determine_bet(self, rules_engine: RulesEngine) -> None:
     return random.randint(rules_engine.get_min_bet(), rules_engine.get_max_bet())
 
-  def wants_insurance(self) -> bool:
+  def wants_insurance(self, dealer_upcard_face: Face) -> bool:
     assert self.get_hand_count() == 1
-    return self.__basic_strategy_engine.wants_insurance()
+    return self.__basic_strategy_engine.wants_insurance(self.get_hands(), dealer_upcard_face)
 
   def wants_to_surrender(self, dealer_face_card_value: int) -> bool:
     assert self.get_hand_count() == 1
-    return self.__basic_strategy_engine.wants_to_surrender(dealer_face_card_value, self.get_hand_value(0))
+    return self.__basic_strategy_engine.wants_to_surrender(dealer_face_card_value, self.get_hand(0))

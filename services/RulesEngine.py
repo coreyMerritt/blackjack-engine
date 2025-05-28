@@ -24,6 +24,7 @@ class RulesEngine():
     self.__dealer_rules = rules.dealer_rules
     self.__double_down_rules = rules.double_down_rules
     self.__splitting_rules = rules.splitting_rules
+    self.__surrender_rules = rules.surrender_rules
 
   def get_min_bet(self) -> int:
     return self.__betting_rules.min_bet
