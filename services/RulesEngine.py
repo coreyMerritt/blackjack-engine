@@ -1,5 +1,6 @@
 from typing import List
 from entities.Hand import Hand
+from entities.Player import Player
 from entities.Shoe import Shoe
 from models.core.rules.BettingRules import BettingRules
 from models.core.rules.DealerRules import DealerRules
@@ -134,21 +135,26 @@ class RulesEngine():
   def is_legal_play(
     self,
     decision: PlayerDecision,
-    all_hands: List[Hand],
-    active_hand: Hand,
+    player: Player,
     state: GameState
   ) -> bool:
     if state != GameState.HUMAN_PLAYER_DECISIONS and state != GameState.AI_PLAYER_DECISIONS:
       return False
+    active_hand = player.get_active_hand()
+    all_hands = player.get_hands()
     match decision:
       case PlayerDecision.HIT:
         return self.can_hit(active_hand)
       case PlayerDecision.STAND:
         return True
       case PlayerDecision.DOUBLE_DOWN:
-        return self.can_double_down(active_hand)
+        if player.get_money() > active_hand.get_bet():
+          return self.can_double_down(active_hand)
+        return False
       case PlayerDecision.SPLIT:
-        return self.can_split(all_hands)
+        if player.get_money() > active_hand.get_bet():
+          return self.can_split(all_hands)
+        return False
       case PlayerDecision.SURRENDER:
         return self.can_late_surrender(active_hand)
       case _:

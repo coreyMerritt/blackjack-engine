@@ -87,6 +87,7 @@ class Dealer(Player):
     assert isinstance(player, Player)
     card = self.__shoe.draw()
     player.add_to_active_hand(card)
+    BlackjackLogger.debug(f"Player-{player.get_id()} drew: {card.get_value()}")
 
   def stand_player(self, player: Player) -> None:
     player.finalize_active_hand()

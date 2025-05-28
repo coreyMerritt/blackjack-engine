@@ -7,6 +7,7 @@ from models.core.BetSpread import BetSpread
 from models.enums.Face import Face
 from models.enums.PlayerDecision import PlayerDecision
 from services.BasicStrategyEngine import BasicStrategyEngine
+from services.BlackjackLogger import BlackjackLogger
 from services.RulesEngine import RulesEngine
 
 
@@ -21,7 +22,9 @@ class AiPlayer(Player):
     self.__bet_spread = ai_player_info.bet_spread
 
   def get_decisions(self, active_hand: Hand, dealer_facecard_value: int) -> List[PlayerDecision]:
-    return self.__basic_strategy_engine.get_play(self.get_hands(), active_hand, dealer_facecard_value)
+    decisions = self.__basic_strategy_engine.get_play(self.get_hands(), active_hand, dealer_facecard_value)
+    BlackjackLogger.debug(f"Player-{self.get_id()} wants: {[d.name for d in decisions]}")
+    return decisions
 
   def get_insurance_bet(self) -> int:
     # Should we allow other insurance bets?
@@ -31,7 +34,11 @@ class AiPlayer(Player):
     return self.__bet_spread
 
   def determine_bet(self, rules_engine: RulesEngine) -> None:
-    return random.randint(rules_engine.get_min_bet(), rules_engine.get_max_bet())
+    # TODO: Implement bed spread & intelligent betting
+    bet = random.randint(rules_engine.get_min_bet(), rules_engine.get_max_bet())
+    if bet > self.get_money():
+      bet = self.get_money()
+    return bet
 
   def wants_insurance(self, dealer_upcard_face: Face) -> bool:
     assert self.get_hand_count() == 1

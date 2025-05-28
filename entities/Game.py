@@ -96,14 +96,20 @@ class Game:
   def hit_active_hand(self) -> None:
     assert self.is_unhandled_active_player_hand()
     active_player = self.get_active_player()
+    BlackjackLogger.debug(f"Player-{active_player.get_id()} chooses: HIT")
     self.__dealer.hit_player(active_player)
+    if active_player.get_active_hand().get_value() > 21:
+      BlackjackLogger.debug("\tBUST!")
 
   def stand_active_hand(self) -> None:
     active_player = self.get_active_player()
     active_player.finalize_active_hand()
 
   def double_down_active_hand(self) -> None:
+    active_player = self.get_active_player()
     active_hand = self.get_active_hand()
+    BlackjackLogger.debug(f"Player-{active_player.get_id()} chooses: DOUBLE DOWN")
+    active_player.decrement_money(active_hand.get_bet())
     active_hand.double_down()
     self.hit_active_hand()
     if active_hand.get_value() < 21:
@@ -112,16 +118,20 @@ class Game:
   def split_active_hand(self) -> None:
     active_hand = self.get_active_hand()
     active_player = self.get_active_player()
+    BlackjackLogger.debug(f"Player-{active_player.get_id()} chooses: SPLIT")
     card = active_hand.remove_card()
-    new_hand = Hand([card], active_hand.get_bet(), True)
+    bet = active_hand.get_bet()
+
+    new_hand = Hand([card], bet, True)
+    active_player.decrement_money(bet)
     active_player.add_new_hand(new_hand)
 
   def surrender_active_hand(self) -> None:
     active_hand = self.get_active_hand()
     active_player = self.get_active_player()
+    BlackjackLogger.debug(f"Player-{active_player.get_id()} chooses: SURRENDER")
     active_player.decrement_money(active_hand.get_bet() / 2)
     active_player.get_hands().remove(active_hand)
-
 
   def handle_dealer_decisions(self) -> None:
     for player in self.__ai_players + self.__human_players:
@@ -148,8 +158,7 @@ class Game:
       for decision in decisions:
         if self.__rules_engine.is_legal_play(
           decision,
-          active_player.get_hands(),
-          active_hand,
+          active_player,
           self.get_state()
         ):
           self.execute_decision(decision)
