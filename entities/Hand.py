@@ -2,6 +2,7 @@ from typing import List
 
 from entities.Card import Card
 from models.enums.Face import Face
+from models.enums.HandResult import HandResult
 
 
 class Hand():
@@ -11,6 +12,7 @@ class Hand():
   __bet: int
   __insurance_bet: int
   __value: int
+  __result: HandResult
   __cards: List[Card]
 
   def __init__(self, cards: List[Card], bet: int, from_split: bool):
@@ -20,6 +22,7 @@ class Hand():
     self.__bet = bet
     self.__insurance_bet = 0
     self.__value = 0
+    self.__result = HandResult.UNDETERMINED
     self.__cards = cards
 
   def get_value(self) -> int:
@@ -34,6 +37,12 @@ class Hand():
 
   def get_bet(self) -> int:
     return self.__bet
+
+  def get_insurance_bet(self) -> int:
+    return self.__insurance_bet
+
+  def get_result(self) -> HandResult:
+    return self.__result
 
   def get_card(self, card_index: int) -> int:
     return self.__cards[card_index]
@@ -50,9 +59,6 @@ class Hand():
   def get_card_value(self, card_index: int) -> int:
     return self.__cards[card_index].get_value()
 
-  def get_insurance_bet(self) -> int:
-    return self.__insurance_bet
-
   def double_down(self) -> None:
     if not self.__doubled_down:
       self.__doubled_down = True
@@ -66,6 +72,9 @@ class Hand():
 
   def set_insurance_bet(self, bet: int) -> None:
     self.__insurance_bet = bet
+
+  def set_result(self, result: HandResult) -> None:
+    self.__result = result
 
   def add_card(self, card: Card) -> None:
     self.__cards.append(card)

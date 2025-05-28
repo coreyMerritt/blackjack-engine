@@ -4,8 +4,9 @@ from entities.Hand import Hand
 from entities.Player import Player
 from entities.Shoe import Shoe
 from entities.Card import Card, Face, Suit
-from models.core.PlayerInfo import PlayerInfo
+from models.core.player_info.PlayerInfo import PlayerInfo
 from models.core.rules.DealerRules import DealerRules
+from models.enums.HandResult import HandResult
 from models.enums.PlayerDecision import PlayerDecision
 from services.BlackjackLogger import BlackjackLogger
 
@@ -145,21 +146,27 @@ class Dealer(Player):
     if player_busted:
       BlackjackLogger.debug("\t\tPlayer busted!")
       self.increment_money(player_hand.get_bet())
+      player_hand.set_result(HandResult.LOST)
     elif both_have_blackjack:
       BlackjackLogger.debug("\t\tBoth players have Blackjack! Draw!")
       player.increment_money(player_hand.get_bet())
+      player_hand.set_result(HandResult.DREW)
     elif player_tied_with_dealer:
       BlackjackLogger.debug("\t\tDraw!")
       player.increment_money(player_hand.get_bet())
+      player_hand.set_result(HandResult.DREW)
     elif only_player_has_blackjack:
       BlackjackLogger.debug("\t\tPlayer has Blackjack! Win!")
       player.increment_money(player_hand.get_bet() + (player_hand.get_bet() * self.__blackjack_pays_multiplier))
+      player_hand.set_result(HandResult.WON)
     elif player_won:
       BlackjackLogger.debug("\t\tPlayer won!")
       player.increment_money(player_hand.get_bet() * 2)
+      player_hand.set_result(HandResult.WON)
     elif player_lost:
       BlackjackLogger.debug("\t\tPlayer lost!")
       self.increment_money(player_hand.get_bet())
+      player_hand.set_result(HandResult.LOST)
     else:
       raise NotImplementedError("Unexpected conditions @dealer.handle_payout")
     player.set_bet(0, hand_index)

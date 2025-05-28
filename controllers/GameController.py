@@ -15,8 +15,7 @@ class GameController:
       raise HTTPException(status_code=401, detail="Invalid session")
 
     game.set_state(GameState.BETTING)
-
-    return 200
+    return JSONResponse(status_code=200, content={"status": "complete"})
 
   async def place_bet(self, session_id: str, bet: int) -> JSONResponse:
     assert isinstance(session_id, str)
@@ -30,8 +29,7 @@ class GameController:
 
     game.place_bets(bet)
     game.deal_cards()
-
-    return 200
+    JSONResponse(status_code=200, content={"status": "complete"})
 
   async def hit(self, session_id: str, hand_index: int) -> JSONResponse:
     assert isinstance(session_id, str)
@@ -44,8 +42,7 @@ class GameController:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
     game.hit_player()
-
-    return 200
+    return JSONResponse(status_code=200, content={"status": "complete"})
 
   async def stand(self, session_id: str, hand_index: int) -> JSONResponse:
     assert isinstance(session_id, str)
@@ -58,8 +55,7 @@ class GameController:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
     game.stand_active_hand()
-
-    return 200
+    return JSONResponse(status_code=200, content={"status": "complete"})
 
   async def get(self, session_id: str) -> JSONResponse:
     assert isinstance(session_id, str)

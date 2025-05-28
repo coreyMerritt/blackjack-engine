@@ -1,11 +1,11 @@
 from typing import List
 from pydantic import BaseModel
 
-from models.core.AiPlayerInfo import AiPlayerInfo
+from models.core.player_info.AiPlayerInfo import AiPlayerInfo
 from models.core.rules.GameRules import GameRules
-from models.core.HumanPlayerInfo import HumanPlayerInfo
+from models.core.player_info.HumanPlayerInfo import HumanPlayerInfo
 
-class CreateSessionReq(BaseModel):
+class CreateGameReq(BaseModel):
   rules: GameRules
   human_player_info: HumanPlayerInfo
   ai_player_info: List[AiPlayerInfo]

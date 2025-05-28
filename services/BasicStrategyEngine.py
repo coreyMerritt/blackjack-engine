@@ -24,23 +24,24 @@ class BasicStrategyEngine():
     dealer_face_card_value: int
   ) -> List[PlayerDecision]:
     assert isinstance(dealer_face_card_value, int)
+    decisions = []
     if self.__rules_engine.can_late_surrender(active_player_hand):
       wants_surrender = self._check_for_surrender(active_player_hand, dealer_face_card_value)
       if wants_surrender:
-        return [PlayerDecision.SURRENDER]
+        decisions.append(PlayerDecision.SURRENDER)
 
     if self.__rules_engine.can_split(player_hands):
       wants_split = self._check_for_split(player_hands, active_player_hand, dealer_face_card_value)
       if wants_split:
-        return [PlayerDecision.SPLIT]
+        decisions.append(PlayerDecision.SPLIT)
 
     drunken_player_hand_value = self._get_drunken_player_hand_value(active_player_hand)
 
     if active_player_hand.is_soft():
-      player_decision = BasicStrategy.soft_totals[(dealer_face_card_value, drunken_player_hand_value)]
+      decisions.extend(BasicStrategy.soft_totals[(dealer_face_card_value, drunken_player_hand_value)])
     else:
-      player_decision = BasicStrategy.hard_totals[(dealer_face_card_value, drunken_player_hand_value)]
-    return player_decision
+      decisions.extend(BasicStrategy.hard_totals[(dealer_face_card_value, drunken_player_hand_value)])
+    return decisions
 
   # We're proceeding on the assumption that insurance is always bad.
   def wants_insurance(self, hands: List[Hand], dealer_upcard_face: Face) -> bool:

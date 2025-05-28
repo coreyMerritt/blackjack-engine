@@ -2,7 +2,7 @@ import random
 from typing import List
 from entities.Hand import Hand
 from entities.Player import Player
-from models.core.AiPlayerInfo import AiPlayerInfo
+from models.core.player_info.AiPlayerInfo import AiPlayerInfo
 from models.core.BetSpread import BetSpread
 from models.enums.Face import Face
 from models.enums.PlayerDecision import PlayerDecision

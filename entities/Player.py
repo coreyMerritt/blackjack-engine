@@ -3,7 +3,7 @@ from typing import List
 from uuid import UUID, uuid4
 from entities.Card import Card
 from entities.Hand import Hand
-from models.core.PlayerInfo import PlayerInfo
+from models.core.player_info.PlayerInfo import PlayerInfo
 from services.BlackjackLogger import BlackjackLogger
 
 

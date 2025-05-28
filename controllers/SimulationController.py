@@ -1,19 +1,40 @@
+import asyncio
+from fastapi import HTTPException
 from fastapi.responses import JSONResponse
-from entities.Game import Game
-from models.api.RunSimulationReq import RunSimulationReq
-from services.SimulationEngine import SimulationEngine
+from services.SessionManagerSingleton import SessionManagerSingleton
 
+
+session_manager = SessionManagerSingleton()
 
 class SimulationController:
-  async def run(self, req: RunSimulationReq) -> JSONResponse:
-    game = Game(
-      req.rules,
-      None,
-      req.ai_player_info
-    )
+  async def multi_run(self, session_id: str, run_count: int) -> JSONResponse:
+    simulation_engine = session_manager.get_simulation(session_id)
+    if not simulation_engine:
+      raise HTTPException(status_code=401, detail="Invalid session")
 
-    simulation_engine = SimulationEngine(game, req.money_goal)
-    simulation_engine.run()
+    asyncio.create_task(simulation_engine.multi_run(run_count))
+    return JSONResponse(status_code=200, content={"status": "started"})
+
+  async def run(self, session_id: str) -> JSONResponse:
+    simulation_engine = session_manager.get_simulation(session_id)
+    if not simulation_engine:
+      raise HTTPException(status_code=401, detail="Invalid session")
+
+    asyncio.create_task(simulation_engine.run())
+    return JSONResponse(status_code=200, content={"status": "started"})
+
+  async def get_results(self, session_id: str) -> JSONResponse:
+    simulation_engine = session_manager.get_simulation(session_id)
+    if not simulation_engine:
+      raise HTTPException(status_code=401, detail="Invalid session")
+
     results = simulation_engine.get_results()
+    return JSONResponse(content={"results": results})
 
+  async def get_results_formatted(self, session_id: str) -> JSONResponse:
+    simulation_engine = session_manager.get_simulation(session_id)
+    if not simulation_engine:
+      raise HTTPException(status_code=401, detail="Invalid session")
+
+    results = simulation_engine.get_results_formatted()
     return JSONResponse(content={"results": results})

@@ -4,9 +4,9 @@ from entities.Hand import Hand
 from entities.Player import Player
 from entities.Players.AiPlayer import AiPlayer
 from entities.Players.HumanPlayer import HumanPlayer
-from models.core.AiPlayerInfo import AiPlayerInfo
+from models.core.player_info.AiPlayerInfo import AiPlayerInfo
 from models.core.rules.GameRules import GameRules
-from models.core.HumanPlayerInfo import HumanPlayerInfo
+from models.core.player_info.HumanPlayerInfo import HumanPlayerInfo
 from models.enums.GameState import GameState
 from models.enums.PlayerDecision import PlayerDecision
 from services.BlackjackLogger import BlackjackLogger
@@ -211,6 +211,12 @@ class Game:
         if player.wants_to_surrender(self.__dealer.get_facecard().get_value()):
           player.increment_money(hands[0].get_bet() / 2)
           player.set_hands([])
+
+  def continue_until_state(self, state: GameState) -> None:
+    while True:
+      if state == self.get_state():
+        return
+      self.next_state()
 
   def next_state(self) -> None:
     if self.get_state() == GameState.NOT_STARTED:
