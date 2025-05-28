@@ -1,37 +1,34 @@
 import time
 from entities.Game import Game
-from models.core.BetSpread import BetSpread
 from models.api.SimulationResultsRes import SimulationResults
-from models.enums.GameState import GameState
 
 
 class SimulationEngine():
-  money_goal: int
-  game: Game
-  bet_spread: BetSpread
-  results: SimulationResults
+  __money_goal: int
+  __game: Game
+  __results: SimulationResults
 
-  def __init__(self, game: Game, bet_spread: BetSpread, money_goal: int) -> None:
-    self.money_goal = money_goal
-    self.game = game
-    self.bet_spread = bet_spread
+
+  def __init__(self, game: Game, money_goal: int) -> None:
+    self.__money_goal = money_goal
+    self.__game = game
 
   def run(self) -> None:
     start_time = time.time()
     hand_count = 0
-    highest_money = self.game.ai_players[0].money
+    highest_money = self.__game.get_ai_players()[0].get_money()
 
-    while(self.game.ai_players[0].money > 0 and self.game.ai_players[0].money < self.money_goal):
-      self.run_core_gameplay_loop()
+    while(self.__game.someone_has_money() and self.__game.get_ai_players()[0].get_money() < self.__money_goal):
+      self.__game.finish_round()
       hand_count += 1
-      if highest_money < self.game.ai_players[0].money:
-        highest_money = self.game.ai_players[0].money
+      if highest_money < self.__game.get_ai_players()[0].get_money():
+        highest_money = self.__game.get_ai_players()[0].get_money()
 
     simulation_time = round(time.time() - start_time, 2)
-    ending_money = round(self.game.ai_players[0].money, 0)
+    ending_money = round(self.__game.get_ai_players()[0].get_money(), 0)
     # TODO: Modularize the human_time -- allow user to define how long an average hand takes
     human_time = f"{round(hand_count / 60, 2)} hrs"   # Currently assumes 60 hands/hrs
-    self.results = {
+    self.__results = {
       "ending_money": ending_money,
       "hand_count": hand_count,
       "highest_money": highest_money,
@@ -39,16 +36,8 @@ class SimulationEngine():
       "simulation_time": simulation_time
     }
 
-  def run_core_gameplay_loop(self) -> None:
-    self.game.state = GameState.BETTING
-    self.game.place_bets()
-
-    self.game.state = GameState.DEALING
-    self.game.deal_cards()
-    self.game.finish_round()
-
   def get_results(self) -> SimulationResults:
-    return self.results
+    return self.__results
 
   def _get_bet(self) -> int:
     # TODO: Implement use of bet spread

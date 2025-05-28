@@ -35,7 +35,8 @@ class Player(ABC):
     self.__hands = hands
 
   def set_bet(self, bet: int, hand_index: int) -> None:
-    self.__hands[hand_index].set_bet(bet)
+    if hand_index + 1 > self.get_hand_count():
+      self.add_new_hand(Hand([], bet, False))
     self.__money -= bet
 
   def add_new_hand(self, hand: Hand) -> None:

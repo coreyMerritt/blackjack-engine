@@ -4,30 +4,27 @@ from entities.Hand import Hand
 from entities.Player import Player
 from entities.Shoe import Shoe
 from entities.Card import Card, Face, Suit
-from models.core.DealerRules import DealerRules
+from models.core.PlayerInfo import PlayerInfo
+from models.core.rules.DealerRules import DealerRules
 from models.enums.PlayerDecision import PlayerDecision
 from services.BlackjackLogger import BlackjackLogger
 
 
 class Dealer(Player):
-  __blackjack_pays_multiplier: float
   __hits_soft_seventeen: bool
+  __blackjack_pays_multiplier: float
   __shoe: Shoe
-  __hands: List[Hand]
 
   def __init__(self, rules: DealerRules) -> None:
-    super().__init__({ "money": 999999999 })
-    self.__blackjack_pays_multiplier = rules.blackjack_pays_multiplier
+    super().__init__(PlayerInfo(money=999999999))
     self.__hits_soft_seventeen = rules.dealer_hits_soft_seventeen
+    self.__blackjack_pays_multiplier = rules.blackjack_pays_multiplier
     self.__shoe = Shoe(rules.deck_count, rules.shoe_reset_percentage)
     self.load_shoe()
     self.shuffle_shoe()
 
   def get_shoe(self) -> Shoe:
     return self.__shoe
-
-  def get_hands(self) -> List[Hand]:
-    return self.__hands
 
   def get_full_shoe_size(self) -> int:
     return self.__shoe.get_full_size()
@@ -39,14 +36,14 @@ class Dealer(Player):
     return self.__shoe.get_reset_percentage()
 
   def get_facecard(self) -> Card:
-    return self.__hands[0].get_card(1)
+    return self.get_hands()[0].get_card(1)
 
   def get_money(self) -> int:
     return self.__money
 
   def get_active_hand_decision(self) -> PlayerDecision:
-    if self.__hands[0].is_soft():
-      if self.__hands[0].get_value() == 17:
+    if self.get_hands()[0].is_soft():
+      if self.get_hand_value(0) == 17:
         if self.__hits_soft_seventeen:
           return PlayerDecision.HIT
         return PlayerDecision.STAND
@@ -57,16 +54,16 @@ class Dealer(Player):
 
   def deal(self, players: List[Player]) -> None:
     for i, player in enumerate(players):
-      player.add_new_hand(Hand([], False, False))
       for _ in range(2):
         card = self.__shoe.draw()
         player.add_to_active_hand(card)
         BlackjackLogger.debug(f"Dealt player-{i}: {card.get_value()}")
 
-    self.__hands[0] = Hand([], False, False)
+    self.set_hands([Hand([], 0, False)])
+    dealer_hand = self.get_hands()[0]
     for _ in range(2):
       card = self.__shoe.draw()
-      self.__hands[0].add_card(card)
+      dealer_hand.add_card(card)
       BlackjackLogger.debug(f"Dealt dealer: {card.get_value()}")
 
   def shuffle_shoe(self) -> None:
@@ -84,7 +81,7 @@ class Dealer(Player):
         for face in Face:
           card = Card(suit, face)
           self.__shoe.add_card(card)
-    assert len(self.__shoe.get_card_count()) == shoe_full_size
+    assert self.__shoe.get_card_count() == shoe_full_size
 
   def hit_player(self, player: Player) -> None:
     card = self.__shoe.draw()
@@ -104,7 +101,7 @@ class Dealer(Player):
   def handle_payouts(self, players: List[Player]) -> None:
     dealer_hand_value = self.get_hand_value(0)
     dealer_busted = dealer_hand_value > 21
-    dealer_has_blackjack = dealer_hand_value == 21 and self.__hands[0].get_card_count() == 2
+    dealer_has_blackjack = dealer_hand_value == 21 and self.get_hands()[0].get_card_count() == 2
     for player in players:
       for player_hand_index, player_hand in enumerate(player.get_hands()):
         self.handle_single_standard_payout(
@@ -167,11 +164,11 @@ class Dealer(Player):
     for i, player in enumerate(players):
       player.set_hands([])
       BlackjackLogger.debug(f"Reset player-{i} hand to: []")
-    self.__hands = []
+    self.set_hands([])
     BlackjackLogger.debug("Reset dealer hand to: []")
 
   def to_dict(self) -> dict:
     return {
       "shoe": self.__shoe.to_dict(),
-      "hand": [c.to_dict() for hand in self.__hands for c in hand.get_cards()]
+      "hand": [c.to_dict() for hand in self.get_hands() for c in hand.get_cards()]
     }

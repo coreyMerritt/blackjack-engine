@@ -5,7 +5,7 @@ from entities.Player import Player
 from entities.Players.AiPlayer import AiPlayer
 from entities.Players.HumanPlayer import HumanPlayer
 from models.core.AiPlayerInfo import AiPlayerInfo
-from models.core.GameRules import GameRules
+from models.core.rules.GameRules import GameRules
 from models.core.HumanPlayerInfo import HumanPlayerInfo
 from models.enums.GameState import GameState
 from models.enums.PlayerDecision import PlayerDecision
@@ -77,8 +77,8 @@ class Game:
     # Note: human players should set their bets before this via the API
     # if this is triggered before then, their bets will remain the same
     for player in self.__ai_players:
-      bet = player.determine_bet()
-      player.set_bet(bet, player.get_money())
+      bet = player.determine_bet(self.__rules_engine)
+      player.set_bet(bet, 0)
 
   def deal_cards(self) -> int:
     self.set_state(GameState.DEALING)
@@ -257,6 +257,12 @@ class Game:
     if hand is None:
       return False
     return True
+
+  def someone_has_money(self) -> bool:
+    for player in self.__ai_players + self.__human_players:
+      if player.get_money() > 0:
+        return True
+    return False
 
   def to_dict(self) -> dict:
     return {

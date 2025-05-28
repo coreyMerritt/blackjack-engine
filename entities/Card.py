@@ -13,15 +13,15 @@ class Card:
     self.__face = face
     match self.__face.value:
       case "J":
-        self.set_value(10)
+        self.__value = 10
       case "Q":
-        self.set_value(10)
+        self.__value = 10
       case "K":
-        self.set_value(10)
+        self.__value = 10
       case "A":
-        self.set_value(11)
+        self.__value = 11
       case _:
-        self.set_value(int(self.__face.value))
+        self.__value = int(self.__face.value)
 
   def get_suit(self) -> Suit:
     return self.__suit

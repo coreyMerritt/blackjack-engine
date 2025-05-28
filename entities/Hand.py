@@ -5,29 +5,32 @@ from models.enums.Face import Face
 
 
 class Hand():
-  __cards: List[Card]
-  __bet: int
-  __from_split: bool
   __doubled_down: bool
   __finalized: bool
-  __value: int
-  __active_ace_count: int
+  __from_split: bool
+  __bet: int
   __insurance_bet: int
+  __value: int
+  __cards: List[Card]
 
   def __init__(self, cards: List[Card], bet: int, from_split: bool):
-    self.__cards = cards
-    self.__bet = bet
-    self.__soft = False
+    self.__doubled_down = False
+    self.__finalized = False
     self.__from_split = from_split
-    self.__value = 0
-    self.__active_ace_count = 0
+    self.__bet = bet
     self.__insurance_bet = 0
+    self.__value = 0
+    self.__cards = cards
 
   def get_value(self) -> int:
     return self.__value
 
   def get_active_ace_count(self) -> int:
-    return self.__active_ace_count
+    ace_count = 0
+    for card in self.__cards:
+      if card.get_face() == Face.ACE:
+        ace_count += 1
+    return ace_count
 
   def get_bet(self) -> int:
     return self.__bet
@@ -67,32 +70,26 @@ class Hand():
   def add_card(self, card: Card) -> None:
     self.__cards.append(card)
     self.__value += card.get_value()
-    if card.get_face() == Face.ACE:
-      self.__soft = True
-    self.__active_ace_count += 1
 
   def remove_card(self) -> Card:
     card = self.__cards.pop()
     self.__value -= card.get_value()
-    self.__active_ace_count -= 1
-    if self.get_active_ace_count() == 0:
-      self.__soft = False
     return card
 
   def reset_an_ace(self) -> None:
     if self.__value > 21:
-      if self.__soft:
+      if self.is_soft():
         for card in self.__cards:
           if card.value_can_reset:
             card.value_can_reset = False
             card.set_value(1)
-            self.__active_ace_count -= 1
             break
-        if self.__active_ace_count == 0:
-          self.__soft = False
 
   def is_soft(self) -> bool:
-    return self.__soft
+    for card in self.__cards:
+      if card.get_face() == Face.ACE:
+        return True
+    return False
 
   def is_from_split(self) -> bool:
     return self.__from_split

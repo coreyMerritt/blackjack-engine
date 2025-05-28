@@ -2,11 +2,9 @@ from typing import List
 
 from pydantic import BaseModel
 from models.core.AiPlayerInfo import AiPlayerInfo
-from models.core.BetSpread import BetSpread
 from models.core.rules.GameRules import GameRules
 
 class RunSimulationReq(BaseModel):
+  money_goal: int
   rules: GameRules
   ai_player_info: List[AiPlayerInfo]
-  money_goal: int
-  bet_spread: BetSpread
