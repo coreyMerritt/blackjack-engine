@@ -3,7 +3,7 @@
 curl -s -X POST "http://localhost:8000/simulation/run" \
   -H "Content-Type: application/json" \
   -d '{
-        "money_goal": 999999999,
+        "money_goal": 50000,
         "rules": {
           "betting_rules": {
             "min_bet": 50,
@@ -34,7 +34,7 @@ curl -s -X POST "http://localhost:8000/simulation/run" \
         },
         "ai_player_info": [
           {
-            "money": 1000,
+            "money": 25000,
             "basic_strategy_skill_level": 100,
             "bet_spread": {
               "true_zero": 50,
