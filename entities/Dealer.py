@@ -149,27 +149,27 @@ class Dealer(Player):
 
     BlackjackLogger.debug(f"\tPlayer-{player.get_id()} has: {player_hand_value}")
     if player_busted:
-      BlackjackLogger.debug("\t\tPlayer busted!")
+      BlackjackLogger.debug("\t\tPlayer busted! Lost!")
       self.increment_money(player_hand.get_bet())
       player_hand.set_result(HandResult.LOST)
     elif both_have_blackjack:
-      BlackjackLogger.debug("\t\tBoth players have Blackjack! Draw!")
-      player.increment_money(player_hand.get_bet())
-      player_hand.set_result(HandResult.DREW)
-    elif player_tied_with_dealer:
-      BlackjackLogger.debug("\t\tDraw!")
+      BlackjackLogger.debug("\t\tDealer & Player have Blackjack! Draw!")
       player.increment_money(player_hand.get_bet())
       player_hand.set_result(HandResult.DREW)
     elif only_player_has_blackjack:
       BlackjackLogger.debug("\t\tPlayer has Blackjack! Win!")
       player.increment_money(player_hand.get_bet() + (player_hand.get_bet() * self.__blackjack_pays_multiplier))
       player_hand.set_result(HandResult.WON)
+    elif player_tied_with_dealer:
+      BlackjackLogger.debug("\t\tDraw!")
+      player.increment_money(player_hand.get_bet())
+      player_hand.set_result(HandResult.DREW)
     elif player_won:
-      BlackjackLogger.debug("\t\tPlayer won!")
+      BlackjackLogger.debug("\t\tWin!")
       player.increment_money(player_hand.get_bet() * 2)
       player_hand.set_result(HandResult.WON)
     elif player_lost:
-      BlackjackLogger.debug("\t\tPlayer lost!")
+      BlackjackLogger.debug("\t\tLost!")
       self.increment_money(player_hand.get_bet())
       player_hand.set_result(HandResult.LOST)
     else:
