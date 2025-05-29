@@ -56,29 +56,44 @@ class RulesEngine():
           return False
     return True
 
+  # This whole function is pretty ugly, probably its a sign that I should
+  # rewrite the DoubleDownRules model, but I'm choosing violence today
   def can_double_down(self, hand: Hand) -> bool:
     hand_value = hand.get_value()
     hand_card_count = hand.get_card_count()
     hand_is_from_split = hand.is_from_split()
     hand_first_card_face = hand.get_card_face(0)
 
+    # General rules
     if not self.__double_down_rules.double_after_hit:
       if hand_card_count > 2:
         return False
-    if not self.__double_down_rules.double_after_split_including_aces:
-      if not self.__double_down_rules.double_after_split_except_aces:
+
+    # Split-based rules
+    if self.__double_down_rules.double_after_split_except_aces:
+      if not self.__double_down_rules.double_after_split_including_aces:
+        if hand_is_from_split and hand_first_card_face == Face.ACE:
+          return False
+    else:
+      if not self.__double_down_rules.double_after_split_including_aces:
         if hand_is_from_split:
           return False
-      if hand_is_from_split and hand_first_card_face == Face.ACE:
-        return False
+
+    # Value-based rules
     if not self.__double_down_rules.double_on_any_two_cards:
-      if not self.__double_down_rules.double_on_nine_ten_eleven_only:
-        if not self.__double_down_rules.double_on_ten_eleven_only:
+      if self.__double_down_rules.double_on_nine_ten_eleven_only:
+        if self.__double_down_rules.double_on_ten_eleven_only:
+          if hand_value != 9 and hand_value != 10 and hand_value != 11:
+            return False
+        else:
+          if hand_value != 9 and hand_value != 10 and hand_value != 11:
+            return False
+      else:
+        if self.__double_down_rules.double_on_ten_eleven_only:
+          if hand_value != 10 and hand_value != 11:
+            return False
+        else:
           return False
-        if hand_value != 10 and hand_value != 11:
-          return False
-      if hand_value != 9 and hand_value != 10 and hand_value != 11:
-        return False
     return True
 
   def can_split(self, hands: List[Hand]) -> bool:

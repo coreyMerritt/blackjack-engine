@@ -2,5 +2,5 @@ from pydantic import BaseModel
 
 
 class HandResults(BaseModel):
-  count: int
-  percent: float
+  count: int = 0
+  percent: float = 0

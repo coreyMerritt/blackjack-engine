@@ -101,6 +101,13 @@ class Dealer(Player):
         case PlayerDecision.HIT:
           self.hit_player(self)
 
+  def deal_split_hands(self, players: List[Player]) -> None:
+    for player in players:
+      for hand in player.get_hands():
+        if hand.get_card_count() == 1:
+          card = self.get_shoe().draw()
+          hand.add_card(card)
+
   def handle_payouts(self, players: List[Player]) -> None:
     dealer_hand_value = self.get_hand_value(0)
     dealer_busted = dealer_hand_value > 21

@@ -120,10 +120,10 @@ class Game:
     BlackjackLogger.debug(f"Player-{active_player.get_id()} chooses: SPLIT")
     card = active_hand.remove_card()
     bet = active_hand.get_bet()
-
     new_hand = Hand([card], bet, True)
     active_player.decrement_money(bet)
     active_player.add_new_hand(new_hand)
+    self.__dealer.deal_split_hands(self.get_all_players_except_dealer())
 
   def surrender_active_hand(self) -> None:
     active_hand = self.get_active_hand()

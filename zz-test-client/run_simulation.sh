@@ -7,11 +7,12 @@ curl -s --no-keepalive -X POST "http://localhost:8000/session/$session_id/simula
 
 sstatus=0
 while [[ $sstatus -ne 100 ]]; do
-  sstatus=$(curl -s -X GET "http://localhost:8000/session/$session_id/simulation/results/check" \
+  sleep 1
+  sstatus=$(curl -s -X GET "http://localhost:8000/session/$session_id/simulation/results/check_multi" \
     -H "Content-Type: application/json" | jq .status)
   echo $sstatus
 done
 
-curl -s -X GET "http://localhost:8000/session/$session_id/simulation/results/get_formatted" \
+curl -s -X GET "http://localhost:8000/session/$session_id/simulation/results/get_multi_formatted" \
     -H "Content-Type: application/json" | jq
 

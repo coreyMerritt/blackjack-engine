@@ -19,9 +19,9 @@ curl -s -X POST "http://localhost:8000/session/simulation/create" \
             "double_after_hit": false,
             "double_after_split_except_aces": true,
             "double_after_split_including_aces": false,
-            "double_on_any_two_cards": false,
-            "double_on_nine_ten_eleven_only": true,
-            "double_on_ten_eleven_only": false
+            "double_on_ten_eleven_only": false,
+            "double_on_nine_ten_eleven_only": false,
+            "double_on_any_two_cards": true
           },
           "splitting_rules": {
             "maximum_hand_count": 4,
@@ -29,7 +29,7 @@ curl -s -X POST "http://localhost:8000/session/simulation/create" \
           },
           "surrender_rules": {
             "early_surrender_allowed": false,
-            "late_surrender_allowed": false
+            "late_surrender_allowed": true
           }
         },
         "ai_player_info": [
