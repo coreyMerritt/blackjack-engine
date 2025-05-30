@@ -163,11 +163,11 @@ class RulesEngine():
       case PlayerDecision.STAND:
         return True
       case PlayerDecision.DOUBLE_DOWN:
-        if player.get_money() > active_hand.get_bet():
+        if player.get_bankroll() > active_hand.get_bet():
           return self.can_double_down(active_hand)
         return False
       case PlayerDecision.SPLIT:
-        if player.get_money() > active_hand.get_bet():
+        if player.get_bankroll() > active_hand.get_bet():
           return self.can_split(all_hands)
         return False
       case PlayerDecision.SURRENDER:

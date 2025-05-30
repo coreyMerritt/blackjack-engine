@@ -66,11 +66,11 @@ class GameController:
 
     return JSONResponse(content=game.to_dict())
 
-  async def get_money(self, session_id: str) -> JSONResponse:
+  async def get_bankroll(self, session_id: str) -> JSONResponse:
     assert isinstance(session_id, str)
 
     game = session_manager.get_game(session_id)
     if not game:
       raise HTTPException(status_code=401, detail="Invalid session")
 
-    return JSONResponse(content={"money": game.human_players[0].money})
+    return JSONResponse(content={"bankroll": game.human_players[0].bankroll})

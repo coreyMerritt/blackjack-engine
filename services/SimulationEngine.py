@@ -11,7 +11,7 @@ from models.enums.HandResult import HandResult
 
 
 class SimulationEngine():
-  __money_goal: int
+  __bankroll_goal: int
   __game: Game
   __game_starting_point: Game
   __single_results: SimulationSingleResults
@@ -19,8 +19,8 @@ class SimulationEngine():
   __multi_results: SimulationMultiResults
   __multi_results_status: int
 
-  def __init__(self, game: Game, money_goal: int):
-    self.__money_goal = money_goal
+  def __init__(self, game: Game, bankroll_goal: int):
+    self.__bankroll_goal = bankroll_goal
     self.__game = game
     self.__game_starting_point = deepcopy(game)
     self.__single_results = None
@@ -50,7 +50,7 @@ class SimulationEngine():
       await self.run(True)
       results.append(self.get_single_results())
       sims_run += 1
-      if self.__game.get_ai_players()[0].get_money() >= self.__money_goal:
+      if self.__game.get_ai_players()[0].get_bankroll() >= self.__bankroll_goal:
         sims_won += 1
       else:
         sims_lost += 1
@@ -73,18 +73,18 @@ class SimulationEngine():
     if not called_from_multi:
       self.full_reset()
     start_time = time.time()
-    starting_money = self.__game.get_ai_players()[0].get_money()
-    highest_money = self.__game.get_ai_players()[0].get_money()
+    starting_bankroll = self.__game.get_ai_players()[0].get_bankroll()
+    highest_bankroll = self.__game.get_ai_players()[0].get_bankroll()
     hands_won_count = 0
     hands_lost_count = 0
     hands_drawn_count = 0
     blackjack_count = 0
 
-    while(self.__game.someone_has_money() and self.__game.get_ai_players()[0].get_money() < self.__money_goal):
+    while(self.__game.someone_has_bankroll() and self.__game.get_ai_players()[0].get_bankroll() < self.__bankroll_goal):
       self.__game.continue_until_state(GameState.CLEANUP)
-      money = self.__game.get_ai_players()[0].get_money()
-      if highest_money < money:
-        highest_money = money
+      bankroll = self.__game.get_ai_players()[0].get_bankroll()
+      if highest_bankroll < bankroll:
+        highest_bankroll = bankroll
       for player in self.__game.get_all_players_except_dealer():
         for hand in player.get_hands():
           hand_result = hand.get_result()
@@ -99,12 +99,12 @@ class SimulationEngine():
             hands_drawn_count += 1
       self.__game.finish_round()
       total_hands_played = hands_won_count + hands_lost_count + hands_drawn_count
-      money_after_round = self.__game.get_ai_players()[0].get_money()
-      if money_after_round == 0:
+      bankroll_after_round = self.__game.get_ai_players()[0].get_bankroll()
+      if bankroll_after_round == 0:
         self.__single_results_status = 100
       else:
-        winning_progress = int((money_after_round / self.__money_goal) * 100)
-        losing_progress = int(((starting_money - money_after_round) / starting_money) * 100)
+        winning_progress = int((bankroll_after_round / self.__bankroll_goal) * 100)
+        losing_progress = int(((starting_bankroll - bankroll_after_round) / starting_bankroll) * 100)
         self.__single_results_status = max(winning_progress, losing_progress)
 
       if total_hands_played % 100 == 0:
@@ -115,8 +115,8 @@ class SimulationEngine():
     hands_won_percent = (hands_won_count / total_hands_played) * 100
     hands_lost_percent = (hands_lost_count / total_hands_played) * 100
     hands_drawn_percent = (hands_drawn_count / total_hands_played) * 100
-    ending_money = round(self.__game.get_ai_players()[0].get_money(), 0)
-    total_profit = round(ending_money - starting_money, 2)
+    ending_bankroll = round(self.__game.get_ai_players()[0].get_bankroll(), 0)
+    total_profit = round(ending_bankroll - starting_bankroll, 2)
     profit_per_hand = round(total_profit / total_hands_played, 2)
     profit_per_hour = round(profit_per_hand * 60, 2)
     # TODO: Modularize the human_time -- allow user to define how long an average hand takes
@@ -139,13 +139,13 @@ class SimulationEngine():
         "count": hands_drawn_count,
         "percent": hands_drawn_percent
       },
-      "money": {
-        "starting": starting_money,
-        "ending": ending_money,
+      "bankroll": {
+        "starting": starting_bankroll,
+        "ending": ending_bankroll,
         "total_profit": total_profit,
         "profit_per_hand": profit_per_hand,
         "profit_per_hour": profit_per_hour,
-        "peak": highest_money
+        "peak": highest_bankroll
       },
       "time": {
         "human_time": human_time,
@@ -173,12 +173,12 @@ class SimulationEngine():
     hands_lost_percent = float(self.__single_results["hands_lost"]["percent"])
     hands_drawn_count = int(self.__single_results["hands_drawn"]["count"])
     hands_drawn_percent = float(self.__single_results["hands_drawn"]["percent"])
-    starting_money = float(self.__single_results["money"]["starting"])
-    ending_money = float(self.__single_results["money"]["ending"])
-    total_profit = float(self.__single_results["money"]["total_profit"])
-    profit_per_hand = float(self.__single_results["money"]["profit_per_hand"])
-    profit_per_hour = float(self.__single_results["money"]["profit_per_hour"])
-    peak = float(self.__single_results["money"]["peak"])
+    starting_bankroll = float(self.__single_results["bankroll"]["starting"])
+    ending_bankroll = float(self.__single_results["bankroll"]["ending"])
+    total_profit = float(self.__single_results["bankroll"]["total_profit"])
+    profit_per_hand = float(self.__single_results["bankroll"]["profit_per_hand"])
+    profit_per_hour = float(self.__single_results["bankroll"]["profit_per_hour"])
+    peak = float(self.__single_results["bankroll"]["peak"])
     human_time = float(self.__single_results["time"]["human_time"])
     simulation_time = float(self.__single_results["time"]["simulation_time"])
     return {
@@ -195,13 +195,13 @@ class SimulationEngine():
         "count": f"{hands_drawn_count:,}",
         "percent": f"{round(hands_drawn_percent, 2):.2f}%"
       },
-      "money": {
-        "starting": self.__format_money(starting_money),
-        "ending": self.__format_money(ending_money),
-        "total_profit": self.__format_money(total_profit),
-        "profit_per_hand": self.__format_money(profit_per_hand),
-        "profit_per_hour": self.__format_money(profit_per_hour),
-        "peak": self.__format_money(peak)
+      "bankroll": {
+        "starting": self.__format_bankroll(starting_bankroll),
+        "ending": self.__format_bankroll(ending_bankroll),
+        "total_profit": self.__format_bankroll(total_profit),
+        "profit_per_hand": self.__format_bankroll(profit_per_hand),
+        "profit_per_hour": self.__format_bankroll(profit_per_hour),
+        "peak": self.__format_bankroll(peak)
       },
       "time": {
         "human_time": self.__get_time_formatted(human_time),
@@ -278,12 +278,12 @@ class SimulationEngine():
       summed["hands_won"]["count"] += int(r["hands_won"]["count"])
       summed["hands_lost"]["count"] += int(r["hands_lost"]["count"])
       summed["hands_drawn"]["count"] += int(r["hands_drawn"]["count"])
-      summed["money"]["starting"] += float(r["money"]["starting"])
-      summed["money"]["ending"] += float(r["money"]["ending"])
-      summed["money"]["total_profit"] += float(r["money"]["total_profit"])
-      summed["money"]["profit_per_hand"] += float(r["money"]["profit_per_hand"])
-      summed["money"]["profit_per_hour"] += float(r["money"]["profit_per_hour"])
-      summed["money"]["peak"] += float(r["money"]["peak"])
+      summed["bankroll"]["starting"] += float(r["bankroll"]["starting"])
+      summed["bankroll"]["ending"] += float(r["bankroll"]["ending"])
+      summed["bankroll"]["total_profit"] += float(r["bankroll"]["total_profit"])
+      summed["bankroll"]["profit_per_hand"] += float(r["bankroll"]["profit_per_hand"])
+      summed["bankroll"]["profit_per_hour"] += float(r["bankroll"]["profit_per_hour"])
+      summed["bankroll"]["peak"] += float(r["bankroll"]["peak"])
       summed["time"]["human_time"] += float(r["time"]["human_time"])
       summed["time"]["simulation_time"] += float(r["time"]["simulation_time"])
 
@@ -302,12 +302,12 @@ class SimulationEngine():
     averaged["hands_lost"]["percent"] = hands_lost_percent
     averaged["hands_drawn"]["count"] = summed["hands_drawn"]["count"] // total_runs
     averaged["hands_drawn"]["percent"] = hands_drawn_percent
-    averaged["money"]["starting"] = summed["money"]["starting"] / total_runs
-    averaged["money"]["ending"] = summed["money"]["ending"] / total_runs
-    averaged["money"]["total_profit"] = summed["money"]["total_profit"] / total_runs
-    averaged["money"]["profit_per_hand"] = summed["money"]["profit_per_hand"] / total_runs
-    averaged["money"]["profit_per_hour"] = summed["money"]["profit_per_hour"] / total_runs
-    averaged["money"]["peak"] = summed["money"]["peak"] / total_runs
+    averaged["bankroll"]["starting"] = summed["bankroll"]["starting"] / total_runs
+    averaged["bankroll"]["ending"] = summed["bankroll"]["ending"] / total_runs
+    averaged["bankroll"]["total_profit"] = summed["bankroll"]["total_profit"] / total_runs
+    averaged["bankroll"]["profit_per_hand"] = summed["bankroll"]["profit_per_hand"] / total_runs
+    averaged["bankroll"]["profit_per_hour"] = summed["bankroll"]["profit_per_hour"] / total_runs
+    averaged["bankroll"]["peak"] = summed["bankroll"]["peak"] / total_runs
     averaged["time"]["human_time"] = summed["time"]["human_time"] / total_runs
     averaged["time"]["simulation_time"] = summed["time"]["simulation_time"] / total_runs
 
@@ -321,5 +321,5 @@ class SimulationEngine():
     multi_sim["average"] = averaged
     self.__multi_results = multi_sim
 
-  def __format_money(self, value: float) -> str:
+  def __format_bankroll(self, value: float) -> str:
     return f"-${abs(value):,.2f}" if value < 0 else f"${value:,.2f}"

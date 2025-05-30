@@ -17,7 +17,7 @@ class Dealer(Player):
   __shoe: Shoe
 
   def __init__(self, rules: DealerRules) -> None:
-    super().__init__(PlayerInfo(money=999999999))
+    super().__init__(PlayerInfo(bankroll=999999999))
     self.__hits_soft_seventeen = rules.dealer_hits_soft_seventeen
     self.__blackjack_pays_multiplier = rules.blackjack_pays_multiplier
     self.__shoe = Shoe(rules.deck_count, rules.shoe_reset_percentage)
@@ -42,8 +42,8 @@ class Dealer(Player):
   def get_facecard(self) -> Card:
     return self.get_hands()[0].get_card(1)
 
-  def get_money(self) -> int:
-    return self.__money
+  def get_bankroll(self) -> int:
+    return self.__bankroll
 
   def get_active_hand_decision(self) -> PlayerDecision:
     if self.get_hands()[0].is_soft():
@@ -97,32 +97,39 @@ class Dealer(Player):
 
   def hit_player(self, player: Player) -> None:
     assert isinstance(player, Player)
+    active_hand = player.get_active_hand()
     card = self.__shoe.draw()
     player.add_to_active_hand(card)
     BlackjackLogger.debug(f"\t\tHit: {card.get_value()}")
+    BlackjackLogger.debug(f"\t\tCurrent Value: {active_hand.get_value()}")
 
   def double_down_player(self, player: Player) -> None:
     assert isinstance(player, Player)
     active_hand = player.get_active_hand()
-    player.decrement_money(active_hand.get_bet())
+    player.finalize_active_hand()
+    player.decrement_bankroll(active_hand.get_bet())
     active_hand.double_down()
     card = self.__shoe.draw()
     BlackjackLogger.debug(f"\t\tDouble Down: {card.get_value()}")
-    player.add_to_active_hand(card)
-    player.finalize_active_hand()
+    active_hand.add_card(card)
+    BlackjackLogger.debug(f"\t\tFinal Value: {active_hand.get_value()}")
 
   def stand_player(self, player: Player) -> None:
     player.finalize_active_hand()
 
   def handle_decisions(self) -> None:
-    if self.get_hand_count() == 0:
-      return
-    decision = PlayerDecision.PLACEHOLDER
+    assert self.get_active_hand().get_card_count() == 2
+    decision = PlayerDecision.PENDING
     while decision != PlayerDecision.STAND:
       decision = self.get_active_hand_decision()
       match decision:
         case PlayerDecision.HIT:
           self.hit_player(self)
+      dealer_hand_value = self.get_hand(0).get_value()
+      if dealer_hand_value > 17:
+        self.get_hand(0).set_finalized()
+      elif dealer_hand_value == 17 and (not self.__hits_soft_seventeen or not self.get_hand(0).is_soft()):
+        self.get_hand(0).set_finalized()
 
   def deal_split_hands(self, players: List[Player]) -> None:
     for player in players:
@@ -130,7 +137,7 @@ class Dealer(Player):
         if hand.get_card_count() == 1:
           card = self.get_shoe().draw()
           hand.add_card(card)
-          BlackjackLogger.debug(f"\tHand #{i}: {hand.get_card_value(0)}, {hand.get_card_value(1)}")
+          BlackjackLogger.debug(f"\tHand {i}: {hand.get_card_value(0)}, {hand.get_card_value(1)} -- {hand.get_value()}")
 
   def handle_payouts(self, players: List[Player]) -> None:
     dealer_hand_value = self.get_hand_value(0)
@@ -196,16 +203,16 @@ class Dealer(Player):
     bet = player_hand.get_bet()
     if result == HandResult.LOST:
       BlackjackLogger.debug("\t\tLost!")
-      self.increment_money(bet, True)
+      self.increment_bankroll(bet, True)
     elif result == HandResult.DREW:
       BlackjackLogger.debug("\t\tDraw!")
-      player.increment_money(bet)
+      player.increment_bankroll(bet)
     elif result == HandResult.WON:
       BlackjackLogger.debug("\t\tWin!")
-      player.increment_money(bet * 2)
+      player.increment_bankroll(bet * 2)
     elif result == HandResult.BLACKJACK:
       BlackjackLogger.debug("\t\tPlayer has Blackjack! Win!")
-      player.increment_money(bet + (bet * self.__blackjack_pays_multiplier))
+      player.increment_bankroll(bet + (bet * self.__blackjack_pays_multiplier))
     else:
       raise NotImplementedError("HandResult not implemented")
 
@@ -218,7 +225,7 @@ class Dealer(Player):
   ) -> None:
     if player_hand.is_insured():
       if dealer_has_blackjack:
-        player.increment_money(player_hand.get_insurance_bet() * 2)
+        player.increment_bankroll(player_hand.get_insurance_bet() * 2)
       player_hand.set_insurance_bet(0)
 
   def reset_hands(self, players: List[Player]) -> None:
@@ -227,8 +234,8 @@ class Dealer(Player):
       BlackjackLogger.debug(f"\tPlayer-{player.get_id()}")
       BlackjackLogger.debug("\t\tReset hand to: []")
     self.set_hands([])
-    BlackjackLogger.debug(f"\tDealer")
-    BlackjackLogger.debug("\t\tReset hand to: []")
+    BlackjackLogger.debug("\tDealer")
+    BlackjackLogger.debug("\t\tReset hand to: []\n\n")
 
   def to_dict(self) -> dict:
     return {

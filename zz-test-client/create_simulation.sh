@@ -3,7 +3,7 @@
 curl -s -X POST "http://localhost:8000/session/simulation/create" \
   -H "Content-Type: application/json" \
   -d '{
-        "money_goal": 50000,
+        "bankroll_goal": 50000,
         "rules": {
           "betting_rules": {
             "min_bet": 25,
@@ -34,7 +34,7 @@ curl -s -X POST "http://localhost:8000/session/simulation/create" \
         },
         "ai_player_info": [
           {
-            "money": 5000,
+            "bankroll": 5000,
             "basic_strategy_skill_level": 100,
             "card_counting_skill_level": 100,
             "deviations_skill_level": 100,

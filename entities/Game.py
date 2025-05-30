@@ -129,6 +129,7 @@ class Game:
     active_player = self.get_active_player()
     if not silent:
       BlackjackLogger.debug("\t\tStand")
+      BlackjackLogger.debug(f"\t\tFinal Value: {self.get_active_hand().get_value()}")
     active_player.finalize_active_hand()
 
   def double_down_active_hand(self) -> None:
@@ -142,7 +143,7 @@ class Game:
     card = active_hand.remove_card()
     bet = active_hand.get_bet()
     new_hand = Hand([card], bet, True)
-    active_player.decrement_money(bet)
+    active_player.decrement_bankroll(bet)
     active_player.add_new_hand(new_hand)
     self.__dealer.deal_split_hands(self.get_all_players_except_dealer())
 
@@ -150,7 +151,7 @@ class Game:
     active_hand = self.get_active_hand()
     active_player = self.get_active_player()
     BlackjackLogger.debug("\t\tSurrender")
-    active_player.decrement_money(active_hand.get_bet() / 2)
+    active_player.decrement_bankroll(active_hand.get_bet() / 2)
     active_player.get_hands().remove(active_hand)
 
   def handle_dealer_decisions(self) -> None:
@@ -174,6 +175,8 @@ class Game:
         "System is most likely trying to run AI decisions against a human player."
       )
       active_hand = self.get_active_hand()
+      hand_index = active_player.get_hand_index(active_hand)
+      BlackjackLogger.debug(f"\tHand-{hand_index}")
       assert isinstance(active_hand, Hand)
       decisions = active_player.get_decisions(active_hand, self.__dealer.get_facecard().get_value())
       for decision in decisions:
@@ -214,7 +217,7 @@ class Game:
         return False
       if self.__rules_engine.can_early_surrender(hands[0]):
         if player.wants_to_surrender(self.__dealer.get_facecard().get_value()):
-          player.increment_money(hands[0].get_bet() / 2)
+          player.increment_bankroll(hands[0].get_bet() / 2)
           player.set_hands([])
 
   def dealer_blackjack_check(self) -> GameState:
@@ -230,7 +233,7 @@ class Game:
         return
       if self.__rules_engine.can_late_surrender(hands[0]):
         if player.wants_to_surrender(self.__dealer.get_facecard().get_value()):
-          player.increment_money(hands[0].get_bet() / 2)
+          player.increment_bankroll(hands[0].get_bet() / 2)
           player.set_hands([])
 
   def continue_until_state(self, state: GameState) -> None:
@@ -290,9 +293,9 @@ class Game:
       return False
     return True
 
-  def someone_has_money(self) -> bool:
+  def someone_has_bankroll(self) -> bool:
     for player in self.__ai_players + self.__human_players:
-      if player.get_money() > 0:
+      if player.get_bankroll() > 0:
         return True
     return False
 

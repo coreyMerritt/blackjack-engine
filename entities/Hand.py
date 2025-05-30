@@ -27,13 +27,11 @@ class Hand():
     value = 0
     for card in self.__cards:
       value += card.get_value()
-    if value > 21:
-      if self.is_soft():
-        for card in self.__cards:
-          if card.get_value_can_reset():
-            card.set_value_can_reset(False)
-            card.set_value(1)
-            break
+    if value > 21 and self.is_soft():
+      for card in self.__cards:
+        if card.value_can_reset():
+          card.set_value(1)
+          break
     return value
 
   def get_active_ace_count(self) -> int:
@@ -99,8 +97,7 @@ class Hand():
     if self.get_value() > 21:
       if self.is_soft():
         for card in self.__cards:
-          if card.get_value_can_reset():
-            card.set_value_can_reset(False)
+          if card.value_can_reset():
             card.set_value(1)
             break
 

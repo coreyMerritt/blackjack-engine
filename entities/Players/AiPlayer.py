@@ -54,8 +54,8 @@ class AiPlayer(Player):
   def determine_bet(self, rules_engine: RulesEngine) -> None:
     # TODO: Implement bed spread & intelligent betting
     bet = random.randint(rules_engine.get_min_bet(), rules_engine.get_max_bet())
-    if bet > self.get_money():
-      bet = self.get_money()
+    if bet > self.get_bankroll():
+      bet = self.get_bankroll()
     return bet
 
   def wants_insurance(self, dealer_upcard_face: Face) -> bool:

@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class PlayerDecision(Enum):
-  PLACEHOLDER = 0
+  PENDING = 0
   HIT = 1
   STAND = 2
   DOUBLE_DOWN = 3

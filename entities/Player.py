@@ -10,12 +10,12 @@ from services.BlackjackLogger import BlackjackLogger
 
 class Player(ABC):
   __id: UUID
-  __money: int
+  __bankroll: int
   __hands: List[Hand]
 
   def __init__(self, player_info: PlayerInfo) -> None:
     self.__hands = []
-    self.__money = player_info.money
+    self.__bankroll = player_info.bankroll
     self.__id = uuid4()
 
   def get_id(self) -> UUID:
@@ -27,8 +27,8 @@ class Player(ABC):
   def get_hands(self) -> List[Hand]:
     return self.__hands
 
-  def get_money(self) -> int:
-    return self.__money
+  def get_bankroll(self) -> int:
+    return self.__bankroll
 
   def get_hand_value(self, hand_index: int) -> int:
     assert hand_index + 1 <= self.get_hand_count()
@@ -55,22 +55,22 @@ class Player(ABC):
   def set_bet(self, bet: int, hand_index: int) -> None:
     if hand_index + 1 > self.get_hand_count():
       self.add_new_hand(Hand([], bet, False))
-    self.decrement_money(bet)
+    self.decrement_bankroll(bet)
 
   def add_new_hand(self, hand: Hand) -> None:
     self.__hands.append(hand)
 
-  def increment_money(self, amount: int, silent=False) -> None:
+  def increment_bankroll(self, amount: int, silent=False) -> None:
     if amount != 0:
       if not silent:
-        BlackjackLogger.debug(f"\t\tAdjusting money from: {self.__money} -> {self.__money + amount}")
-      self.__money += amount
+        BlackjackLogger.debug(f"\t\tAdjusting bankroll from: {self.__bankroll} -> {self.__bankroll + amount}")
+      self.__bankroll += amount
 
-  def decrement_money(self, amount: int, silent=False) -> None:
+  def decrement_bankroll(self, amount: int, silent=False) -> None:
     if amount != 0:
       if not silent:
-        BlackjackLogger.debug(f"\t\tAdjusting money from: {self.__money} -> {self.__money - amount}")
-      self.__money -= amount
+        BlackjackLogger.debug(f"\t\tAdjusting bankroll from: {self.__bankroll} -> {self.__bankroll - amount}")
+      self.__bankroll -= amount
 
   def add_to_active_hand(self, card: Card) -> None:
     active_hand = self.get_active_hand()
@@ -96,5 +96,5 @@ class Player(ABC):
   def to_dict(self) -> dict:
     return {
       "hand": [c.to_dict() for hand in self.__hands for c in hand.get_cards()],
-      "money": self.__money
+      "bankroll": self.__bankroll
     }

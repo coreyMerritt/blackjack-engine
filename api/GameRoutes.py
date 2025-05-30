@@ -26,6 +26,6 @@ async def stand(session_id: str, hand_index: int) -> JSONResponse:
 async def get(session_id: str) -> JSONResponse:
   return await controller.get(session_id)
 
-@router.get("/session/{session_id}/game/get_money")
-async def get_money(session_id: str) -> JSONResponse:
-  return await controller.get_money(session_id)
+@router.get("/session/{session_id}/game/get_bankroll")
+async def get_bankroll(session_id: str) -> JSONResponse:
+  return await controller.get_bankroll(session_id)

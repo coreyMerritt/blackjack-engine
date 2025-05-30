@@ -10,5 +10,5 @@ class SimulationSingleResults(BaseModel):
   hands_won: HandResults = Field(default_factory=HandResults)
   hands_lost: HandResults = Field(default_factory=HandResults)
   hands_drawn: HandResults = Field(default_factory=HandResults)
-  money: MoneyResults = Field(default_factory=MoneyResults)
+  bankroll: MoneyResults = Field(default_factory=MoneyResults)
   time: TimeResults = Field(default_factory=TimeResults)

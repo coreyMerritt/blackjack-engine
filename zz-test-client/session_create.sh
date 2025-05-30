@@ -6,7 +6,7 @@ curl -s -X POST "http://localhost:8000/session/create" \
         "deck_count": 8,
         "ai_player_info": [
           {
-            "money": 1000000,
+            "bankroll": 1000000,
             "basic_strategy_skill_level": 10
           }
         ],
@@ -14,7 +14,7 @@ curl -s -X POST "http://localhost:8000/session/create" \
         "max_bet": 600,
         "shoe_reset_percentage": 20,
         "human_player_info": {
-          "money": 10000
+          "bankroll": 10000
         }
       }'
 
