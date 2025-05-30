@@ -8,6 +8,7 @@ from models.enums.Face import Face
 from models.enums.PlayerDecision import PlayerDecision
 from services.BasicStrategyEngine import BasicStrategyEngine
 from services.BlackjackLogger import BlackjackLogger
+from services.CardCountingEngine import CardCountingEngine
 from services.RulesEngine import RulesEngine
 
 
@@ -15,15 +16,28 @@ class AiPlayer(Player):
   __basic_strategy_engine: BasicStrategyEngine
   # TODO: This isn't really implemented at all yet -- can't really do so until we implement counting
   __bet_spread: BetSpread
+  __card_counting_engine: CardCountingEngine
+  __running_count: int
 
   def __init__(self, ai_player_info: AiPlayerInfo, rules_engine: RulesEngine) -> None:
     super().__init__(ai_player_info)
-    self.__basic_strategy_engine = BasicStrategyEngine(ai_player_info.basic_strategy_skill_level, rules_engine)
+    self.__basic_strategy_engine = BasicStrategyEngine(
+      ai_player_info.basic_strategy_skill_level,
+      ai_player_info.deviations_skill_level,
+      rules_engine
+    )
     self.__bet_spread = ai_player_info.bet_spread
+    self.__card_counting_engine = CardCountingEngine(ai_player_info.card_counting_skill_level)
+    self.__running_count = 0
 
   def get_decisions(self, active_hand: Hand, dealer_facecard_value: int) -> List[PlayerDecision]:
-    decisions = self.__basic_strategy_engine.get_play(self.get_hands(), active_hand, dealer_facecard_value)
-    BlackjackLogger.debug(f"Player-{self.get_id()} wants: {[d.name for d in decisions]}")
+    decisions = self.__basic_strategy_engine.get_play(
+      self.get_hands(),
+      active_hand,
+      dealer_facecard_value,
+      0   # TODO: Placeholder, should be true count
+    )
+    BlackjackLogger.debug(f"\t\tWants: {[d.name for d in decisions]}")
     return decisions
 
   def get_insurance_bet(self) -> int:
@@ -32,6 +46,10 @@ class AiPlayer(Player):
 
   def get_bet_spread(self) -> BetSpread:
     return self.__bet_spread
+
+  def handle_running_count(self, card_value: int) -> None:
+    count_adjustment = self.__card_counting_engine.get_count_adjustment(card_value)
+    self.__running_count += count_adjustment
 
   def determine_bet(self, rules_engine: RulesEngine) -> None:
     # TODO: Implement bed spread & intelligent betting

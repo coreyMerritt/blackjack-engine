@@ -78,18 +78,20 @@ class SimulationEngine():
     hands_won_count = 0
     hands_lost_count = 0
     hands_drawn_count = 0
+    blackjack_count = 0
 
     while(self.__game.someone_has_money() and self.__game.get_ai_players()[0].get_money() < self.__money_goal):
       self.__game.continue_until_state(GameState.CLEANUP)
       money = self.__game.get_ai_players()[0].get_money()
-
       if highest_money < money:
         highest_money = money
-
       for player in self.__game.get_all_players_except_dealer():
         for hand in player.get_hands():
           hand_result = hand.get_result()
-          if hand_result == HandResult.WON:
+          if hand_result == HandResult.BLACKJACK:
+            blackjack_count += 1
+            hands_won_count += 1
+          elif hand_result == HandResult.WON:
             hands_won_count += 1
           elif hand_result == HandResult.LOST:
             hands_lost_count += 1
@@ -97,6 +99,14 @@ class SimulationEngine():
             hands_drawn_count += 1
       self.__game.finish_round()
       total_hands_played = hands_won_count + hands_lost_count + hands_drawn_count
+      money_after_round = self.__game.get_ai_players()[0].get_money()
+      if money_after_round == 0:
+        self.__single_results_status = 100
+      else:
+        winning_progress = int((money_after_round / self.__money_goal) * 100)
+        losing_progress = int(((starting_money - money_after_round) / starting_money) * 100)
+        self.__single_results_status = max(winning_progress, losing_progress)
+
       if total_hands_played % 100 == 0:
         await asyncio.sleep(0)
 
@@ -266,11 +276,8 @@ class SimulationEngine():
     for r in results_list:
       summed["total_hands_played"] += int(r["total_hands_played"])
       summed["hands_won"]["count"] += int(r["hands_won"]["count"])
-      summed["hands_won"]["percent"] += int(r["hands_won"]["percent"])
       summed["hands_lost"]["count"] += int(r["hands_lost"]["count"])
-      summed["hands_lost"]["percent"] += int(r["hands_lost"]["percent"])
       summed["hands_drawn"]["count"] += int(r["hands_drawn"]["count"])
-      summed["hands_drawn"]["percent"] += int(r["hands_drawn"]["percent"])
       summed["money"]["starting"] += float(r["money"]["starting"])
       summed["money"]["ending"] += float(r["money"]["ending"])
       summed["money"]["total_profit"] += float(r["money"]["total_profit"])
@@ -280,14 +287,21 @@ class SimulationEngine():
       summed["time"]["human_time"] += float(r["time"]["human_time"])
       summed["time"]["simulation_time"] += float(r["time"]["simulation_time"])
 
+    summed_hands_won = summed["hands_won"]["count"]
+    summed_hands_lost = summed["hands_lost"]["count"]
+    summed_hands_drawn = summed["hands_drawn"]["count"]
+    summed_total_hands = summed["total_hands_played"]
+    hands_won_percent = (summed_hands_won / summed_total_hands) * 100
+    hands_lost_percent = (summed_hands_lost / summed_total_hands) * 100
+    hands_drawn_percent = (summed_hands_drawn / summed_total_hands) * 100
     averaged = SimulationSingleResults().model_dump()
     averaged["total_hands_played"] = summed["total_hands_played"] // total_runs
     averaged["hands_won"]["count"] = summed["hands_won"]["count"] // total_runs
-    averaged["hands_won"]["percent"] = summed["hands_won"]["percent"] / total_runs
+    averaged["hands_won"]["percent"] = hands_won_percent
     averaged["hands_lost"]["count"] = summed["hands_lost"]["count"] // total_runs
-    averaged["hands_lost"]["percent"] = summed["hands_lost"]["percent"] / total_runs
+    averaged["hands_lost"]["percent"] = hands_lost_percent
     averaged["hands_drawn"]["count"] = summed["hands_drawn"]["count"] // total_runs
-    averaged["hands_drawn"]["percent"] = summed["hands_drawn"]["percent"] / total_runs
+    averaged["hands_drawn"]["percent"] = hands_drawn_percent
     averaged["money"]["starting"] = summed["money"]["starting"] / total_runs
     averaged["money"]["ending"] = summed["money"]["ending"] / total_runs
     averaged["money"]["total_profit"] = summed["money"]["total_profit"] / total_runs

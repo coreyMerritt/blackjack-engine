@@ -42,7 +42,7 @@ class RulesEngine():
     return self.__dealer_rules.dealer_hits_soft_seventeen
 
   def shoe_must_be_shuffled(self, shoe: Shoe) -> bool:
-    card_shuffle_point = (self.__dealer_rules.deck_count * 52) * self.__dealer_rules.shoe_reset_percentage
+    card_shuffle_point = (self.__dealer_rules.deck_count * 52) * (self.__dealer_rules.shoe_reset_percentage / 100)
     if shoe.get_card_count() <= card_shuffle_point:
       return True
     return False

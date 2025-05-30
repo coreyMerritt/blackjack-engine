@@ -24,6 +24,9 @@ class Dealer(Player):
     self.load_shoe()
     self.shuffle_shoe()
 
+  def get_blackjack_pays_multiplier(self) -> float:
+    return self.__blackjack_pays_multiplier
+
   def get_shoe(self) -> Shoe:
     return self.__shoe
 
@@ -55,17 +58,27 @@ class Dealer(Player):
 
   def deal(self, players: List[Player]) -> None:
     for player in players:
+      BlackjackLogger.debug(f"\tPlayer-{player.get_id()}")
       for _ in range(2):
         card = self.__shoe.draw()
         player.add_to_active_hand(card)
-        BlackjackLogger.debug(f"Dealt Player-{player.get_id()}: {card.get_value()}")
+        BlackjackLogger.debug(f"\t\tDealt: {card.get_value()}")
+      player_hand_value = player.get_active_hand().get_value()
+      BlackjackLogger.debug(f"\t\tHand: {player_hand_value}")
+      if player_hand_value == 21:
+        BlackjackLogger.debug("\t\tBlackjack!")
 
     self.set_hands([Hand([], 0, False)])
     dealer_hand = self.get_hands()[0]
+    BlackjackLogger.debug("\tDealer")
     for _ in range(2):
       card = self.__shoe.draw()
       dealer_hand.add_card(card)
-      BlackjackLogger.debug(f"Dealt dealer: {card.get_value()}")
+      BlackjackLogger.debug(f"\t\tDealt: {card.get_value()}")
+    dealer_hand_value = self.get_active_hand().get_value()
+    BlackjackLogger.debug(f"\t\tHand: {dealer_hand_value}")
+    if dealer_hand_value == 21:
+      BlackjackLogger.debug("\t\tBlackjack!")
 
   def shuffle_shoe(self) -> None:
     self.__shoe.shuffle()
@@ -86,7 +99,17 @@ class Dealer(Player):
     assert isinstance(player, Player)
     card = self.__shoe.draw()
     player.add_to_active_hand(card)
-    BlackjackLogger.debug(f"Player-{player.get_id()} drew: {card.get_value()}")
+    BlackjackLogger.debug(f"\t\tHit: {card.get_value()}")
+
+  def double_down_player(self, player: Player) -> None:
+    assert isinstance(player, Player)
+    active_hand = player.get_active_hand()
+    player.decrement_money(active_hand.get_bet())
+    active_hand.double_down()
+    card = self.__shoe.draw()
+    BlackjackLogger.debug(f"\t\tDouble Down: {card.get_value()}")
+    player.add_to_active_hand(card)
+    player.finalize_active_hand()
 
   def stand_player(self, player: Player) -> None:
     player.finalize_active_hand()
@@ -103,17 +126,18 @@ class Dealer(Player):
 
   def deal_split_hands(self, players: List[Player]) -> None:
     for player in players:
-      for hand in player.get_hands():
+      for i, hand in enumerate(player.get_hands()):
         if hand.get_card_count() == 1:
           card = self.get_shoe().draw()
           hand.add_card(card)
+          BlackjackLogger.debug(f"\tHand #{i}: {hand.get_card_value(0)}, {hand.get_card_value(1)}")
 
   def handle_payouts(self, players: List[Player]) -> None:
     dealer_hand_value = self.get_hand_value(0)
     dealer_busted = dealer_hand_value > 21
     dealer_has_blackjack = dealer_hand_value == 21 and self.get_hands()[0].get_card_count() == 2
-    BlackjackLogger.debug("End of hand:")
-    BlackjackLogger.debug(f"\tDealer has: {dealer_hand_value}")
+    BlackjackLogger.debug("\tDealer")
+    BlackjackLogger.debug(f"\t\t{dealer_hand_value}")
     if dealer_busted:
       BlackjackLogger.debug("\t\tDealer busted!")
     for player in players:
@@ -137,43 +161,54 @@ class Dealer(Player):
     dealer_busted: bool
   ) -> None:
     player_hand_value = player.get_hand_value(hand_index)
-    player_beat_dealer = player_hand_value > dealer_hand_value
-    player_has_blackjack = player_hand_value == 21 and player_hand.get_card_count() == 2
+    BlackjackLogger.debug(f"\tPlayer-{player.get_id()}")
+    BlackjackLogger.debug(f"\t\t{player_hand_value}")
 
-    player_busted = player_hand_value > 21
-    player_tied_with_dealer = player_hand_value == dealer_hand_value
-    both_have_blackjack = player_has_blackjack and dealer_has_blackjack
-    only_player_has_blackjack = player_has_blackjack and not dealer_has_blackjack
-    player_won = dealer_busted or player_beat_dealer
-    player_lost = not dealer_busted and not player_beat_dealer
+    if player_hand.get_result() == HandResult.UNDETERMINED:
+      player_beat_dealer = player_hand_value > dealer_hand_value
+      player_has_blackjack = player_hand_value == 21 and player_hand.get_card_count() == 2
 
-    BlackjackLogger.debug(f"\tPlayer-{player.get_id()} has: {player_hand_value}")
-    if player_busted:
-      BlackjackLogger.debug("\t\tPlayer busted! Lost!")
-      self.increment_money(player_hand.get_bet())
-      player_hand.set_result(HandResult.LOST)
-    elif both_have_blackjack:
-      BlackjackLogger.debug("\t\tDealer & Player have Blackjack! Draw!")
-      player.increment_money(player_hand.get_bet())
-      player_hand.set_result(HandResult.DREW)
-    elif only_player_has_blackjack:
-      BlackjackLogger.debug("\t\tPlayer has Blackjack! Win!")
-      player.increment_money(player_hand.get_bet() + (player_hand.get_bet() * self.__blackjack_pays_multiplier))
-      player_hand.set_result(HandResult.WON)
-    elif player_tied_with_dealer:
-      BlackjackLogger.debug("\t\tDraw!")
-      player.increment_money(player_hand.get_bet())
-      player_hand.set_result(HandResult.DREW)
-    elif player_won:
-      BlackjackLogger.debug("\t\tWin!")
-      player.increment_money(player_hand.get_bet() * 2)
-      player_hand.set_result(HandResult.WON)
-    elif player_lost:
+      player_busted = player_hand_value > 21
+      player_tied_with_dealer = player_hand_value == dealer_hand_value
+      both_have_blackjack = player_has_blackjack and dealer_has_blackjack
+      only_player_has_blackjack = player_has_blackjack and not dealer_has_blackjack
+      player_won = dealer_busted or player_beat_dealer
+      player_lost = not dealer_busted and not player_beat_dealer
+
+      if player_busted:
+        BlackjackLogger.debug("\t\tPlayer busted!")
+        player_hand.set_result(HandResult.LOST)
+      elif both_have_blackjack:
+        BlackjackLogger.debug("\t\tDealer & Player both have Blackjack!")
+        player_hand.set_result(HandResult.DREW)
+      elif only_player_has_blackjack:
+        player_hand.set_result(HandResult.BLACKJACK)
+      elif player_tied_with_dealer:
+        player_hand.set_result(HandResult.DREW)
+      elif player_won:
+        player_hand.set_result(HandResult.WON)
+      elif player_lost:
+        player_hand.set_result(HandResult.LOST)
+      else:
+        raise NotImplementedError("Unexpected conditions @dealer.handle_payout")
+
+    result = player_hand.get_result()
+    bet = player_hand.get_bet()
+    if result == HandResult.LOST:
       BlackjackLogger.debug("\t\tLost!")
-      self.increment_money(player_hand.get_bet())
-      player_hand.set_result(HandResult.LOST)
+      self.increment_money(bet, True)
+    elif result == HandResult.DREW:
+      BlackjackLogger.debug("\t\tDraw!")
+      player.increment_money(bet)
+    elif result == HandResult.WON:
+      BlackjackLogger.debug("\t\tWin!")
+      player.increment_money(bet * 2)
+    elif result == HandResult.BLACKJACK:
+      BlackjackLogger.debug("\t\tPlayer has Blackjack! Win!")
+      player.increment_money(bet + (bet * self.__blackjack_pays_multiplier))
     else:
-      raise NotImplementedError("Unexpected conditions @dealer.handle_payout")
+      raise NotImplementedError("HandResult not implemented")
+
     player.set_bet(0, hand_index)
 
   def handle_single_insurance_payout(self,
@@ -187,11 +222,13 @@ class Dealer(Player):
       player_hand.set_insurance_bet(0)
 
   def reset_hands(self, players: List[Player]) -> None:
-    for i, player in enumerate(players):
+    for player in players:
       player.set_hands([])
-      BlackjackLogger.debug(f"Reset player-{i} hand to: []")
+      BlackjackLogger.debug(f"\tPlayer-{player.get_id()}")
+      BlackjackLogger.debug("\t\tReset hand to: []")
     self.set_hands([])
-    BlackjackLogger.debug("Reset dealer hand to: []\n\n")
+    BlackjackLogger.debug(f"\tDealer")
+    BlackjackLogger.debug("\t\tReset hand to: []")
 
   def to_dict(self) -> dict:
     return {

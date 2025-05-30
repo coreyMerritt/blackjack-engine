@@ -11,7 +11,6 @@ class Hand():
   __from_split: bool
   __bet: int
   __insurance_bet: int
-  __value: int
   __result: HandResult
   __cards: List[Card]
 
@@ -21,12 +20,21 @@ class Hand():
     self.__from_split = from_split
     self.__bet = bet
     self.__insurance_bet = 0
-    self.__value = 0
     self.__result = HandResult.UNDETERMINED
     self.__cards = cards
 
   def get_value(self) -> int:
-    return self.__value
+    value = 0
+    for card in self.__cards:
+      value += card.get_value()
+    if value > 21:
+      if self.is_soft():
+        for card in self.__cards:
+          if card.get_value_can_reset():
+            card.set_value_can_reset(False)
+            card.set_value(1)
+            break
+    return value
 
   def get_active_ace_count(self) -> int:
     ace_count = 0
@@ -67,7 +75,7 @@ class Hand():
   def set_bet(self, bet: int) -> None:
     self.__bet = bet
 
-  def set_finalized(self, value: bool) -> None:
+  def set_finalized(self, value=True) -> None:
     self.__finalized = value
 
   def set_insurance_bet(self, bet: int) -> None:
@@ -75,29 +83,32 @@ class Hand():
 
   def set_result(self, result: HandResult) -> None:
     self.__result = result
+    self.set_finalized()
 
   def add_card(self, card: Card) -> None:
     self.__cards.append(card)
-    self.__value += card.get_value()
+    if self.is_soft():
+      if self.get_value() > 21:
+        self.reset_an_ace()
 
   def remove_card(self) -> Card:
     card = self.__cards.pop()
-    self.__value -= card.get_value()
     return card
 
   def reset_an_ace(self) -> None:
-    if self.__value > 21:
+    if self.get_value() > 21:
       if self.is_soft():
         for card in self.__cards:
-          if card.value_can_reset:
-            card.value_can_reset = False
+          if card.get_value_can_reset():
+            card.set_value_can_reset(False)
             card.set_value(1)
             break
 
   def is_soft(self) -> bool:
     for card in self.__cards:
       if card.get_face() == Face.ACE:
-        return True
+        if card.get_value() == 11:
+          return True
     return False
 
   def is_from_split(self) -> bool:

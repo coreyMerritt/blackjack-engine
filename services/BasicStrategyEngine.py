@@ -10,18 +10,26 @@ from services.RulesEngine import RulesEngine
 
 
 class BasicStrategyEngine():
-  __skill_level: int
+  __basic_strategy_skill_level: int
+  __deviations_skill_level: int
   __rules_engine: RulesEngine
 
-  def __init__(self, skill_level: int, rules_engine: RulesEngine):
-    self.__skill_level = skill_level
+  def __init__(
+    self,
+    basic_strategy_skill_level: int,
+    deviations_skill_level: int,
+    rules_engine: RulesEngine
+  ):
+    self.__basic_strategy_skill_level = basic_strategy_skill_level
+    self.__deviations_skill_level = deviations_skill_level
     self.__rules_engine = rules_engine
 
   def get_play(
     self,
     player_hands: List[Hand],
     active_player_hand: Hand,
-    dealer_face_card_value: int
+    dealer_face_card_value: int,
+    true_count: int
   ) -> List[PlayerDecision]:
     assert isinstance(dealer_face_card_value, int)
     decisions = []
@@ -47,7 +55,7 @@ class BasicStrategyEngine():
   def wants_insurance(self, hands: List[Hand], dealer_upcard_face: Face) -> bool:
     if not self.__rules_engine.can_insure(hands, dealer_upcard_face):
       return False
-    accuracy_roll = random.randint(self.__skill_level, 100)
+    accuracy_roll = random.randint(self.__basic_strategy_skill_level, 100)
     if accuracy_roll > 10:
       return False
     return True
@@ -108,8 +116,8 @@ class BasicStrategyEngine():
   def _get_drunken_player_hand_value(self, player_hand: Hand) -> int:
     hand_is_soft = player_hand.is_soft()
     active_player_hand_value = player_hand.get_value()
-    accuracy_roll = random.randint(self.__skill_level, 100)
-    BlackjackLogger.debug(f"Accuracy roll: {accuracy_roll}")
+    accuracy_roll = random.randint(self.__basic_strategy_skill_level, 100)
+    BlackjackLogger.debug(f"\t\tAccuracy roll: {accuracy_roll}")
     spread = (100 - accuracy_roll) / 10
     plus_or_minus_roll = random.randint(1, 2)
     if plus_or_minus_roll == 1:

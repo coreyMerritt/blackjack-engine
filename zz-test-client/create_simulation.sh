@@ -6,8 +6,8 @@ curl -s -X POST "http://localhost:8000/session/simulation/create" \
         "money_goal": 50000,
         "rules": {
           "betting_rules": {
-            "min_bet": 50,
-            "max_bet": 600
+            "min_bet": 25,
+            "max_bet": 25
           },
           "dealer_rules": {
             "dealer_hits_soft_seventeen": true,
@@ -34,16 +34,18 @@ curl -s -X POST "http://localhost:8000/session/simulation/create" \
         },
         "ai_player_info": [
           {
-            "money": 25000,
+            "money": 5000,
             "basic_strategy_skill_level": 100,
+            "card_counting_skill_level": 100,
+            "deviations_skill_level": 100,
             "bet_spread": {
-              "true_zero": 50,
-              "true_one": 100,
-              "true_two": 200,
-              "true_three": 300,
-              "true_four": 400,
-              "true_five": 500,
-              "true_six": 600
+              "true_zero": 25,
+              "true_one": 25,
+              "true_two": 25,
+              "true_three": 25,
+              "true_four": 25,
+              "true_five": 25,
+              "true_six": 25
             }
           }
         ]
