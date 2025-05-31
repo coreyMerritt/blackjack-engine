@@ -31,7 +31,7 @@ class Card:
   def get_value(self) -> int:
     return self.__value
 
-  def value_can_reset(self) -> bool:
+  def calculate_if_value_can_reset(self) -> bool:
     return self.__value == 11
 
   def set_value(self, value: int) -> None:

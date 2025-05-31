@@ -31,7 +31,7 @@ class Hand():
       value += card.get_value()
     if value > 21 and self.is_soft():
       for card in self.__cards:
-        if card.value_can_reset():
+        if card.calculate_if_value_can_reset():
           card.set_value(1)
           break
     return value
@@ -104,7 +104,7 @@ class Hand():
     if self.get_value() > 21:
       if self.is_soft():
         for card in self.__cards:
-          if card.value_can_reset():
+          if card.calculate_if_value_can_reset():
             card.set_value(1)
             break
 
