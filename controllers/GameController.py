@@ -6,6 +6,8 @@ from services.SessionManagerSingleton import SessionManagerSingleton
 
 session_manager = SessionManagerSingleton()
 
+# TODO: This controller has been pretty "left in the dust",
+# needs to be reevaluated
 class GameController:
   async def start_game(self, session_id: str) -> JSONResponse:
     assert isinstance(session_id, str)

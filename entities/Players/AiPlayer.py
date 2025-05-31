@@ -33,9 +33,27 @@ class AiPlayer(Player):
     self.__card_counting_engine = CardCountingEngine(ai_player_info.card_counting_skill_level)
     self.__bet_spread = ai_player_info.bet_spread
 
+  def counts_cards(self) -> bool:
+    return self.__counts_cards
+
+  def plays_deviations(self) -> bool:
+    return self.__plays_deviations
+
+  def get_running_count(self) -> int:
+    return self.__running_count
+
+  def update_running_count(self, card_value: int) -> None:
+    if self.counts_cards():
+      count_adjustment = self.__card_counting_engine.get_count_adjustment(card_value)
+      self.__running_count += count_adjustment
+    BlackjackLogger.debug(f"\t\t\tRunning count is: {self.get_running_count()}")
+
+  def get_bet_spread(self) -> BetSpread:
+    return self.__bet_spread
+
   def get_decisions(self, active_hand: Hand, dealer_facecard_value: int, decks_remaining: int) -> List[PlayerDecision]:
-    if self.__counts_cards and self.__plays_deviations:
-      true_count = self.get_true_count(decks_remaining)
+    if self.counts_cards() and self.plays_deviations():
+      true_count = self.__calculate_true_count(decks_remaining)
     else:
       true_count = None
     decisions = self.__basic_strategy_engine.get_play(
@@ -48,34 +66,13 @@ class AiPlayer(Player):
     return decisions
 
   def get_insurance_bet(self) -> int:
-    # Should we allow other insurance bets?
-    return self.get_hands()[0].get_bet() / 2
-
-  def get_bet_spread(self) -> BetSpread:
-    return self.__bet_spread
-
-  def get_true_count(self, decks_remaining: float) -> int:
-    genuine_true_count = floor(self.__running_count / ceil(decks_remaining))
-    BlackjackLogger.debug(f"\t\tGenuine true count is: {genuine_true_count}")
-    if genuine_true_count > 6:
-      return 6
-    elif genuine_true_count < -1:
-      return -1
-    else:
-      return genuine_true_count
+    return self.get_hands()[0].get_insurance_bet()
 
   def reset_running_count(self) -> None:
     self.__running_count = 0
 
-  def update_running_count(self, card_value: int) -> None:
-    if self.__counts_cards:
-      count_adjustment = self.__card_counting_engine.get_count_adjustment(card_value)
-      self.__running_count += count_adjustment
-    BlackjackLogger.debug(f"\t\t\tRunning count is: {self.__running_count}")
-
-  def determine_bet(self, rules_engine: RulesEngine, decks_remaining: int) -> None:
-    # TODO: Implement bed spread & intelligent betting
-    true_count = self.get_true_count(decks_remaining)
+  def calculate_bet(self, rules_engine: RulesEngine, decks_remaining: int) -> None:
+    true_count = self.__calculate_true_count(decks_remaining)
     min_bet = rules_engine.get_min_bet()
     max_bet = rules_engine.get_max_bet()
     bet_spread = self.get_bet_spread()
@@ -114,5 +111,15 @@ class AiPlayer(Player):
     return self.__basic_strategy_engine.wants_to_surrender(
       dealer_face_card_value,
       self.get_hand(0),
-      self.get_true_count(decks_remaining)
+      self.__calculate_true_count(decks_remaining)
     )
+
+  def __calculate_true_count(self, decks_remaining: float) -> int:
+    genuine_true_count = floor(self.get_running_count() / ceil(decks_remaining))
+    BlackjackLogger.debug(f"\t\tGenuine true count is: {genuine_true_count}")
+    if genuine_true_count > 6:
+      return 6
+    elif genuine_true_count < -1:
+      return -1
+    else:
+      return genuine_true_count

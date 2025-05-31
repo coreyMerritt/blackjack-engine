@@ -84,7 +84,7 @@ class Game:
       BlackjackLogger.debug(f"\tPlayer-{player.get_id()}")
       BlackjackLogger.debug(f"\t\tDecks Remaining: {self.__dealer.get_decks_remaining()}")
       BlackjackLogger.debug(f"\t\tCards Remaining: {self.__dealer.get_decks_remaining()}")
-      bet = player.determine_bet(self.__rules_engine, self.__dealer.get_decks_remaining())
+      bet = player.calculate_bet(self.__rules_engine, self.__dealer.get_decks_remaining())
       player.set_bet(bet, 0)
 
   def deal_cards(self) -> int:

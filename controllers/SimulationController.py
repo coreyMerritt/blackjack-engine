@@ -7,20 +7,20 @@ from services.SessionManagerSingleton import SessionManagerSingleton
 session_manager = SessionManagerSingleton()
 
 class SimulationController:
-  async def multi_run(self, session_id: str, run_count: int) -> JSONResponse:
-    simulation_engine = session_manager.get_simulation(session_id)
-    if not simulation_engine:
-      raise HTTPException(status_code=401, detail="Invalid session")
-
-    asyncio.create_task(simulation_engine.multi_run(run_count))
-    return JSONResponse(status_code=200, content={"status": "started"})
-
   async def run(self, session_id: str) -> JSONResponse:
     simulation_engine = session_manager.get_simulation(session_id)
     if not simulation_engine:
       raise HTTPException(status_code=401, detail="Invalid session")
 
     asyncio.create_task(simulation_engine.run())
+    return JSONResponse(status_code=200, content={"status": "started"})
+
+  async def multi_run(self, session_id: str, run_count: int) -> JSONResponse:
+    simulation_engine = session_manager.get_simulation(session_id)
+    if not simulation_engine:
+      raise HTTPException(status_code=401, detail="Invalid session")
+
+    asyncio.create_task(simulation_engine.multi_run(run_count))
     return JSONResponse(status_code=200, content={"status": "started"})
 
   async def get_single_results(self, session_id: str) -> JSONResponse:
