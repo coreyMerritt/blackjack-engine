@@ -3,6 +3,7 @@ from typing import List
 from uuid import UUID, uuid4
 from entities.Card import Card
 from entities.Hand import Hand
+from models.core.BetSpread import BetSpread
 from models.core.player_info.PlayerInfo import PlayerInfo
 from models.enums.HandResult import HandResult
 from services.BlackjackLogger import BlackjackLogger
@@ -48,6 +49,9 @@ class Player(ABC):
     for i, my_hand in enumerate(self.__hands):
       if hand == my_hand:
         return i
+
+  def get_bet_spread(self) -> BetSpread | None:
+    return None
 
   def set_hands(self, hands: List[Hand]) -> None:
     self.__hands = hands

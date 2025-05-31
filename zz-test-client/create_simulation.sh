@@ -5,7 +5,7 @@ curl -s -X POST "http://localhost:8000/session/simulation/create" \
   -d '{
         "bankroll_goal": 50000,
         "human_time_limit": null,
-        "sim_time_limit": 10,
+        "sim_time_limit": 28800,
         "rules": {
           "betting_rules": {
             "min_bet": 25,

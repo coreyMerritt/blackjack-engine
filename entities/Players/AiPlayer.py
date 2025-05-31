@@ -1,4 +1,4 @@
-from math import floor
+from math import ceil, floor
 from typing import List
 from entities.Hand import Hand
 from entities.Player import Player
@@ -55,7 +55,7 @@ class AiPlayer(Player):
     return self.__bet_spread
 
   def get_true_count(self, decks_remaining: float) -> int:
-    genuine_true_count = floor(self.__running_count / decks_remaining)
+    genuine_true_count = floor(self.__running_count / ceil(decks_remaining))
     BlackjackLogger.debug(f"\t\tGenuine true count is: {genuine_true_count}")
     if genuine_true_count > 6:
       return 6

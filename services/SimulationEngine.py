@@ -105,6 +105,13 @@ class SimulationEngine():
     hands_lost_count = 0
     hands_drawn_count = 0
     blackjack_count = 0
+    profit_from_true_zero = 0
+    profit_from_true_one = 0
+    profit_from_true_two = 0
+    profit_from_true_three = 0
+    profit_from_true_four = 0
+    profit_from_true_five = 0
+    profit_from_true_six = 0
 
     while(self.__game.someone_has_bankroll() and self.__game.get_ai_players()[0].get_bankroll() < self.__bankroll_goal):
       self.__game.continue_until_state(GameState.CLEANUP)
@@ -112,14 +119,64 @@ class SimulationEngine():
       if highest_bankroll < bankroll:
         highest_bankroll = bankroll
       for player in self.__game.get_all_players_except_dealer():
+        bet_spread = player.get_bet_spread()
         for hand in player.get_hands():
           hand_result = hand.get_result()
+          bet_history = hand.get_bet_history()
           if hand_result == HandResult.BLACKJACK:
+            payout = bet_history * self.__game.get_dealer().get_blackjack_pays_multiplier()
+            match bet_history:
+              case bet_spread.true_zero:
+                profit_from_true_zero += payout
+              case bet_spread.true_one:
+                profit_from_true_one += payout
+              case bet_spread.true_two:
+                profit_from_true_two += payout
+              case bet_spread.true_three:
+                profit_from_true_three += payout
+              case bet_spread.true_four:
+                profit_from_true_four += payout
+              case bet_spread.true_five:
+                profit_from_true_five += payout
+              case bet_spread.true_six:
+                profit_from_true_six += payout
             blackjack_count += 1
             hands_won_count += 1
           elif hand_result == HandResult.WON:
+            payout = bet_history
+            match bet_history:
+              case bet_spread.true_zero:
+                profit_from_true_zero += payout
+              case bet_spread.true_one:
+                profit_from_true_one += payout
+              case bet_spread.true_two:
+                profit_from_true_two += payout
+              case bet_spread.true_three:
+                profit_from_true_three += payout
+              case bet_spread.true_four:
+                profit_from_true_four += payout
+              case bet_spread.true_five:
+                profit_from_true_five += payout
+              case bet_spread.true_six:
+                profit_from_true_six += payout
             hands_won_count += 1
           elif hand_result == HandResult.LOST:
+            payout = bet_history
+            match bet_history:
+              case bet_spread.true_zero:
+                profit_from_true_zero -= payout
+              case bet_spread.true_one:
+                profit_from_true_one -= payout
+              case bet_spread.true_two:
+                profit_from_true_two -= payout
+              case bet_spread.true_three:
+                profit_from_true_three -= payout
+              case bet_spread.true_four:
+                profit_from_true_four -= payout
+              case bet_spread.true_five:
+                profit_from_true_five -= payout
+              case bet_spread.true_six:
+                profit_from_true_six -= payout
             hands_lost_count += 1
           elif hand_result == HandResult.DREW:
             hands_drawn_count += 1
@@ -159,6 +216,13 @@ class SimulationEngine():
     hands_drawn_percent = (hands_drawn_count / total_hands_played) * 100
     ending_bankroll = round(self.__game.get_ai_players()[0].get_bankroll(), 0)
     total_profit = round(ending_bankroll - starting_bankroll, 2)
+    profit_from_true_zero = round(profit_from_true_zero, 2)
+    profit_from_true_one = round(profit_from_true_one, 2)
+    profit_from_true_two = round(profit_from_true_two, 2)
+    profit_from_true_three = round(profit_from_true_three, 2)
+    profit_from_true_four = round(profit_from_true_four, 2)
+    profit_from_true_five = round(profit_from_true_five, 2)
+    profit_from_true_six = round(profit_from_true_six, 2)
     profit_per_hand = round(total_profit / total_hands_played, 2)
     profit_per_hour = round(profit_per_hand * 60, 2)
     # TODO: Modularize the human_time -- allow user to define how long an average hand takes
@@ -181,6 +245,15 @@ class SimulationEngine():
         "starting": starting_bankroll,
         "ending": ending_bankroll,
         "total_profit": total_profit,
+        "profit_from_true": {
+          "zero": profit_from_true_zero,
+          "one": profit_from_true_one,
+          "two": profit_from_true_two,
+          "three": profit_from_true_three,
+          "four": profit_from_true_four,
+          "five": profit_from_true_five,
+          "six": profit_from_true_six
+        },
         "profit_per_hand": profit_per_hand,
         "profit_per_hour": profit_per_hour,
         "peak": highest_bankroll
@@ -214,6 +287,13 @@ class SimulationEngine():
     starting_bankroll = float(self.__single_results["bankroll"]["starting"])
     ending_bankroll = float(self.__single_results["bankroll"]["ending"])
     total_profit = float(self.__single_results["bankroll"]["total_profit"])
+    profit_from_true_zero = float(self.__single_results["bankroll"]["profit_from_true"]["zero"])
+    profit_from_true_one = float(self.__single_results["bankroll"]["profit_from_true"]["one"])
+    profit_from_true_two = float(self.__single_results["bankroll"]["profit_from_true"]["two"])
+    profit_from_true_three = float(self.__single_results["bankroll"]["profit_from_true"]["three"])
+    profit_from_true_four = float(self.__single_results["bankroll"]["profit_from_true"]["four"])
+    profit_from_true_five = float(self.__single_results["bankroll"]["profit_from_true"]["five"])
+    profit_from_true_six = float(self.__single_results["bankroll"]["profit_from_true"]["six"])
     profit_per_hand = float(self.__single_results["bankroll"]["profit_per_hand"])
     profit_per_hour = float(self.__single_results["bankroll"]["profit_per_hour"])
     peak = float(self.__single_results["bankroll"]["peak"])
@@ -237,6 +317,15 @@ class SimulationEngine():
         "starting": self.__format_bankroll(starting_bankroll),
         "ending": self.__format_bankroll(ending_bankroll),
         "total_profit": self.__format_bankroll(total_profit),
+        "profit_from_true": {
+          "zero": self.__format_bankroll(profit_from_true_zero),
+          "one": self.__format_bankroll(profit_from_true_one),
+          "two": self.__format_bankroll(profit_from_true_two),
+          "three": self.__format_bankroll(profit_from_true_three),
+          "four": self.__format_bankroll(profit_from_true_four),
+          "five": self.__format_bankroll(profit_from_true_five),
+          "six": self.__format_bankroll(profit_from_true_six)
+        },
         "profit_per_hand": self.__format_bankroll(profit_per_hand),
         "profit_per_hour": self.__format_bankroll(profit_per_hour),
         "peak": self.__format_bankroll(peak)
@@ -329,6 +418,13 @@ class SimulationEngine():
       summed["bankroll"]["starting"] += float(r["bankroll"]["starting"])
       summed["bankroll"]["ending"] += float(r["bankroll"]["ending"])
       summed["bankroll"]["total_profit"] += float(r["bankroll"]["total_profit"])
+      summed["bankroll"]["profit_from_true"]["zero"] += float(r["bankroll"]["profit_from_true"]["zero"])
+      summed["bankroll"]["profit_from_true"]["one"] += float(r["bankroll"]["profit_from_true"]["one"])
+      summed["bankroll"]["profit_from_true"]["two"] += float(r["bankroll"]["profit_from_true"]["two"])
+      summed["bankroll"]["profit_from_true"]["three"] += float(r["bankroll"]["profit_from_true"]["three"])
+      summed["bankroll"]["profit_from_true"]["four"] += float(r["bankroll"]["profit_from_true"]["four"])
+      summed["bankroll"]["profit_from_true"]["five"] += float(r["bankroll"]["profit_from_true"]["five"])
+      summed["bankroll"]["profit_from_true"]["six"] += float(r["bankroll"]["profit_from_true"]["six"])
       summed["bankroll"]["profit_per_hand"] += float(r["bankroll"]["profit_per_hand"])
       summed["bankroll"]["profit_per_hour"] += float(r["bankroll"]["profit_per_hour"])
       summed["bankroll"]["peak"] += float(r["bankroll"]["peak"])
@@ -353,6 +449,13 @@ class SimulationEngine():
     averaged["bankroll"]["starting"] = summed["bankroll"]["starting"] / total_runs
     averaged["bankroll"]["ending"] = summed["bankroll"]["ending"] / total_runs
     averaged["bankroll"]["total_profit"] = summed["bankroll"]["total_profit"] / total_runs
+    averaged["bankroll"]["profit_from_true"]["zero"] = summed["bankroll"]["profit_from_true"]["zero"] / total_runs
+    averaged["bankroll"]["profit_from_true"]["one"] = summed["bankroll"]["profit_from_true"]["one"] / total_runs
+    averaged["bankroll"]["profit_from_true"]["two"] = summed["bankroll"]["profit_from_true"]["two"] / total_runs
+    averaged["bankroll"]["profit_from_true"]["three"] = summed["bankroll"]["profit_from_true"]["three"] / total_runs
+    averaged["bankroll"]["profit_from_true"]["four"] = summed["bankroll"]["profit_from_true"]["four"] / total_runs
+    averaged["bankroll"]["profit_from_true"]["five"] = summed["bankroll"]["profit_from_true"]["five"] / total_runs
+    averaged["bankroll"]["profit_from_true"]["six"] = summed["bankroll"]["profit_from_true"]["six"] / total_runs
     averaged["bankroll"]["profit_per_hand"] = summed["bankroll"]["profit_per_hand"] / total_runs
     averaged["bankroll"]["profit_per_hour"] = summed["bankroll"]["profit_per_hour"] / total_runs
     averaged["bankroll"]["peak"] = summed["bankroll"]["peak"] / total_runs
