@@ -8,6 +8,7 @@ from models.core.results.SimulationMultiResults import SimulationMultiResults
 from models.core.results.SimulationSingleResults import SimulationSingleResults
 from models.enums.GameState import GameState
 from models.enums.HandResult import HandResult
+from services.BlackjackLogger import BlackjackLogger
 
 
 class SimulationEngine():
@@ -123,6 +124,7 @@ class SimulationEngine():
         for hand in player.get_hands():
           hand_result = hand.get_result()
           bet_history = hand.get_bet_history()
+          BlackjackLogger.debug(f"\t\tBet history: {bet_history}")
           if hand_result == HandResult.BLACKJACK:
             payout = bet_history * self.__game.get_dealer().get_blackjack_pays_multiplier()
             match bet_history:
@@ -180,6 +182,9 @@ class SimulationEngine():
             hands_lost_count += 1
           elif hand_result == HandResult.DREW:
             hands_drawn_count += 1
+          BlackjackLogger.debug(f"\t\tHand result: {hand_result}")
+          if payout:
+            BlackjackLogger.debug(f"\t\tPayout: {payout}")
       self.__game.finish_round()
       total_hands_played = hands_won_count + hands_lost_count + hands_drawn_count
       bankroll_after_round = self.__game.get_ai_players()[0].get_bankroll()

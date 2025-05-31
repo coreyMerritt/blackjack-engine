@@ -56,11 +56,6 @@ class Player(ABC):
   def set_hands(self, hands: List[Hand]) -> None:
     self.__hands = hands
 
-  def set_bet(self, bet: int, hand_index: int) -> None:
-    if hand_index + 1 > self.get_hand_count():
-      self.add_new_hand(Hand([], bet, False))
-    self.decrement_bankroll(bet)
-
   def add_new_hand(self, hand: Hand) -> None:
     self.__hands.append(hand)
 

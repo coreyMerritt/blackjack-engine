@@ -78,6 +78,8 @@ class Hand():
 
   def set_bet(self, bet: int) -> None:
     self.__bet = bet
+
+  def set_bet_history(self, bet: int) -> None:
     self.__bet_history = bet
 
   def set_finalized(self, value=True) -> None:
@@ -96,7 +98,7 @@ class Hand():
       if self.get_value() > 21:
         self.reset_an_ace()
 
-  def remove_card(self) -> Card:
+  def pop_card(self) -> Card:
     card = self.__cards.pop()
     return card
 

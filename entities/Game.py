@@ -1,4 +1,5 @@
 from typing import List
+from entities.Card import Card
 from entities.Dealer import Dealer
 from entities.Hand import Hand
 from entities.Player import Player
@@ -58,17 +59,23 @@ class Game:
   def get_first_human_player_hand_value(self) -> int:
     return self.__human_players[0].get_hands()
 
-  def get_active_hand(self) -> Hand | None:
-    active_player = self.get_active_player()
-    if active_player is None:
-      return None
-    return active_player.get_active_hand()
-
-  def get_active_player(self) -> Player | None:
+  def get_active_player(self, dealer_allowed=False) -> Player | None:
+    if dealer_allowed:
+      if not self.is_unhandled_active_player_hand():
+        return self.__dealer
     for player in self.get_all_players_except_dealer():
       if player.has_active_hand():
         return player
     return None
+
+  def get_active_hand(self, dealer_hand_allowed=False) -> Hand | None:
+    if dealer_hand_allowed:
+      if not self.is_unhandled_active_player_hand():
+        return self.__dealer.get_hand(0)
+    active_player = self.get_active_player()
+    if active_player is None:
+      return None
+    return active_player.get_active_hand()
 
   def get_all_players_except_dealer(self) -> List[Player]:
     return self.__human_players + self.__ai_players
@@ -85,7 +92,8 @@ class Game:
       BlackjackLogger.debug(f"\t\tDecks Remaining: {self.__dealer.get_decks_remaining()}")
       BlackjackLogger.debug(f"\t\tCards Remaining: {self.__dealer.get_decks_remaining()}")
       bet = player.calculate_bet(self.__rules_engine, self.__dealer.get_decks_remaining())
-      player.set_bet(bet, 0)
+      player.add_new_hand(Hand([], bet, False))
+      player.decrement_bankroll(bet)
 
   def deal_cards(self) -> int:
     if self.__rules_engine.shoe_must_be_shuffled(self.__dealer.get_shoe()):
@@ -94,7 +102,40 @@ class Game:
       self.__dealer.shuffle_shoe()
       for ai_player in self.__ai_players:
         ai_player.reset_running_count()
-    self.__dealer.deal(self.__human_players + self.__ai_players)
+    self.deal()
+
+  def deal(self) -> None:
+    self.deal_to_players()
+    self.deal_to_dealer()
+
+  def deal_to_players(self) -> None:
+    for player in self.__human_players + self.__ai_players:
+      BlackjackLogger.debug(f"\tPlayer-{player.get_id()}")
+      for _ in range(2):
+        card = self.__dealer.draw()
+        player.add_to_active_hand(card)
+        BlackjackLogger.debug(f"\t\tDealt: {card.get_value()}")
+        for ai_player in self.__ai_players:
+          ai_player.update_running_count(card.get_value())
+      player_hand_value = player.get_active_hand().get_value()
+      BlackjackLogger.debug(f"\t\tHand: {player_hand_value}")
+      if player_hand_value == 21:
+        BlackjackLogger.debug("\t\tBlackjack!")
+
+  def deal_to_dealer(self) -> None:
+    self.__dealer.set_hands([Hand([], 0, False)])
+    dealer_hand = self.__dealer.get_hand(0)
+    BlackjackLogger.debug("\tDealer")
+    for _ in range(2):
+      card = self.__dealer.draw()
+      dealer_hand.add_card(card)
+      BlackjackLogger.debug(f"\t\tDealt: {card.get_value()}")
+      for ai_player in self.__ai_players:
+        ai_player.update_running_count(card.get_value())
+    dealer_hand_value = dealer_hand.get_value()
+    BlackjackLogger.debug(f"\t\tHand: {dealer_hand_value}")
+    if dealer_hand_value == 21:
+      BlackjackLogger.debug("\t\tBlackjack!")
 
   def player_blackjack_check(self) -> None:
     for player in self.__human_players + self.__ai_players:
@@ -112,44 +153,55 @@ class Game:
           active_hand.set_result(HandResult.DREW)
           active_hand.set_finalized()
 
-  def hit_active_hand(self) -> None:
-    assert self.is_unhandled_active_player_hand()
-    active_player = self.get_active_player()
-    self.__dealer.hit_player(self.__ai_players, active_player)
-    active_hand = active_player.get_active_hand()
-    active_hand_value = active_hand.get_value()
-    if active_hand_value > 21:
-      if active_hand.is_soft():
-        active_hand.reset_an_ace()
-        assert active_hand.get_value() < 21
-      else:
-        active_hand.set_finalized()
-        active_hand.set_result(HandResult.LOST)
-        BlackjackLogger.debug("\t\tBUST!")
-    elif active_hand_value == 21:
-      active_player.finalize_active_hand()
+  def hit_active_hand(self, dealer_allowed=False) -> None:
+    if not dealer_allowed:
+      assert self.is_unhandled_active_player_hand()
+    active_hand = self.get_active_hand(dealer_allowed)
+    card = self.__dealer.draw()
+    active_hand.add_card(card)
+    BlackjackLogger.debug(f"\t\tHit: {card.get_value()}")
+    self.update_running_counts(card)
+    BlackjackLogger.debug(f"\t\tCurrent Value: {active_hand.get_value()}")
+    self.handle_potential_bust(active_hand)
+    self.handle_potential_21(active_hand)
 
-  def stand_active_hand(self, silent=False) -> None:
-    active_player = self.get_active_player()
+  def stand_active_hand(self, silent=False, dealer_allowed=False) -> None:
+    active_hand = self.get_active_hand(dealer_allowed)
     if not silent:
       BlackjackLogger.debug("\t\tStand")
-      BlackjackLogger.debug(f"\t\tFinal Value: {self.get_active_hand().get_value()}")
-    active_player.finalize_active_hand()
+      BlackjackLogger.debug(f"\t\tFinal Value: {active_hand.get_value()}")
+    active_hand.set_finalized()
 
   def double_down_active_hand(self) -> None:
+    assert self.is_unhandled_active_player_hand()
     active_player = self.get_active_player()
-    self.__dealer.double_down_player(self.__ai_players, active_player)
+    active_hand = active_player.get_active_hand()
+    active_hand.set_finalized()
+    active_hand.double_down()
+    active_player.decrement_bankroll(active_hand.get_bet())
+    card = self.__dealer.draw()
+    active_hand.add_card(card)
+    BlackjackLogger.debug(f"\t\tDouble Down: {card.get_value()}")
+    self.update_running_counts(card)
+    BlackjackLogger.debug(f"\t\tFinal Value: {active_hand.get_value()}")
+    self.handle_potential_bust(active_hand)
+    self.handle_potential_21(active_hand)
 
   def split_active_hand(self) -> None:
-    active_hand = self.get_active_hand()
-    active_player = self.get_active_player()
     BlackjackLogger.debug("\t\tSplit")
-    card = active_hand.remove_card()
+    active_player = self.get_active_player()
+    active_hand = self.get_active_hand()
     bet = active_hand.get_bet()
-    new_hand = Hand([card], bet, True)
     active_player.decrement_bankroll(bet)
+    card = active_hand.pop_card()
+    new_hand = Hand([card], bet, True)
     active_player.add_new_hand(new_hand)
-    self.__dealer.deal_split_hands(self.get_all_players_except_dealer())
+    for i, hand in enumerate(active_player.get_hands()):
+      if hand.get_card_count() == 1:
+        card = self.__dealer.draw()
+        hand.add_card(card)
+        BlackjackLogger.debug(f"\tHand {i}: {hand.get_card_value(0)}, {hand.get_card_value(1)} -- {hand.get_value()}")
+        self.update_running_counts(card)
 
   def surrender_active_hand(self) -> None:
     active_hand = self.get_active_hand()
@@ -157,17 +209,6 @@ class Game:
     BlackjackLogger.debug("\t\tSurrender")
     active_player.decrement_bankroll(active_hand.get_bet() / 2)
     active_player.get_hands().remove(active_hand)
-
-  def handle_dealer_decisions(self) -> None:
-    for player in self.__ai_players + self.__human_players:
-      for hand in player.get_hands():
-        hand_value = hand.get_value()
-        hand_is_blackjack = hand_value == 21 and hand.get_card_count() == 2
-        hand_busted = hand_value > 21
-        if not hand_busted:
-          if not hand_is_blackjack:
-            self.__dealer.handle_decisions(self.__ai_players)
-            return
 
   def handle_ai_decisions(self) -> None:
     while self.is_unhandled_active_player_hand():
@@ -196,6 +237,30 @@ class Game:
           self.execute_decision(decision)
           break
 
+  def handle_dealer_decisions(self) -> None:
+    assert not self.is_unhandled_active_player_hand()
+    if self.__is_any_competing_hand():
+      dealer_hand = self.__dealer.get_hand(0)
+      assert dealer_hand.get_card_count() == 2
+      decision = PlayerDecision.PENDING
+      while decision != PlayerDecision.STAND:
+        if dealer_hand.get_value() > 21:
+          if not dealer_hand.is_soft():
+            dealer_hand.set_finalized()
+            decision = PlayerDecision.STAND
+            break
+        decision = self.__dealer.get_decision()
+        match decision:
+          case PlayerDecision.HIT:
+            self.hit_active_hand(True)
+      if decision == PlayerDecision.STAND:
+        self.stand_active_hand(False, True)
+      return
+
+  def update_running_counts(self, card: Card) -> None:
+    for ai_player in self.__ai_players:
+      ai_player.update_running_count(card.get_value())
+
   def execute_decision(self, decision: PlayerDecision) -> None:
     assert self.is_unhandled_active_player_hand()
     match decision:
@@ -217,6 +282,21 @@ class Game:
         if self.__rules_engine.can_insure(hands, self.__dealer.get_facecard().get_face()):
           if player.wants_insurance(self.__dealer.get_facecard().get_face()):
             hand.set_insurance_bet(player.get_insurance_bet())
+
+  def handle_potential_bust(self, hand: Hand) -> None:
+    hand_value = hand.get_value()
+    if hand_value > 21:
+      if hand.is_soft():
+        hand.reset_an_ace()
+        assert hand.get_value() < 21
+      else:
+        hand.set_finalized()
+        hand.set_result(HandResult.LOST)
+        BlackjackLogger.debug("\t\tBUST!")
+
+  def handle_potential_21(self, hand: Hand) -> None:
+    if hand.get_value() == 21:
+      hand.set_finalized()
 
   def handle_early_surrender(self) -> None:
     for player in self.__ai_players:
@@ -243,6 +323,61 @@ class Game:
         if player.wants_to_surrender(self.__dealer.get_facecard().get_value(), self.__dealer.get_decks_remaining()):
           player.increment_bankroll(hands[0].get_bet() / 2)
           player.set_hands([])
+
+  def handle_payouts(self) -> None:
+    dealer_hand_value = self.__dealer.get_hand(0).get_value()
+    for player in self.__human_players + self.__ai_players:
+      for player_hand in player.get_hands():
+        self.handle_single_standard_payout(player, player_hand)
+        self.handle_single_insurance_payout(player, player_hand)
+    BlackjackLogger.debug("\tDealer")
+    BlackjackLogger.debug(f"\t\t{dealer_hand_value}")
+    if dealer_hand_value > 21:
+      BlackjackLogger.debug("\t\tDealer busted!")
+
+  def handle_single_standard_payout(self, player: Player, player_hand: Hand) -> None:
+    BlackjackLogger.debug(f"\tPlayer-{player.get_id()}")
+    player_hand_value = player_hand.get_value()
+    BlackjackLogger.debug(f"\t\t{player_hand_value}")
+
+    bet = player_hand.get_bet()
+    result = player_hand.get_result()
+    if result == HandResult.UNDETERMINED:
+      result = self.__calculate_hand_result(player_hand)
+      player_hand.set_result(result)
+
+    if result == HandResult.LOST:
+      BlackjackLogger.debug("\t\tLost!")
+      self.__dealer.increment_bankroll(bet, True)
+    elif result == HandResult.DREW:
+      BlackjackLogger.debug("\t\tDraw!")
+      player.increment_bankroll(bet)
+    elif result == HandResult.WON:
+      BlackjackLogger.debug("\t\tWin!")
+      player.increment_bankroll(bet * 2)
+    elif result == HandResult.BLACKJACK:
+      BlackjackLogger.debug("\t\tPlayer has Blackjack! Win!")
+      player.increment_bankroll(bet + (bet * self.__dealer.get_blackjack_pays_multiplier()))
+    else:
+      raise NotImplementedError("HandResult not implemented")
+
+    player_hand.set_bet(0)
+
+  def handle_single_insurance_payout(self, player: Player, player_hand: Hand) -> None:
+    if player_hand.is_insured():
+      if self.__dealer.has_blackjack():
+        player.increment_bankroll(player_hand.get_insurance_bet() * 2)
+      player_hand.set_insurance_bet(0)
+
+  def reset_hands(self) -> None:
+    for player in self.__human_players + self.__ai_players:
+      BlackjackLogger.debug(f"\tPlayer-{player.get_id()}")
+      player.set_hands([])
+      BlackjackLogger.debug("\t\tReset hand to: []")
+
+    BlackjackLogger.debug("\tDealer")
+    self.__dealer.set_hands([])
+    BlackjackLogger.debug("\t\tReset hand to: []\n\n")
 
   def continue_until_state(self, state: GameState) -> None:
     while True:
@@ -285,10 +420,10 @@ class Game:
       self.handle_dealer_decisions()
       self.set_state(GameState.PAYOUTS)
     elif self.get_state() == GameState.PAYOUTS:
-      self.__dealer.handle_payouts(self.__human_players + self.__ai_players)
+      self.handle_payouts()
       self.set_state(GameState.CLEANUP)
     elif self.get_state() == GameState.CLEANUP:
-      self.__dealer.reset_hands(self.__human_players + self.__ai_players)
+      self.reset_hands()
       self.set_state(GameState.BETTING)
 
   def finish_round(self) -> None:
@@ -314,3 +449,47 @@ class Game:
       "human_players": [p.to_dict() for p in self.__human_players],
       "ai_players": [p.to_dict() for p in self.__ai_players]
     }
+
+  def __is_any_competing_hand(self):
+    for player in self.__ai_players + self.__human_players:
+      for hand in player.get_hands():
+        hand_value = hand.get_value()
+        hand_is_blackjack = hand_value == 21 and hand.get_card_count() == 2
+        hand_busted = hand_value > 21
+        if not hand_busted:
+          if not hand_is_blackjack:
+            return True
+    return False
+
+  def __calculate_hand_result(self, player_hand: Hand):
+    dealer_has_blackjack = self.__dealer.has_blackjack()
+    dealer_busted = self.__dealer.calculate_if_busted()
+    dealer_hand_value = self.__dealer.get_hand_value(0)
+
+    player_hand_value = player_hand.get_value()
+    player_beat_dealer = player_hand_value > dealer_hand_value
+    player_has_blackjack = player_hand_value == 21 and player_hand.get_card_count() == 2
+
+    player_busted = player_hand_value > 21
+    player_tied_with_dealer = player_hand_value == dealer_hand_value
+    both_have_blackjack = player_has_blackjack and dealer_has_blackjack
+    only_player_has_blackjack = player_has_blackjack and not dealer_has_blackjack
+    player_won = dealer_busted or player_beat_dealer
+    player_lost = not dealer_busted and not player_beat_dealer
+
+    if player_busted:
+      BlackjackLogger.debug("\t\tPlayer busted!")
+      return HandResult.LOST
+    elif both_have_blackjack:
+      BlackjackLogger.debug("\t\tDealer & Player both have Blackjack!")
+      return HandResult.DREW
+    elif only_player_has_blackjack:
+      return HandResult.BLACKJACK
+    elif player_tied_with_dealer:
+      return HandResult.DREW
+    elif player_won:
+      return HandResult.WON
+    elif player_lost:
+      return HandResult.LOST
+    else:
+      raise NotImplementedError("Unexpected conditions @dealer.handle_payout")
