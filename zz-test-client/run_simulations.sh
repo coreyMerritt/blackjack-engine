@@ -1,8 +1,14 @@
 #!/bin/bash
 
+if [[ "$1" ]]; then
+  count="$1"
+else
+  count="100"
+fi
+
 session_id="$(./create_simulation.sh | tr -d '"')"
 
-curl -s --no-keepalive -X POST "http://localhost:8000/session/$session_id/simulation/run/30" \
+curl -s --no-keepalive -X POST "http://localhost:8000/session/$session_id/simulation/run/$count" \
   -H "Content-Type: application/json" | jq
 
 sstatus=0

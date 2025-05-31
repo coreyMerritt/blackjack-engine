@@ -34,21 +34,21 @@ class BasicStrategyEngine():
     assert isinstance(dealer_face_card_value, int)
     decisions = []
     if self.__rules_engine.can_late_surrender(active_player_hand):
-      wants_surrender = self._check_for_surrender(active_player_hand, dealer_face_card_value)
+      wants_surrender = self._check_for_surrender(active_player_hand, dealer_face_card_value, true_count)
       if wants_surrender:
         decisions.append(PlayerDecision.SURRENDER)
 
     if self.__rules_engine.can_split(player_hands):
-      wants_split = self._check_for_split(player_hands, active_player_hand, dealer_face_card_value)
+      wants_split = self._check_for_split(player_hands, active_player_hand, dealer_face_card_value, true_count)
       if wants_split:
         decisions.append(PlayerDecision.SPLIT)
 
     drunken_player_hand_value = self._get_drunken_player_hand_value(active_player_hand)
 
     if active_player_hand.is_soft():
-      decisions.extend(BasicStrategy.soft_totals[(dealer_face_card_value, drunken_player_hand_value)])
+      decisions.extend(BasicStrategy.soft_totals[(true_count, dealer_face_card_value, drunken_player_hand_value)])
     else:
-      decisions.extend(BasicStrategy.hard_totals[(dealer_face_card_value, drunken_player_hand_value)])
+      decisions.extend(BasicStrategy.hard_totals[(true_count, dealer_face_card_value, drunken_player_hand_value)])
     return decisions
 
   # We're proceeding on the assumption that insurance is always bad.
@@ -60,19 +60,20 @@ class BasicStrategyEngine():
       return False
     return True
 
-  def wants_to_surrender(self, dealer_face_card_value: int, player_hand: Hand) -> bool:
+  def wants_to_surrender(self, dealer_face_card_value: int, player_hand: Hand, true_count: int) -> bool:
     if not self.__rules_engine.can_late_surrender(player_hand):
       return False
     drunken_player_hand_value = self._get_drunken_player_hand_value(player_hand)
-    return BasicStrategy.surrender[(dealer_face_card_value, drunken_player_hand_value)]
+    return BasicStrategy.surrender[(true_count, dealer_face_card_value, drunken_player_hand_value)]
 
   def _check_for_surrender(
     self,
     player_hand: Hand,
-    dealer_face_card_value: int
+    dealer_face_card_value: int,
+    true_count: int
   ) -> bool:
     drunken_player_hand_value = self._get_drunken_player_hand_value(player_hand)
-    should_surrender = BasicStrategy.surrender[(dealer_face_card_value, drunken_player_hand_value)]
+    should_surrender = BasicStrategy.surrender[(true_count, dealer_face_card_value, drunken_player_hand_value)]
     if should_surrender:
       return True
     return False
@@ -81,7 +82,8 @@ class BasicStrategyEngine():
     self,
     player_hands: List[Hand],
     active_player_hand: Hand,
-    dealer_face_card_value: int
+    dealer_face_card_value: int,
+    true_count: int
   ):
     splitting_is_allowed = self.__rules_engine.can_split(player_hands)
     if splitting_is_allowed:
@@ -98,7 +100,7 @@ class BasicStrategyEngine():
         even_half_drunken_player_hand_value = half_drunken_player_hand_value
 
       splitting_decision = BasicStrategy.pair_splitting[
-        (dealer_face_card_value, even_half_drunken_player_hand_value)
+        (true_count, dealer_face_card_value, even_half_drunken_player_hand_value)
       ]
       if splitting_decision == PairSplittingDecision.YES:
         return True

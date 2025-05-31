@@ -82,7 +82,7 @@ class Game:
     # if this is triggered before then, their bets will remain the same
     for player in self.__ai_players:
       BlackjackLogger.debug(f"\tPlayer-{player.get_id()}")
-      bet = player.determine_bet(self.__rules_engine)
+      bet = player.determine_bet(self.__rules_engine, self.__dealer.get_decks_remaining())
       player.set_bet(bet, 0)
 
   def deal_cards(self) -> int:
@@ -90,6 +90,8 @@ class Game:
       BlackjackLogger.debug("\tShuffling shoe...")
       self.__dealer.load_shoe()
       self.__dealer.shuffle_shoe()
+      for ai_player in self.__ai_players:
+        ai_player.reset_running_count()
     self.__dealer.deal(self.__human_players + self.__ai_players)
 
   def player_blackjack_check(self) -> None:
@@ -111,7 +113,7 @@ class Game:
   def hit_active_hand(self) -> None:
     assert self.is_unhandled_active_player_hand()
     active_player = self.get_active_player()
-    self.__dealer.hit_player(active_player)
+    self.__dealer.hit_player(self.__ai_players, active_player)
     active_hand = active_player.get_active_hand()
     active_hand_value = active_hand.get_value()
     if active_hand_value > 21:
@@ -134,7 +136,7 @@ class Game:
 
   def double_down_active_hand(self) -> None:
     active_player = self.get_active_player()
-    self.__dealer.double_down_player(active_player)
+    self.__dealer.double_down_player(self.__ai_players, active_player)
 
   def split_active_hand(self) -> None:
     active_hand = self.get_active_hand()
@@ -162,7 +164,7 @@ class Game:
         hand_busted = hand_value > 21
         if not hand_busted:
           if not hand_is_blackjack:
-            self.__dealer.handle_decisions()
+            self.__dealer.handle_decisions(self.__ai_players)
             return
 
   def handle_ai_decisions(self) -> None:
@@ -175,10 +177,14 @@ class Game:
         "System is most likely trying to run AI decisions against a human player."
       )
       active_hand = self.get_active_hand()
+      assert isinstance(active_hand, Hand)
       hand_index = active_player.get_hand_index(active_hand)
       BlackjackLogger.debug(f"\tHand-{hand_index}")
-      assert isinstance(active_hand, Hand)
-      decisions = active_player.get_decisions(active_hand, self.__dealer.get_facecard().get_value())
+      decisions = active_player.get_decisions(
+        active_hand,
+        self.__dealer.get_facecard().get_value(),
+        self.__dealer.get_decks_remaining()
+      )
       for decision in decisions:
         if self.__rules_engine.is_legal_play(
           decision,
@@ -216,7 +222,7 @@ class Game:
       if player.get_hand_count() > 1:
         return False
       if self.__rules_engine.can_early_surrender(hands[0]):
-        if player.wants_to_surrender(self.__dealer.get_facecard().get_value()):
+        if player.wants_to_surrender(self.__dealer.get_facecard().get_value(), self.__dealer.get_decks_remaining()):
           player.increment_bankroll(hands[0].get_bet() / 2)
           player.set_hands([])
 
@@ -232,7 +238,7 @@ class Game:
       if player.get_hand_count() != 1:
         return
       if self.__rules_engine.can_late_surrender(hands[0]):
-        if player.wants_to_surrender(self.__dealer.get_facecard().get_value()):
+        if player.wants_to_surrender(self.__dealer.get_facecard().get_value(), self.__dealer.get_decks_remaining()):
           player.increment_bankroll(hands[0].get_bet() / 2)
           player.set_hands([])
 

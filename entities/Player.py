@@ -72,6 +72,9 @@ class Player(ABC):
         BlackjackLogger.debug(f"\t\tAdjusting bankroll from: {self.__bankroll} -> {self.__bankroll - amount}")
       self.__bankroll -= amount
 
+  def update_running_count(self, card_value: int) -> None:
+    pass
+
   def add_to_active_hand(self, card: Card) -> None:
     active_hand = self.get_active_hand()
     active_hand.add_card(card)

@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class MoneyResults(BaseModel):
+class BankrollResults(BaseModel):
   starting: float = 0
   ending: float = 0
   total_profit: float = 0

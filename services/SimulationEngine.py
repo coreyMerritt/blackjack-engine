@@ -12,6 +12,9 @@ from models.enums.HandResult import HandResult
 
 class SimulationEngine():
   __bankroll_goal: int
+  __sim_time_limit: int
+  __human_time_limit: int
+  __multi_start_time: float | None
   __game: Game
   __game_starting_point: Game
   __single_results: SimulationSingleResults
@@ -19,8 +22,11 @@ class SimulationEngine():
   __multi_results: SimulationMultiResults
   __multi_results_status: int
 
-  def __init__(self, game: Game, bankroll_goal: int):
+  def __init__(self, game: Game, bankroll_goal: int, human_time_limit: int | None, sim_time_limit: int | None):
     self.__bankroll_goal = bankroll_goal
+    self.__human_time_limit = human_time_limit
+    self.__sim_time_limit = sim_time_limit
+    self.__multi_start_time = None
     self.__game = game
     self.__game_starting_point = deepcopy(game)
     self.__single_results = None
@@ -44,25 +50,45 @@ class SimulationEngine():
     sims_run = 0
     sims_won = 0
     sims_lost = 0
-    start_time = time.time()
+    sims_unfinished = 0
+    self.__multi_start_time = time.time()
     for _ in range(0, runs):
       self.reset_game()
       await self.run(True)
       results.append(self.get_single_results())
+      ending_bankroll = self.__game.get_ai_players()[0].get_bankroll()
       sims_run += 1
-      if self.__game.get_ai_players()[0].get_bankroll() >= self.__bankroll_goal:
+      if ending_bankroll >= self.__bankroll_goal:
         sims_won += 1
-      else:
+      elif ending_bankroll <= 0:
         sims_lost += 1
+      else:
+        sims_unfinished += 1
       self.__multi_results_status = int((sims_run / runs) * 100)
+
+      if self.__sim_time_limit:
+        if time.time() - self.__multi_start_time > self.__sim_time_limit:
+          self.__multi_results_status = 100
+          break
+
+      if self.__human_time_limit:
+        total_hands_played = 0
+        for result in results:
+          total_hands_played += result["total_hands_played"]
+        human_time = self.__get_human_time(total_hands_played)
+        if human_time > self.__human_time_limit:
+          self.__multi_results_status = 100
+          break
+
     end_time = time.time()
     success_rate = (sims_won / sims_run) * 100
     risk_of_ruin = (sims_lost / sims_run) * 100
-    time_taken = end_time - start_time
+    time_taken = end_time - self.__multi_start_time
     sim_results = {
       "sims_run": sims_run,
       "sims_won": sims_won,
       "sims_lost": sims_lost,
+      "sims_unfinished": sims_unfinished,
       "success_rate": success_rate,
       "risk_of_ruin": risk_of_ruin,
       "time_taken": time_taken
@@ -110,6 +136,22 @@ class SimulationEngine():
       if total_hands_played % 100 == 0:
         await asyncio.sleep(0)
 
+      if self.__sim_time_limit:
+        if self.__multi_start_time:
+          if time.time() - self.__multi_start_time > self.__sim_time_limit:
+            self.__single_results_status = 100
+            break
+        else:
+          if time.time() - start_time > self.__sim_time_limit:
+            self.__single_results_status = 100
+            break
+
+      if self.__human_time_limit:
+        human_time = self.__get_human_time(total_hands_played)
+        if human_time > self.__human_time_limit:
+          self.__single_results_status = 100
+          break
+
     simulation_time = round(time.time() - start_time, 2)
     total_hands_played = hands_won_count + hands_lost_count + hands_drawn_count
     hands_won_percent = (hands_won_count / total_hands_played) * 100
@@ -120,11 +162,7 @@ class SimulationEngine():
     profit_per_hand = round(total_profit / total_hands_played, 2)
     profit_per_hour = round(profit_per_hand * 60, 2)
     # TODO: Modularize the human_time -- allow user to define how long an average hand takes
-    hands_per_hour = 60
-    hours = total_hands_played / hands_per_hour
-    minutes = hours * 60
-    seconds = minutes * 60
-    human_time = round(seconds, 2)
+    human_time = self.__get_human_time(total_hands_played)
     self.__single_results = {
       "total_hands_played": total_hands_played,
       "hands_won": {
@@ -215,6 +253,7 @@ class SimulationEngine():
     sims_run = int(self.__multi_results["sims_run"])
     sims_won = int(self.__multi_results["sims_won"])
     sims_lost = int(self.__multi_results["sims_lost"])
+    sims_unfinished = int(self.__multi_results["sims_unfinished"])
     success_rate = float(self.__multi_results["success_rate"])
     risk_of_ruin = float(self.__multi_results["risk_of_ruin"])
     time_taken = self.__get_time_formatted(float(self.__multi_results["time_taken"]))
@@ -225,6 +264,7 @@ class SimulationEngine():
       "sims_run": f"{sims_run:,}",
       "sims_won": f"{sims_won:,}",
       "sims_lost": f"{sims_lost:,}",
+      "sims_unfinished": f"{sims_unfinished:,}",
       "success_rate": f"{round(success_rate, 2):.2f}%",
       "risk_of_ruin": f"{round(risk_of_ruin, 2):.2f}%",
       "time_taken": time_taken,
@@ -263,6 +303,14 @@ class SimulationEngine():
         return f"{minutes:,.2f} mins"
     else:
       return f"{seconds:,.2f} secs"
+
+  def __get_human_time(self, total_hands_played: int) -> float:
+    hands_per_hour = 60
+    hours = total_hands_played / hands_per_hour
+    minutes = hours * 60
+    seconds = minutes * 60
+    human_time = round(seconds, 2)
+    return human_time
 
   def __set_single_results(self, results: SimulationSingleResults) -> None:
     self.__single_results = results
@@ -315,6 +363,7 @@ class SimulationEngine():
     multi_sim["sims_run"] = sim_results["sims_run"]
     multi_sim["sims_won"] = sim_results["sims_won"]
     multi_sim["sims_lost"] = sim_results["sims_lost"]
+    multi_sim["sims_unfinished"] = sim_results["sims_unfinished"]
     multi_sim["success_rate"] = sim_results["success_rate"]
     multi_sim["risk_of_ruin"] = sim_results["risk_of_ruin"]
     multi_sim["time_taken"] = sim_results["time_taken"]

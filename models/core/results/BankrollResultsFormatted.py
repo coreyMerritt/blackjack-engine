@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class MoneyResultsFormatted(BaseModel):
+class BankrollResultsFormatted(BaseModel):
   starting: str = ""
   ending: str = ""
   total_profit: str = ""

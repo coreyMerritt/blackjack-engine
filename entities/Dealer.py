@@ -45,6 +45,9 @@ class Dealer(Player):
   def get_bankroll(self) -> int:
     return self.__bankroll
 
+  def get_decks_remaining(self) -> int:
+    return self.__shoe.get_decks_remaining()
+
   def get_active_hand_decision(self) -> PlayerDecision:
     if self.get_hands()[0].is_soft():
       if self.get_hand_value(0) == 17:
@@ -63,6 +66,8 @@ class Dealer(Player):
         card = self.__shoe.draw()
         player.add_to_active_hand(card)
         BlackjackLogger.debug(f"\t\tDealt: {card.get_value()}")
+        for player in players:
+          player.update_running_count(card.get_value())
       player_hand_value = player.get_active_hand().get_value()
       BlackjackLogger.debug(f"\t\tHand: {player_hand_value}")
       if player_hand_value == 21:
@@ -75,6 +80,8 @@ class Dealer(Player):
       card = self.__shoe.draw()
       dealer_hand.add_card(card)
       BlackjackLogger.debug(f"\t\tDealt: {card.get_value()}")
+      for player in players:
+        player.update_running_count(card.get_value())
     dealer_hand_value = self.get_active_hand().get_value()
     BlackjackLogger.debug(f"\t\tHand: {dealer_hand_value}")
     if dealer_hand_value == 21:
@@ -95,15 +102,17 @@ class Dealer(Player):
           self.__shoe.add_card(card)
     assert self.__shoe.get_card_count() == shoe_full_size
 
-  def hit_player(self, player: Player) -> None:
+  def hit_player(self, players: List[Player], player: Player) -> None:
     assert isinstance(player, Player)
     active_hand = player.get_active_hand()
     card = self.__shoe.draw()
-    player.add_to_active_hand(card)
+    active_hand.add_card(card)
     BlackjackLogger.debug(f"\t\tHit: {card.get_value()}")
+    for player in players:
+      player.update_running_count(card.get_value())
     BlackjackLogger.debug(f"\t\tCurrent Value: {active_hand.get_value()}")
 
-  def double_down_player(self, player: Player) -> None:
+  def double_down_player(self, players: List[Player], player: Player) -> None:
     assert isinstance(player, Player)
     active_hand = player.get_active_hand()
     player.finalize_active_hand()
@@ -112,19 +121,21 @@ class Dealer(Player):
     card = self.__shoe.draw()
     BlackjackLogger.debug(f"\t\tDouble Down: {card.get_value()}")
     active_hand.add_card(card)
+    for player in players:
+      player.update_running_count(card.get_value())
     BlackjackLogger.debug(f"\t\tFinal Value: {active_hand.get_value()}")
 
   def stand_player(self, player: Player) -> None:
     player.finalize_active_hand()
 
-  def handle_decisions(self) -> None:
+  def handle_decisions(self, players: List[Player]) -> None:
     assert self.get_active_hand().get_card_count() == 2
     decision = PlayerDecision.PENDING
     while decision != PlayerDecision.STAND:
       decision = self.get_active_hand_decision()
       match decision:
         case PlayerDecision.HIT:
-          self.hit_player(self)
+          self.hit_player(players, self)
       dealer_hand_value = self.get_hand(0).get_value()
       if dealer_hand_value > 17:
         self.get_hand(0).set_finalized()
@@ -138,6 +149,8 @@ class Dealer(Player):
           card = self.get_shoe().draw()
           hand.add_card(card)
           BlackjackLogger.debug(f"\tHand {i}: {hand.get_card_value(0)}, {hand.get_card_value(1)} -- {hand.get_value()}")
+          for player in players:
+            player.update_running_count(card.get_value())
 
   def handle_payouts(self, players: List[Player]) -> None:
     dealer_hand_value = self.get_hand_value(0)

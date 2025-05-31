@@ -1,4 +1,4 @@
-import random
+from math import floor
 from typing import List
 from entities.Hand import Hand
 from entities.Player import Player
@@ -13,29 +13,36 @@ from services.RulesEngine import RulesEngine
 
 
 class AiPlayer(Player):
-  __basic_strategy_engine: BasicStrategyEngine
-  # TODO: This isn't really implemented at all yet -- can't really do so until we implement counting
-  __bet_spread: BetSpread
-  __card_counting_engine: CardCountingEngine
+  __counts_cards: bool
+  __plays_deviations: bool
   __running_count: int
+  __basic_strategy_engine: BasicStrategyEngine
+  __card_counting_engine: CardCountingEngine
+  __bet_spread: BetSpread
 
   def __init__(self, ai_player_info: AiPlayerInfo, rules_engine: RulesEngine) -> None:
     super().__init__(ai_player_info)
+    self.__counts_cards = ai_player_info.counts_cards
+    self.__plays_deviations = ai_player_info.plays_deviations
+    self.__running_count = 0
     self.__basic_strategy_engine = BasicStrategyEngine(
       ai_player_info.basic_strategy_skill_level,
       ai_player_info.deviations_skill_level,
       rules_engine
     )
-    self.__bet_spread = ai_player_info.bet_spread
     self.__card_counting_engine = CardCountingEngine(ai_player_info.card_counting_skill_level)
-    self.__running_count = 0
+    self.__bet_spread = ai_player_info.bet_spread
 
-  def get_decisions(self, active_hand: Hand, dealer_facecard_value: int) -> List[PlayerDecision]:
+  def get_decisions(self, active_hand: Hand, dealer_facecard_value: int, decks_remaining: int) -> List[PlayerDecision]:
+    if self.__counts_cards and self.__plays_deviations:
+      true_count = self.get_true_count(decks_remaining)
+    else:
+      true_count = None
     decisions = self.__basic_strategy_engine.get_play(
       self.get_hands(),
       active_hand,
       dealer_facecard_value,
-      0   # TODO: Placeholder, should be true count
+      true_count
     )
     BlackjackLogger.debug(f"\t\tWants: {[d.name for d in decisions]}")
     return decisions
@@ -47,21 +54,65 @@ class AiPlayer(Player):
   def get_bet_spread(self) -> BetSpread:
     return self.__bet_spread
 
-  def handle_running_count(self, card_value: int) -> None:
-    count_adjustment = self.__card_counting_engine.get_count_adjustment(card_value)
-    self.__running_count += count_adjustment
+  def get_true_count(self, decks_remaining: float) -> int:
+    genuine_true_count = floor(self.__running_count / decks_remaining)
+    BlackjackLogger.debug(f"\t\tGenuine true count is: {genuine_true_count}")
+    if genuine_true_count > 6:
+      return 6
+    elif genuine_true_count < -1:
+      return -1
+    else:
+      return genuine_true_count
 
-  def determine_bet(self, rules_engine: RulesEngine) -> None:
+  def reset_running_count(self) -> None:
+    self.__running_count = 0
+
+  def update_running_count(self, card_value: int) -> None:
+    if self.__counts_cards:
+      count_adjustment = self.__card_counting_engine.get_count_adjustment(card_value)
+      self.__running_count += count_adjustment
+    BlackjackLogger.debug(f"\t\t\tRunning count is: {self.__running_count}")
+
+  def determine_bet(self, rules_engine: RulesEngine, decks_remaining: int) -> None:
     # TODO: Implement bed spread & intelligent betting
-    bet = random.randint(rules_engine.get_min_bet(), rules_engine.get_max_bet())
+    true_count = self.get_true_count(decks_remaining)
+    min_bet = rules_engine.get_min_bet()
+    max_bet = rules_engine.get_max_bet()
+    bet_spread = self.get_bet_spread()
+
+    if true_count == 1:
+      bet = bet_spread.true_one
+    elif true_count == 2:
+      bet = bet_spread.true_two
+    elif true_count == 3:
+      bet = bet_spread.true_three
+    elif true_count == 4:
+      bet = bet_spread.true_four
+    elif true_count == 5:
+      bet = bet_spread.true_five
+    elif true_count >= 6:
+      bet = bet_spread.true_six
+    else:
+      bet = bet_spread.true_zero
+
     if bet > self.get_bankroll():
       bet = self.get_bankroll()
+
+    if bet < min_bet:
+      bet = min_bet
+    if bet > max_bet:
+      bet = max_bet
+
     return bet
 
   def wants_insurance(self, dealer_upcard_face: Face) -> bool:
     assert self.get_hand_count() == 1
     return self.__basic_strategy_engine.wants_insurance(self.get_hands(), dealer_upcard_face)
 
-  def wants_to_surrender(self, dealer_face_card_value: int) -> bool:
+  def wants_to_surrender(self, dealer_face_card_value: int, decks_remaining: float) -> bool:
     assert self.get_hand_count() == 1
-    return self.__basic_strategy_engine.wants_to_surrender(dealer_face_card_value, self.get_hand(0))
+    return self.__basic_strategy_engine.wants_to_surrender(
+      dealer_face_card_value,
+      self.get_hand(0),
+      self.get_true_count(decks_remaining)
+    )

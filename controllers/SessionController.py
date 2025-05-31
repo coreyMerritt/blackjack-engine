@@ -20,7 +20,9 @@ class SessionController:
     session_id = session_manager.create_simulation(
       req.rules,
       req.ai_player_info,
-      req.bankroll_goal
+      req.bankroll_goal,
+      req.human_time_limit,
+      req.sim_time_limit
     )
 
     return JSONResponse(content=session_id)

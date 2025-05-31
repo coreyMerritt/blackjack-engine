@@ -37,7 +37,9 @@ class SessionManagerSingleton:
     self,
     rules: GameRules,
     ai_player_info: List[AiPlayerInfo],
-    bankroll_goal: int
+    bankroll_goal: int,
+    human_time_limit: int | None,
+    sim_time_limit: int | None
   ) -> str:
     session_id = str(uuid.uuid4())
     game = Game(
@@ -45,7 +47,7 @@ class SessionManagerSingleton:
       None,
       ai_player_info
     )
-    simulation_engine = SimulationEngine(game, bankroll_goal)
+    simulation_engine = SimulationEngine(game, bankroll_goal, human_time_limit, sim_time_limit)
     self.simulation_sessions[session_id] = simulation_engine
     return session_id
 

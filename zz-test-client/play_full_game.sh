@@ -19,7 +19,7 @@ gameplayLoop() {
       bankroll=$(stand)
     else
       sleep 0.1
-      bankroll=$(getMoney)
+      bankroll=$(getBankroll)
     fi
     echo $bankroll
     sleep 0.1
@@ -56,7 +56,7 @@ getGame() {
   -H "Content-Type: application/json"
 }
 
-getMoney() {
+getBankroll() {
   curl -s -X POST "http://localhost:8000/session/$session_id/game/get_bankroll" \
   -H "Content-Type: application/json" |
   jq .bankroll
