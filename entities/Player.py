@@ -35,7 +35,7 @@ class Player(ABC):
     assert hand_index + 1 <= self.get_hand_count()
     return self.__hands[hand_index].get_value()
 
-  def get_active_hand(self) -> Hand | None:
+  def calculate_active_hand(self) -> Hand | None:
     for hand in self.__hands:
       if not hand.is_finalized():
         assert hand.get_result() == HandResult.UNDETERMINED
@@ -75,11 +75,11 @@ class Player(ABC):
     pass
 
   def add_to_active_hand(self, card: Card) -> None:
-    active_hand = self.get_active_hand()
+    active_hand = self.calculate_active_hand()
     active_hand.add_card(card)
 
   def finalize_active_hand(self) -> None:
-    active_hand = self.get_active_hand()
+    active_hand = self.calculate_active_hand()
     active_hand.set_finalized()
 
   def has_active_hand(self) -> bool:

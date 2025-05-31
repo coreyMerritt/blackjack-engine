@@ -10,7 +10,7 @@ class Hand():
   __finalized: bool
   __from_split: bool
   __bet: int
-  __bet_history: int
+  __initial_bet: int
   __insurance_bet: int
   __result: HandResult
   __cards: List[Card]
@@ -20,7 +20,7 @@ class Hand():
     self.__finalized = False
     self.__from_split = from_split
     self.__bet = bet
-    self.__bet_history = bet
+    self.__initial_bet = bet
     self.__insurance_bet = 0
     self.__result = HandResult.UNDETERMINED
     self.__cards = cards
@@ -46,8 +46,8 @@ class Hand():
   def get_bet(self) -> int:
     return self.__bet
 
-  def get_bet_history(self) -> int:
-    return self.__bet_history
+  def get_initial_bet(self) -> int:
+    return self.__initial_bet
 
   def get_insurance_bet(self) -> int:
     return self.__insurance_bet
@@ -74,13 +74,13 @@ class Hand():
     if not self.__doubled_down:
       self.__doubled_down = True
       self.__bet *= 2
-      self.__bet_history *= 2
+      self.__initial_bet *= 2
 
   def set_bet(self, bet: int) -> None:
     self.__bet = bet
 
-  def set_bet_history(self, bet: int) -> None:
-    self.__bet_history = bet
+  def set_initial_bet(self, bet: int) -> None:
+    self.__initial_bet = bet
 
   def set_finalized(self, value=True) -> None:
     self.__finalized = value

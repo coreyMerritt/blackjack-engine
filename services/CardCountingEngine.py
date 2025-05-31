@@ -13,8 +13,8 @@ class CardCountingEngine():
       actual_adjustment = 0
     else:
       actual_adjustment = -1
-    drunken_adjustment = self.__get_drunked_adjustment(actual_adjustment)
-    return drunken_adjustment
+    adjusted_adjustment = self.__get_drunked_adjustment(actual_adjustment)
+    return adjusted_adjustment
 
   def __get_drunked_adjustment(self, actual_adjustment: int) -> int:
     accuracy_roll = random.randint(self.__skill_level, 100)

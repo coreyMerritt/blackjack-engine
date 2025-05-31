@@ -1725,6 +1725,7 @@ class BasicStrategy():
   }
 
   soft_totals = {
+    (None, 2, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 2, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 2, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 2, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1735,6 +1736,7 @@ class BasicStrategy():
     (None, 2, 20): [PlayerDecision.STAND],
     (None, 2, 21): [PlayerDecision.STAND],
 
+    (None, 3, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 3, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 3, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 3, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1745,6 +1747,7 @@ class BasicStrategy():
     (None, 3, 20): [PlayerDecision.STAND],
     (None, 3, 21): [PlayerDecision.STAND],
 
+    (None, 4, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 4, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 4, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 4, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1755,6 +1758,7 @@ class BasicStrategy():
     (None, 4, 20): [PlayerDecision.STAND],
     (None, 4, 21): [PlayerDecision.STAND],
 
+    (None, 5, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 5, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 5, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 5, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1765,6 +1769,7 @@ class BasicStrategy():
     (None, 5, 20): [PlayerDecision.STAND],
     (None, 5, 21): [PlayerDecision.STAND],
 
+    (None, 6, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 6, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 6, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 6, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1775,6 +1780,7 @@ class BasicStrategy():
     (None, 6, 20): [PlayerDecision.STAND],
     (None, 6, 21): [PlayerDecision.STAND],
 
+    (None, 7, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 7, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 7, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 7, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1785,6 +1791,7 @@ class BasicStrategy():
     (None, 7, 20): [PlayerDecision.STAND],
     (None, 7, 21): [PlayerDecision.STAND],
 
+    (None, 8, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 8, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 8, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 8, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1795,6 +1802,7 @@ class BasicStrategy():
     (None, 8, 20): [PlayerDecision.STAND],
     (None, 8, 21): [PlayerDecision.STAND],
 
+    (None, 9, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 9, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 9, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 9, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1805,6 +1813,7 @@ class BasicStrategy():
     (None, 9, 20): [PlayerDecision.STAND],
     (None, 9, 21): [PlayerDecision.STAND],
 
+    (None, 10, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 10, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 10, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 10, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1815,6 +1824,7 @@ class BasicStrategy():
     (None, 10, 20): [PlayerDecision.STAND],
     (None, 10, 21): [PlayerDecision.STAND],
 
+    (None, 11, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 11, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 11, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 11, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1826,6 +1836,7 @@ class BasicStrategy():
     (None, 11, 21): [PlayerDecision.STAND],
 
 
+    (-1, 2, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 2, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 2, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 2, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1836,6 +1847,7 @@ class BasicStrategy():
     (-1, 2, 20): [PlayerDecision.STAND],
     (-1, 2, 21): [PlayerDecision.STAND],
 
+    (-1, 3, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 3, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 3, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 3, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1846,6 +1858,7 @@ class BasicStrategy():
     (-1, 3, 20): [PlayerDecision.STAND],
     (-1, 3, 21): [PlayerDecision.STAND],
 
+    (-1, 4, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 4, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 4, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 4, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1856,6 +1869,7 @@ class BasicStrategy():
     (-1, 4, 20): [PlayerDecision.STAND],
     (-1, 4, 21): [PlayerDecision.STAND],
 
+    (-1, 5, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 5, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 5, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 5, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1866,6 +1880,7 @@ class BasicStrategy():
     (-1, 5, 20): [PlayerDecision.STAND],
     (-1, 5, 21): [PlayerDecision.STAND],
 
+    (-1, 6, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 6, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 6, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 6, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1876,6 +1891,7 @@ class BasicStrategy():
     (-1, 6, 20): [PlayerDecision.STAND],
     (-1, 6, 21): [PlayerDecision.STAND],
 
+    (-1, 7, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 7, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 7, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 7, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1886,6 +1902,7 @@ class BasicStrategy():
     (-1, 7, 20): [PlayerDecision.STAND],
     (-1, 7, 21): [PlayerDecision.STAND],
 
+    (-1, 8, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 8, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 8, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 8, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1896,6 +1913,7 @@ class BasicStrategy():
     (-1, 8, 20): [PlayerDecision.STAND],
     (-1, 8, 21): [PlayerDecision.STAND],
 
+    (-1, 9, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 9, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 9, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 9, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1906,6 +1924,7 @@ class BasicStrategy():
     (-1, 9, 20): [PlayerDecision.STAND],
     (-1, 9, 21): [PlayerDecision.STAND],
 
+    (-1, 10, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 10, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 10, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 10, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1916,6 +1935,7 @@ class BasicStrategy():
     (-1, 10, 20): [PlayerDecision.STAND],
     (-1, 10, 21): [PlayerDecision.STAND],
 
+    (-1, 11, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 11, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 11, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (-1, 11, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1927,6 +1947,7 @@ class BasicStrategy():
     (-1, 11, 21): [PlayerDecision.STAND],
 
 
+    (0, 2, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 2, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 2, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 2, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1937,6 +1958,7 @@ class BasicStrategy():
     (0, 2, 20): [PlayerDecision.STAND],
     (0, 2, 21): [PlayerDecision.STAND],
 
+    (0, 3, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 3, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 3, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 3, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1947,6 +1969,7 @@ class BasicStrategy():
     (0, 3, 20): [PlayerDecision.STAND],
     (0, 3, 21): [PlayerDecision.STAND],
 
+    (0, 4, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 4, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 4, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 4, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1957,6 +1980,7 @@ class BasicStrategy():
     (0, 4, 20): [PlayerDecision.STAND],
     (0, 4, 21): [PlayerDecision.STAND],
 
+    (0, 5, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 5, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 5, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 5, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1967,6 +1991,7 @@ class BasicStrategy():
     (0, 5, 20): [PlayerDecision.STAND],
     (0, 5, 21): [PlayerDecision.STAND],
 
+    (0, 6, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 6, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 6, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 6, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1977,6 +2002,7 @@ class BasicStrategy():
     (0, 6, 20): [PlayerDecision.STAND],
     (0, 6, 21): [PlayerDecision.STAND],
 
+    (0, 7, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 7, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 7, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 7, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1987,6 +2013,7 @@ class BasicStrategy():
     (0, 7, 20): [PlayerDecision.STAND],
     (0, 7, 21): [PlayerDecision.STAND],
 
+    (0, 8, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 8, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 8, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 8, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1997,6 +2024,7 @@ class BasicStrategy():
     (0, 8, 20): [PlayerDecision.STAND],
     (0, 8, 21): [PlayerDecision.STAND],
 
+    (0, 9, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 9, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 9, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 9, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2007,6 +2035,7 @@ class BasicStrategy():
     (0, 9, 20): [PlayerDecision.STAND],
     (0, 9, 21): [PlayerDecision.STAND],
 
+    (0, 10, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 10, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 10, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 10, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2017,6 +2046,7 @@ class BasicStrategy():
     (0, 10, 20): [PlayerDecision.STAND],
     (0, 10, 21): [PlayerDecision.STAND],
 
+    (0, 11, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 11, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 11, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (0, 11, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2028,6 +2058,7 @@ class BasicStrategy():
     (0, 11, 21): [PlayerDecision.STAND],
 
 
+    (1, 2, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 2, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 2, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 2, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2038,6 +2069,7 @@ class BasicStrategy():
     (1, 2, 20): [PlayerDecision.STAND],
     (1, 2, 21): [PlayerDecision.STAND],
 
+    (1, 3, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 3, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 3, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 3, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2048,6 +2080,7 @@ class BasicStrategy():
     (1, 3, 20): [PlayerDecision.STAND],
     (1, 3, 21): [PlayerDecision.STAND],
 
+    (1, 4, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 4, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 4, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 4, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2058,6 +2091,7 @@ class BasicStrategy():
     (1, 4, 20): [PlayerDecision.STAND],
     (1, 4, 21): [PlayerDecision.STAND],
 
+    (1, 5, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 5, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 5, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 5, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2068,6 +2102,7 @@ class BasicStrategy():
     (1, 5, 20): [PlayerDecision.STAND],
     (1, 5, 21): [PlayerDecision.STAND],
 
+    (1, 6, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 6, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 6, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 6, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2078,6 +2113,7 @@ class BasicStrategy():
     (1, 6, 20): [PlayerDecision.STAND],
     (1, 6, 21): [PlayerDecision.STAND],
 
+    (1, 7, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 7, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 7, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 7, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2088,6 +2124,7 @@ class BasicStrategy():
     (1, 7, 20): [PlayerDecision.STAND],
     (1, 7, 21): [PlayerDecision.STAND],
 
+    (1, 8, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 8, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 8, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 8, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2098,6 +2135,7 @@ class BasicStrategy():
     (1, 8, 20): [PlayerDecision.STAND],
     (1, 8, 21): [PlayerDecision.STAND],
 
+    (1, 9, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 9, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 9, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 9, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2108,6 +2146,7 @@ class BasicStrategy():
     (1, 9, 20): [PlayerDecision.STAND],
     (1, 9, 21): [PlayerDecision.STAND],
 
+    (1, 10, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 10, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 10, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 10, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2118,6 +2157,7 @@ class BasicStrategy():
     (1, 10, 20): [PlayerDecision.STAND],
     (1, 10, 21): [PlayerDecision.STAND],
 
+    (1, 11, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 11, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 11, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (1, 11, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2129,6 +2169,7 @@ class BasicStrategy():
     (1, 11, 21): [PlayerDecision.STAND],
 
 
+    (2, 2, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 2, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 2, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 2, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2139,6 +2180,7 @@ class BasicStrategy():
     (2, 2, 20): [PlayerDecision.STAND],
     (2, 2, 21): [PlayerDecision.STAND],
 
+    (2, 3, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 3, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 3, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 3, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2149,6 +2191,7 @@ class BasicStrategy():
     (2, 3, 20): [PlayerDecision.STAND],
     (2, 3, 21): [PlayerDecision.STAND],
 
+    (2, 4, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 4, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 4, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 4, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2159,6 +2202,7 @@ class BasicStrategy():
     (2, 4, 20): [PlayerDecision.STAND],
     (2, 4, 21): [PlayerDecision.STAND],
 
+    (2, 5, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 5, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 5, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 5, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2169,6 +2213,7 @@ class BasicStrategy():
     (2, 5, 20): [PlayerDecision.STAND],
     (2, 5, 21): [PlayerDecision.STAND],
 
+    (2, 6, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 6, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 6, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 6, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2179,6 +2224,7 @@ class BasicStrategy():
     (2, 6, 20): [PlayerDecision.STAND],
     (2, 6, 21): [PlayerDecision.STAND],
 
+    (2, 7, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 7, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 7, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 7, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2189,6 +2235,7 @@ class BasicStrategy():
     (2, 7, 20): [PlayerDecision.STAND],
     (2, 7, 21): [PlayerDecision.STAND],
 
+    (2, 8, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 8, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 8, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 8, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2199,6 +2246,7 @@ class BasicStrategy():
     (2, 8, 20): [PlayerDecision.STAND],
     (2, 8, 21): [PlayerDecision.STAND],
 
+    (2, 9, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 9, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 9, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 9, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2209,6 +2257,7 @@ class BasicStrategy():
     (2, 9, 20): [PlayerDecision.STAND],
     (2, 9, 21): [PlayerDecision.STAND],
 
+    (2, 10, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 10, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 10, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 10, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2219,6 +2268,7 @@ class BasicStrategy():
     (2, 10, 20): [PlayerDecision.STAND],
     (2, 10, 21): [PlayerDecision.STAND],
 
+    (2, 11, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 11, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 11, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (2, 11, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2230,6 +2280,7 @@ class BasicStrategy():
     (2, 11, 21): [PlayerDecision.STAND],
 
 
+    (3, 2, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 2, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 2, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 2, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2240,6 +2291,7 @@ class BasicStrategy():
     (3, 2, 20): [PlayerDecision.STAND],
     (3, 2, 21): [PlayerDecision.STAND],
 
+    (3, 3, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 3, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 3, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 3, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2250,6 +2302,7 @@ class BasicStrategy():
     (3, 3, 20): [PlayerDecision.STAND],
     (3, 3, 21): [PlayerDecision.STAND],
 
+    (3, 4, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 4, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 4, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 4, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2260,6 +2313,7 @@ class BasicStrategy():
     (3, 4, 20): [PlayerDecision.STAND],
     (3, 4, 21): [PlayerDecision.STAND],
 
+    (3, 5, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 5, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 5, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 5, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2270,6 +2324,7 @@ class BasicStrategy():
     (3, 5, 20): [PlayerDecision.STAND],
     (3, 5, 21): [PlayerDecision.STAND],
 
+    (3, 6, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 6, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 6, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 6, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2280,6 +2335,7 @@ class BasicStrategy():
     (3, 6, 20): [PlayerDecision.STAND],
     (3, 6, 21): [PlayerDecision.STAND],
 
+    (3, 7, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 7, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 7, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 7, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2290,6 +2346,7 @@ class BasicStrategy():
     (3, 7, 20): [PlayerDecision.STAND],
     (3, 7, 21): [PlayerDecision.STAND],
 
+    (3, 8, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 8, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 8, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 8, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2300,6 +2357,7 @@ class BasicStrategy():
     (3, 8, 20): [PlayerDecision.STAND],
     (3, 8, 21): [PlayerDecision.STAND],
 
+    (3, 9, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 9, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 9, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 9, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2310,6 +2368,7 @@ class BasicStrategy():
     (3, 9, 20): [PlayerDecision.STAND],
     (3, 9, 21): [PlayerDecision.STAND],
 
+    (3, 10, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 10, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 10, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 10, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2320,6 +2379,7 @@ class BasicStrategy():
     (3, 10, 20): [PlayerDecision.STAND],
     (3, 10, 21): [PlayerDecision.STAND],
 
+    (3, 11, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 11, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 11, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (3, 11, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2331,6 +2391,7 @@ class BasicStrategy():
     (3, 11, 21): [PlayerDecision.STAND],
 
 
+    (4, 2, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 2, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 2, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 2, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2341,6 +2402,7 @@ class BasicStrategy():
     (4, 2, 20): [PlayerDecision.STAND],
     (4, 2, 21): [PlayerDecision.STAND],
 
+    (4, 3, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 3, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 3, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 3, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2351,6 +2413,7 @@ class BasicStrategy():
     (4, 3, 20): [PlayerDecision.STAND],
     (4, 3, 21): [PlayerDecision.STAND],
 
+    (4, 4, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 4, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 4, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 4, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2361,6 +2424,7 @@ class BasicStrategy():
     (4, 4, 20): [PlayerDecision.STAND],
     (4, 4, 21): [PlayerDecision.STAND],
 
+    (4, 5, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 5, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 5, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 5, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2371,6 +2435,7 @@ class BasicStrategy():
     (4, 5, 20): [PlayerDecision.STAND],
     (4, 5, 21): [PlayerDecision.STAND],
 
+    (4, 6, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 6, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 6, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 6, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2381,6 +2446,7 @@ class BasicStrategy():
     (4, 6, 20): [PlayerDecision.STAND],
     (4, 6, 21): [PlayerDecision.STAND],
 
+    (4, 7, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 7, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 7, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 7, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2391,6 +2457,7 @@ class BasicStrategy():
     (4, 7, 20): [PlayerDecision.STAND],
     (4, 7, 21): [PlayerDecision.STAND],
 
+    (4, 8, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 8, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 8, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 8, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2401,6 +2468,7 @@ class BasicStrategy():
     (4, 8, 20): [PlayerDecision.STAND],
     (4, 8, 21): [PlayerDecision.STAND],
 
+    (4, 9, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 9, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 9, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 9, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2411,6 +2479,7 @@ class BasicStrategy():
     (4, 9, 20): [PlayerDecision.STAND],
     (4, 9, 21): [PlayerDecision.STAND],
 
+    (4, 10, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 10, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 10, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 10, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2421,6 +2490,7 @@ class BasicStrategy():
     (4, 10, 20): [PlayerDecision.STAND],
     (4, 10, 21): [PlayerDecision.STAND],
 
+    (4, 11, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 11, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 11, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (4, 11, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2432,6 +2502,7 @@ class BasicStrategy():
     (4, 11, 21): [PlayerDecision.STAND],
 
 
+    (5, 2, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 2, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 2, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 2, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2442,6 +2513,7 @@ class BasicStrategy():
     (5, 2, 20): [PlayerDecision.STAND],
     (5, 2, 21): [PlayerDecision.STAND],
 
+    (5, 3, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 3, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 3, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 3, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2452,6 +2524,7 @@ class BasicStrategy():
     (5, 3, 20): [PlayerDecision.STAND],
     (5, 3, 21): [PlayerDecision.STAND],
 
+    (5, 4, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 4, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 4, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 4, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2462,6 +2535,7 @@ class BasicStrategy():
     (5, 4, 20): [PlayerDecision.STAND],
     (5, 4, 21): [PlayerDecision.STAND],
 
+    (5, 5, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 5, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 5, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 5, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2472,6 +2546,7 @@ class BasicStrategy():
     (5, 5, 20): [PlayerDecision.STAND],
     (5, 5, 21): [PlayerDecision.STAND],
 
+    (5, 6, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 6, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 6, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 6, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2482,6 +2557,7 @@ class BasicStrategy():
     (5, 6, 20): [PlayerDecision.STAND],
     (5, 6, 21): [PlayerDecision.STAND],
 
+    (5, 7, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 7, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 7, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 7, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2492,6 +2568,7 @@ class BasicStrategy():
     (5, 7, 20): [PlayerDecision.STAND],
     (5, 7, 21): [PlayerDecision.STAND],
 
+    (5, 8, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 8, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 8, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 8, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2502,6 +2579,7 @@ class BasicStrategy():
     (5, 8, 20): [PlayerDecision.STAND],
     (5, 8, 21): [PlayerDecision.STAND],
 
+    (5, 9, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 9, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 9, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 9, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2512,6 +2590,7 @@ class BasicStrategy():
     (5, 9, 20): [PlayerDecision.STAND],
     (5, 9, 21): [PlayerDecision.STAND],
 
+    (5, 10, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 10, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 10, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 10, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2522,6 +2601,7 @@ class BasicStrategy():
     (5, 10, 20): [PlayerDecision.STAND],
     (5, 10, 21): [PlayerDecision.STAND],
 
+    (5, 11, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 11, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 11, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (5, 11, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2533,6 +2613,7 @@ class BasicStrategy():
     (5, 11, 21): [PlayerDecision.STAND],
 
 
+    (6, 2, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 2, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 2, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 2, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2543,6 +2624,7 @@ class BasicStrategy():
     (6, 2, 20): [PlayerDecision.STAND],
     (6, 2, 21): [PlayerDecision.STAND],
 
+    (6, 3, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 3, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 3, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 3, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2553,6 +2635,7 @@ class BasicStrategy():
     (6, 3, 20): [PlayerDecision.STAND],
     (6, 3, 21): [PlayerDecision.STAND],
 
+    (6, 4, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 4, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 4, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 4, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2563,6 +2646,7 @@ class BasicStrategy():
     (6, 4, 20): [PlayerDecision.STAND],
     (6, 4, 21): [PlayerDecision.STAND],
 
+    (6, 5, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 5, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 5, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 5, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2573,6 +2657,7 @@ class BasicStrategy():
     (6, 5, 20): [PlayerDecision.STAND],
     (6, 5, 21): [PlayerDecision.STAND],
 
+    (6, 6, 12): [PlayerDecision.SPLIT, PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 6, 13): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 6, 14): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 6, 15): [PlayerDecision.DOUBLE_DOWN, PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2583,6 +2668,7 @@ class BasicStrategy():
     (6, 6, 20): [PlayerDecision.STAND],
     (6, 6, 21): [PlayerDecision.STAND],
 
+    (6, 7, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 7, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 7, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 7, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2593,6 +2679,7 @@ class BasicStrategy():
     (6, 7, 20): [PlayerDecision.STAND],
     (6, 7, 21): [PlayerDecision.STAND],
 
+    (6, 8, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 8, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 8, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 8, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2603,6 +2690,7 @@ class BasicStrategy():
     (6, 8, 20): [PlayerDecision.STAND],
     (6, 8, 21): [PlayerDecision.STAND],
 
+    (6, 9, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 9, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 9, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 9, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2613,6 +2701,7 @@ class BasicStrategy():
     (6, 9, 20): [PlayerDecision.STAND],
     (6, 9, 21): [PlayerDecision.STAND],
 
+    (6, 10, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 10, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 10, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 10, 15): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2623,6 +2712,7 @@ class BasicStrategy():
     (6, 10, 20): [PlayerDecision.STAND],
     (6, 10, 21): [PlayerDecision.STAND],
 
+    (6, 11, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 11, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 11, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
     (6, 11, 15): [PlayerDecision.HIT, PlayerDecision.STAND],

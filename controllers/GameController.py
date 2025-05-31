@@ -30,7 +30,7 @@ class GameController:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
     game.place_bets(bet)
-    game.deal_cards()
+    game.__deal_cards()
     JSONResponse(status_code=200, content={"status": "complete"})
 
   async def hit(self, session_id: str, hand_index: int) -> JSONResponse:
@@ -56,7 +56,7 @@ class GameController:
     if not game.state == GameState.HUMAN_PLAYER_DECISIONS:
       raise HTTPException(status_code=409, detail="Invalid game state")
 
-    game.stand_active_hand()
+    game.__stand_active_hand()
     return JSONResponse(status_code=200, content={"status": "complete"})
 
   async def get(self, session_id: str) -> JSONResponse:

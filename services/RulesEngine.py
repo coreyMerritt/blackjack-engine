@@ -96,17 +96,17 @@ class RulesEngine():
           return False
     return True
 
-  def can_split(self, hands: List[Hand]) -> bool:
+  def can_split(self, hand: Hand, current_hand_count: int) -> bool:
     max_hands_allowed = self.__splitting_rules.maximum_hand_count
-    current_hand_count = len(hands)
     if current_hand_count == max_hands_allowed:
       return False
-    for hand in hands:
-      if hand.is_finalized():
-        continue
-      if hand.get_card_count() == 2:
-        if hand.get_card_value(0) == hand.get_card_value(1):
-          return True
+    if hand.is_finalized():
+      return False
+    if hand.get_card_count() == 2:
+      if hand.get_card_value(0) == hand.get_card_value(1):
+        return True
+      if hand.get_card_face(0) == hand.get_card_face(1):
+        return True
     return False
 
   def can_insure(self, hands: List[Hand], dealer_upcard_face: Face) -> bool:
@@ -155,8 +155,8 @@ class RulesEngine():
   ) -> bool:
     if state != GameState.HUMAN_PLAYER_DECISIONS and state != GameState.AI_PLAYER_DECISIONS:
       return False
-    active_hand = player.get_active_hand()
-    all_hands = player.get_hands()
+    active_hand = player.calculate_active_hand()
+    current_hand_count = player.get_hand_count()
     match decision:
       case PlayerDecision.HIT:
         return self.can_hit(active_hand)
@@ -168,7 +168,7 @@ class RulesEngine():
         return False
       case PlayerDecision.SPLIT:
         if player.get_bankroll() > active_hand.get_bet():
-          return self.can_split(all_hands)
+          return self.can_split(active_hand, current_hand_count)
         return False
       case PlayerDecision.SURRENDER:
         return self.can_late_surrender(active_hand)

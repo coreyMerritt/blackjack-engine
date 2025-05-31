@@ -21,6 +21,7 @@ class BasicStrategyEngine():
     rules_engine: RulesEngine
   ):
     self.__basic_strategy_skill_level = basic_strategy_skill_level
+    # TODO: Implement deviation skill level
     self.__deviations_skill_level = deviations_skill_level
     self.__rules_engine = rules_engine
 
@@ -38,17 +39,19 @@ class BasicStrategyEngine():
       if wants_surrender:
         decisions.append(PlayerDecision.SURRENDER)
 
-    if self.__rules_engine.can_split(player_hands):
+    if self.__rules_engine.can_split(active_player_hand, len(player_hands)):
       wants_split = self._check_for_split(player_hands, active_player_hand, dealer_face_card_value, true_count)
       if wants_split:
         decisions.append(PlayerDecision.SPLIT)
 
-    drunken_player_hand_value = self._get_drunken_player_hand_value(active_player_hand)
+    adjusted_player_hand_value = self._get_adjusted_player_hand_value(active_player_hand)
+    BlackjackLogger.debug(f"\t\tActual hand value: {active_player_hand.get_value()}")
+    BlackjackLogger.debug(f"\t\tAdjusted hand value: {adjusted_player_hand_value}")
 
     if active_player_hand.is_soft():
-      decisions.extend(BasicStrategy.soft_totals[(true_count, dealer_face_card_value, drunken_player_hand_value)])
+      decisions.extend(BasicStrategy.soft_totals[(true_count, dealer_face_card_value, adjusted_player_hand_value)])
     else:
-      decisions.extend(BasicStrategy.hard_totals[(true_count, dealer_face_card_value, drunken_player_hand_value)])
+      decisions.extend(BasicStrategy.hard_totals[(true_count, dealer_face_card_value, adjusted_player_hand_value)])
     return decisions
 
   # We're proceeding on the assumption that insurance is always bad.
@@ -63,8 +66,8 @@ class BasicStrategyEngine():
   def wants_to_surrender(self, dealer_face_card_value: int, player_hand: Hand, true_count: int) -> bool:
     if not self.__rules_engine.can_late_surrender(player_hand):
       return False
-    drunken_player_hand_value = self._get_drunken_player_hand_value(player_hand)
-    return BasicStrategy.surrender[(true_count, dealer_face_card_value, drunken_player_hand_value)]
+    adjusted_player_hand_value = self._get_adjusted_player_hand_value(player_hand)
+    return BasicStrategy.surrender[(true_count, dealer_face_card_value, adjusted_player_hand_value)]
 
   def _check_for_surrender(
     self,
@@ -72,8 +75,8 @@ class BasicStrategyEngine():
     dealer_face_card_value: int,
     true_count: int
   ) -> bool:
-    drunken_player_hand_value = self._get_drunken_player_hand_value(player_hand)
-    should_surrender = BasicStrategy.surrender[(true_count, dealer_face_card_value, drunken_player_hand_value)]
+    adjusted_player_hand_value = self._get_adjusted_player_hand_value(player_hand)
+    should_surrender = BasicStrategy.surrender[(true_count, dealer_face_card_value, adjusted_player_hand_value)]
     if should_surrender:
       return True
     return False
@@ -85,37 +88,24 @@ class BasicStrategyEngine():
     dealer_face_card_value: int,
     true_count: int
   ):
-    splitting_is_allowed = self.__rules_engine.can_split(player_hands)
+    splitting_is_allowed = self.__rules_engine.can_split(active_player_hand, len(player_hands))
     if splitting_is_allowed:
-      drunken_player_hand_value = self._get_drunken_player_hand_value(active_player_hand)
-      half_drunken_player_hand_value = round(drunken_player_hand_value / 2, 0)
-
-      # Some adjustments specifically for splitting
-      if half_drunken_player_hand_value % 2 == 1:
-        if half_drunken_player_hand_value < 6:
-          even_half_drunken_player_hand_value = half_drunken_player_hand_value + 1
-        else:
-          even_half_drunken_player_hand_value = half_drunken_player_hand_value - 1
-      else:
-        even_half_drunken_player_hand_value = half_drunken_player_hand_value
-
+      adjusted_player_hand_value = self._get_adjusted_player_hand_value(active_player_hand)
+      half_adjusted_player_hand_value = adjusted_player_hand_value // 2
       splitting_decision = BasicStrategy.pair_splitting[
-        (true_count, dealer_face_card_value, even_half_drunken_player_hand_value)
+        (true_count, dealer_face_card_value, half_adjusted_player_hand_value)
       ]
       if splitting_decision == PairSplittingDecision.YES:
         return True
-      if (
-        splitting_decision == PairSplittingDecision.IF_DOUBLE_AFTER_SPLITTING_ALLOWED
-        and self.__rules_engine.can_double_after_split()
-      ):
-        return True
-
+      if splitting_decision == PairSplittingDecision.IF_DOUBLE_AFTER_SPLITTING_ALLOWED:
+        if self.__rules_engine.can_double_after_split():
+          return True
     return False
 
   # This is a pretty lame way of simulating bad accuracy for "poor skill"
   # bots. Essentially, the bot will intrepret its hand's value incorrectly
   # sometimes and will bet according to that incorrect value
-  def _get_drunken_player_hand_value(self, player_hand: Hand) -> int:
+  def _get_adjusted_player_hand_value(self, player_hand: Hand) -> int:
     hand_is_soft = player_hand.is_soft()
     active_player_hand_value = player_hand.get_value()
     accuracy_roll = random.randint(self.__basic_strategy_skill_level, 100)
@@ -123,15 +113,15 @@ class BasicStrategyEngine():
     spread = (100 - accuracy_roll) / 10
     plus_or_minus_roll = random.randint(1, 2)
     if plus_or_minus_roll == 1:
-      drunken_player_hand_value = int(active_player_hand_value + spread)
+      adjusted_player_hand_value = int(active_player_hand_value + spread)
     else:
-      drunken_player_hand_value = int(active_player_hand_value - spread)
+      adjusted_player_hand_value = int(active_player_hand_value - spread)
 
-    if drunken_player_hand_value > 21:
-      drunken_player_hand_value = 21
-    elif drunken_player_hand_value < 4 and not hand_is_soft:
-      drunken_player_hand_value = 4
-    elif drunken_player_hand_value < 13 and hand_is_soft:
-      drunken_player_hand_value = 13
+    if adjusted_player_hand_value > 21:
+      adjusted_player_hand_value = 21
+    elif adjusted_player_hand_value < 4 and not hand_is_soft:
+      adjusted_player_hand_value = 4
+    elif adjusted_player_hand_value < 12 and hand_is_soft:
+      adjusted_player_hand_value = 12
 
-    return drunken_player_hand_value
+    return adjusted_player_hand_value
