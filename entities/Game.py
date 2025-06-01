@@ -293,6 +293,7 @@ class Game:
         if self.__rules_engine.can_insure(hands, self.__dealer.get_facecard().get_face()):
           if player.wants_insurance(self.__dealer.get_facecard().get_face()):
             hand.set_insurance_bet(player.get_insurance_bet())
+            player.decrement_bankroll(hand.get_insurance_bet())
 
   def __handle_early_surrender(self) -> None:
     for player in self.__ai_players:
@@ -484,7 +485,7 @@ class Game:
   def __handle_single_insurance_payout(self, player: Player, player_hand: Hand) -> None:
     if player_hand.is_insured():
       if self.__dealer.has_blackjack():
-        player.increment_bankroll(player_hand.get_insurance_bet() * 2)
+        player.increment_bankroll(player_hand.get_insurance_bet() * 3)
       player_hand.set_insurance_bet(0)
 
   def __reset_hands(self) -> None:

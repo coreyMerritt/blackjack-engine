@@ -103,7 +103,7 @@ class RulesEngine():
     if hand.is_finalized():
       return False
     if hand.get_card_count() == 2:
-      if hand.get_card_value(0) == hand.get_card_value(1):
+      if hand.is_pair():
         return True
       if hand.get_card_face(0) == hand.get_card_face(1):
         return True
