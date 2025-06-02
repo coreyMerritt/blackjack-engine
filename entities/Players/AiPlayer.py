@@ -39,6 +39,28 @@ class AiPlayer(Player):
   def plays_deviations(self) -> bool:
     return self.__plays_deviations
 
+  def wants_insurance(self, dealer_upcard_face: Face) -> bool:
+    assert self.get_hand_count() == 1
+    return self.__basic_strategy_engine.wants_insurance(self.get_hands(), dealer_upcard_face)
+
+  def wants_to_surrender(self, dealer_face_card_value: int, decks_remaining: float) -> bool:
+    assert self.get_hand_count() == 1
+    return self.__basic_strategy_engine.wants_to_surrender(
+      dealer_face_card_value,
+      self.get_hand(0),
+      self.calculate_true_count(decks_remaining)
+    )
+
+  def calculate_true_count(self, decks_remaining: float) -> int:
+    genuine_true_count = floor(self.get_running_count() / ceil(decks_remaining))
+    BlackjackLogger.debug(f"\t\tGenuine true count is: {genuine_true_count}")
+    if genuine_true_count > 6:
+      return 6
+    elif genuine_true_count < -1:
+      return -1
+    else:
+      return genuine_true_count
+
   def get_running_count(self) -> int:
     return self.__running_count
 
@@ -53,7 +75,7 @@ class AiPlayer(Player):
 
   def get_decisions(self, active_hand: Hand, dealer_facecard_value: int, decks_remaining: int) -> List[PlayerDecision]:
     if self.counts_cards() and self.plays_deviations():
-      true_count = self.__calculate_true_count(decks_remaining)
+      true_count = self.calculate_true_count(decks_remaining)
     else:
       true_count = None
     decisions = self.__basic_strategy_engine.get_play(
@@ -72,7 +94,7 @@ class AiPlayer(Player):
     self.__running_count = 0
 
   def calculate_bet(self, rules_engine: RulesEngine, decks_remaining: int) -> None:
-    true_count = self.__calculate_true_count(decks_remaining)
+    true_count = self.calculate_true_count(decks_remaining)
     min_bet = rules_engine.get_min_bet()
     max_bet = rules_engine.get_max_bet()
     bet_spread = self.get_bet_spread()
@@ -102,25 +124,3 @@ class AiPlayer(Player):
 
     assert rules_engine.bet_is_legal(bet)
     return bet
-
-  def wants_insurance(self, dealer_upcard_face: Face) -> bool:
-    assert self.get_hand_count() == 1
-    return self.__basic_strategy_engine.wants_insurance(self.get_hands(), dealer_upcard_face)
-
-  def wants_to_surrender(self, dealer_face_card_value: int, decks_remaining: float) -> bool:
-    assert self.get_hand_count() == 1
-    return self.__basic_strategy_engine.wants_to_surrender(
-      dealer_face_card_value,
-      self.get_hand(0),
-      self.__calculate_true_count(decks_remaining)
-    )
-
-  def __calculate_true_count(self, decks_remaining: float) -> int:
-    genuine_true_count = floor(self.get_running_count() / ceil(decks_remaining))
-    BlackjackLogger.debug(f"\t\tGenuine true count is: {genuine_true_count}")
-    if genuine_true_count > 6:
-      return 6
-    elif genuine_true_count < -1:
-      return -1
-    else:
-      return genuine_true_count

@@ -136,19 +136,27 @@ class Game:
     player_won = dealer_busted or player_beat_dealer
     player_lost = not dealer_busted and not player_beat_dealer
 
+    bet = player_hand.get_bet()
+
+    player_hand.set_finalized()
     if player_busted:
       BlackjackLogger.debug("\t\tPlayer busted!")
       return HandResult.LOSS
     elif both_have_blackjack:
       BlackjackLogger.debug("\t\tDealer & Player both have Blackjack!")
+      player_hand.set_payout(0)
       return HandResult.DRAW
     elif only_player_has_blackjack:
+      player_hand.set_payout(bet * self.__dealer.get_blackjack_pays_multiplier())
       return HandResult.BLACKJACK
     elif player_tied_with_dealer:
+      player_hand.set_payout(0)
       return HandResult.DRAW
     elif player_won:
+      player_hand.set_payout(bet)
       return HandResult.WIN
     elif player_lost:
+      player_hand.set_payout(0)
       return HandResult.LOSS
     else:
       raise NotImplementedError("Unexpected conditions @dealer.handle_payout")
@@ -166,6 +174,7 @@ class Game:
       else:
         hand.set_finalized()
         hand.set_result(HandResult.LOSS)
+        hand.set_payout(0)
         BlackjackLogger.debug("\t\tBUST!")
 
   def __update_running_counts(self, card: Card) -> None:
@@ -271,18 +280,20 @@ class Game:
   def __player_blackjack_check(self) -> None:
     for player in self.__human_players + self.__ai_players:
       if player.has_blackjack():
+        active_hand = self.__calculate_active_hand()
+        bet = active_hand.get_bet()
         if not self.__dealer.has_blackjack():
           BlackjackLogger.debug(f"\t\tPlayer-{player.get_id()}")
           BlackjackLogger.debug("\t\tBlackjack! Win!")
-          active_hand = self.__calculate_active_hand()
-          active_hand.set_result(HandResult.BLACKJACK)
           active_hand.set_finalized()
+          active_hand.set_result(HandResult.BLACKJACK)
+          active_hand.set_payout(bet * self.__dealer.get_blackjack_pays_multiplier())
         else:
           BlackjackLogger.debug(f"\t\tDealer & Player-{player.get_id()} have Blackjack!")
           BlackjackLogger.debug("\t\tDraw!")
-          active_hand = self.__calculate_active_hand()
-          active_hand.set_result(HandResult.DRAW)
           active_hand.set_finalized()
+          active_hand.set_result(HandResult.DRAW)
+          active_hand.set_payout(0)
 
   def __handle_insurance(self) -> None:
     for player in self.__ai_players:
@@ -295,29 +306,41 @@ class Game:
 
   def __handle_early_surrender(self) -> None:
     for player in self.__ai_players:
-      hands = player.get_hands()
+      hand = player.get_hand(0)
       if player.get_hand_count() > 1:
         return False
-      if self.__rules_engine.can_early_surrender(hands[0]):
+      if self.__rules_engine.can_early_surrender(hand):
         if player.wants_to_surrender(self.__dealer.get_facecard().get_value(), self.__dealer.get_decks_remaining()):
-          player.increment_bankroll(hands[0].get_bet() / 2)
-          player.set_hands([])
+          hand.is_finalized()
+          hand.set_result(HandResult.SURRENDERED)
+          hand.set_payout(hand.get_bet() / 2)
 
   def __dealer_blackjack_check(self) -> GameState:
     if self.__dealer.has_blackjack():
+      self.__handle_insurance_payouts()
       return GameState.RESULTS
     else:
       return GameState.LATE_SURRENDER
 
+  def __handle_insurance_payouts(self) -> None:
+    for player in self.__human_players + self.__ai_players:
+      for hand in player.get_hands():
+        if hand.is_insured():
+          if self.__dealer.has_blackjack():
+            hand.is_finalized()
+            hand.set_result(HandResult.LOSS)
+            # The player never gets their insurance bet back naturally,
+            # so payout here also covers refunding the original bet.
+            hand.set_payout(hand.get_insurance_bet() * 3)
+
   def __handle_late_surrender(self) -> None:
     for player in self.__ai_players:
-      hands = player.get_hands()
+      hand = player.get_hand(0)
       if player.get_hand_count() != 1:
         return
-      if self.__rules_engine.can_late_surrender(hands[0]):
+      if self.__rules_engine.can_late_surrender(hand):
         if player.wants_to_surrender(self.__dealer.get_facecard().get_value(), self.__dealer.get_decks_remaining()):
-          player.increment_bankroll(hands[0].get_bet() / 2)
-          player.set_hands([])
+          hand.set_payout(hand.get_bet() / 2)
 
   def __handle_ai_decisions(self) -> None:
     while self.__is_unhandled_active_player_hand():
@@ -383,9 +406,9 @@ class Game:
     assert self.__is_unhandled_active_player_hand()
     active_player = self.__calculate_active_player()
     active_hand = active_player.calculate_active_hand()
+    active_player.decrement_bankroll(active_hand.get_bet())
     active_hand.set_finalized()
     active_hand.double_down()
-    active_player.decrement_bankroll(active_hand.get_bet())
     card = self.__dealer.draw()
     active_hand.add_card(card)
     BlackjackLogger.debug(f"\t\tDouble Down: {card.get_value()}")
@@ -458,33 +481,31 @@ class Game:
   def __handle_payouts(self) -> None:
     for player in self.__human_players + self.__ai_players:
       for player_hand in player.get_hands():
-        self.__handle_single_standard_payout(player, player_hand)
-        self.__handle_single_insurance_payout(player, player_hand)
-
-  def __handle_single_standard_payout(self, player: Player, player_hand: Hand) -> None:
-    result = player_hand.get_result()
-    bet = player_hand.get_bet()
-    if result == HandResult.LOSS:
-      BlackjackLogger.debug("\t\tLost!")
-      self.__dealer.increment_bankroll(bet, True)
-    elif result == HandResult.DRAW:
-      BlackjackLogger.debug("\t\tDraw!")
-      player.increment_bankroll(bet)
-    elif result == HandResult.WIN:
-      BlackjackLogger.debug("\t\tWin!")
-      player.increment_bankroll(bet * 2)
-    elif result == HandResult.BLACKJACK:
-      BlackjackLogger.debug("\t\tPlayer has Blackjack! Win!")
-      player.increment_bankroll(bet + (bet * self.__dealer.get_blackjack_pays_multiplier()))
-    else:
-      raise NotImplementedError("HandResult not implemented")
-    player_hand.set_bet(0)
-
-  def __handle_single_insurance_payout(self, player: Player, player_hand: Hand) -> None:
-    if player_hand.is_insured():
-      if self.__dealer.has_blackjack():
-        player.increment_bankroll(player_hand.get_insurance_bet() * 3)
-      player_hand.set_insurance_bet(0)
+        result = player_hand.get_result()
+        bet = player_hand.get_bet()
+        payout = player_hand.get_payout()
+        if result == HandResult.LOSS:
+          BlackjackLogger.debug("\t\tLost!")
+          self.__dealer.increment_bankroll(bet, True)
+          player.increment_bankroll(payout)
+        elif result == HandResult.DRAW:
+          BlackjackLogger.debug("\t\tDraw!")
+          player.increment_bankroll(bet, True)
+          player.increment_bankroll(payout)
+        elif result == HandResult.WIN:
+          BlackjackLogger.debug("\t\tWin!")
+          player.increment_bankroll(bet)
+          player.increment_bankroll(payout)
+        elif result == HandResult.BLACKJACK:
+          BlackjackLogger.debug("\t\tBlackjack! Win!")
+          player.increment_bankroll(bet)
+          player.increment_bankroll(payout)
+        elif result == HandResult.SURRENDERED:
+          BlackjackLogger.debug("\t\tSurrendered!")
+          self.__dealer.increment_bankroll(bet, True)
+          player.increment_bankroll(payout)
+        else:
+          raise NotImplementedError("HandResult not implemented")
 
   def __reset_hands(self) -> None:
     for player in self.__human_players + self.__ai_players:

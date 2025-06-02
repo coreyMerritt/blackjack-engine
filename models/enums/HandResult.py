@@ -7,3 +7,4 @@ class HandResult(Enum):
   WIN = 2
   LOSS = 3
   DRAW = 4
+  SURRENDERED = 5

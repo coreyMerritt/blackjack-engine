@@ -44,7 +44,7 @@ class BasicStrategyEngine():
         decisions.append(PlayerDecision.SPLIT)
 
     adjusted_true_count = self.__get_adjusted_true_count(true_count)
-    BlackjackLogger.debug(f"\t\tActual true count: {active_player_hand.get_value()}")
+    BlackjackLogger.debug(f"\t\tActual true count: {true_count}")
     BlackjackLogger.debug(f"\t\tAdjusted true count: {adjusted_true_count}")
 
     adjusted_player_hand_value = self.__get_adjusted_player_hand_value(active_player_hand)

@@ -12,6 +12,7 @@ class Hand():
   __bet: int
   __initial_bet: int
   __insurance_bet: int
+  __payout: int
   __result: HandResult
   __cards: List[Card]
 
@@ -22,6 +23,7 @@ class Hand():
     self.__bet = bet
     self.__initial_bet = bet
     self.__insurance_bet = 0
+    self.__payout = 0
     self.__result = HandResult.UNDETERMINED
     self.__cards = cards
 
@@ -79,6 +81,9 @@ class Hand():
   def get_card_value(self, card_index: int) -> int:
     return self.__cards[card_index].get_value()
 
+  def get_payout(self) -> int:
+    return self.__payout
+
   def pop_card(self) -> Card:
     card = self.__cards.pop()
     return card
@@ -102,6 +107,9 @@ class Hand():
     if not self.__doubled_down:
       self.__doubled_down = True
       self.__bet *= 2
+
+  def set_payout(self, amount: int) -> None:
+    self.__payout = amount
 
   def reset_an_ace(self) -> None:
     if self.get_value() > 21:

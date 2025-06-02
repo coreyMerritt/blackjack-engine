@@ -47,92 +47,79 @@ class SimulationEngine():
     someone_has_bankroll = self.__game.someone_has_bankroll()
     bankroll_is_below_goal = self.__game.get_ai_players()[0].get_bankroll() < self.__bankroll_goal
     while(someone_has_bankroll and bankroll_is_below_goal):
-      self.__game.continue_until_state(GameState.PAYOUTS)
+      ai_player = self.__game.get_ai_players()[0]
+      true_count = ai_player.calculate_true_count(self.__game.get_dealer().get_decks_remaining())
+      BlackjackLogger.debug(f"~~~~~~~~~~True count: {true_count}~~~~~~~~~~~~~~~~~~~~")
+      self.__game.continue_until_state(GameState.CLEANUP)
+
       bankroll = self.__game.get_ai_players()[0].get_bankroll()
       if highest_bankroll < bankroll:
         highest_bankroll = bankroll
-      for ai_player in self.__game.get_ai_players():
-        bet_spread = ai_player.get_bet_spread()
-        for hand in ai_player.get_hands():
-          hand_result = hand.get_result()
-          bet = hand.get_bet()
-          initial_bet = hand.get_initial_bet()
-          BlackjackLogger.debug(f"\t\tBet history: {initial_bet}")
-          payout = 0
-          if hand_result == HandResult.BLACKJACK:
-            payout = bet * self.__game.get_dealer().get_blackjack_pays_multiplier()
-            t += payout
-            match initial_bet:
-              case bet_spread.true_zero:
-                profit_from_true_zero += payout
-              case bet_spread.true_one:
-                profit_from_true_one += payout
-              case bet_spread.true_two:
-                profit_from_true_two += payout
-              case bet_spread.true_three:
-                profit_from_true_three += payout
-              case bet_spread.true_four:
-                profit_from_true_four += payout
-              case bet_spread.true_five:
-                profit_from_true_five += payout
-              case bet_spread.true_six:
-                profit_from_true_six += payout
-              case _:
-                if self.__game.get_ai_players()[0].get_bankroll() != initial_bet:
-                  raise ValueError(f"Inital bet: {initial_bet} does not match player betting spread")
-            blackjack_count += 1
-            hands_won_count += 1
-          elif hand_result == HandResult.WIN:
-            payout = bet
-            t += payout
-            match initial_bet:
-              case bet_spread.true_zero:
-                profit_from_true_zero += payout
-              case bet_spread.true_one:
-                profit_from_true_one += payout
-              case bet_spread.true_two:
-                profit_from_true_two += payout
-              case bet_spread.true_three:
-                profit_from_true_three += payout
-              case bet_spread.true_four:
-                profit_from_true_four += payout
-              case bet_spread.true_five:
-                profit_from_true_five += payout
-              case bet_spread.true_six:
-                profit_from_true_six += payout
-              case _:
-                if self.__game.get_ai_players()[0].get_bankroll() != initial_bet:
-                  raise ValueError(f"Inital bet: {initial_bet} does not match player betting spread")
-            hands_won_count += 1
-          elif hand_result == HandResult.LOSS:
-            payout = -(bet)
-            t += payout
-            match initial_bet:
-              case bet_spread.true_zero:
-                profit_from_true_zero += payout
-              case bet_spread.true_one:
-                profit_from_true_one += payout
-              case bet_spread.true_two:
-                profit_from_true_two += payout
-              case bet_spread.true_three:
-                profit_from_true_three += payout
-              case bet_spread.true_four:
-                profit_from_true_four += payout
-              case bet_spread.true_five:
-                profit_from_true_five += payout
-              case bet_spread.true_six:
-                profit_from_true_six += payout
-              case _:
-                if self.__game.get_ai_players()[0].get_bankroll() != initial_bet:
-                  raise ValueError(f"Inital bet: {initial_bet} does not match player betting spread")
-            hands_lost_count += 1
-          elif hand_result == HandResult.DRAW:
-            payout = 0
-            hands_drawn_count += 1
-          BlackjackLogger.debug(f"\t\tHand result: {hand_result}")
-          if payout:
-            BlackjackLogger.debug(f"\t\tPayout: {payout}")
-      BlackjackLogger.debug(f"~~~~~~~~~~~{t}~~~~~~~~~~~~~~~")
+
+      for hand in ai_player.get_hands():
+        hand_result = hand.get_result()
+        bet = hand.get_bet()
+        initial_bet = hand.get_initial_bet()
+        BlackjackLogger.debug(f"\t\tBet history: {initial_bet}")
+        payout = hand.get_payout()
+        BlackjackLogger.debug(f"~~~~~~~~~~~~PAYOUT: {payout}~~~~~~~~~~~~~~~")
+        t += payout
+        bankroll = self.__game.get_ai_players()[0].get_bankroll()
+        match true_count:
+          case x if x <= 0:
+            if hand_result == HandResult.LOSS:
+              profit_from_true_zero -= bet
+              BlackjackLogger.debug(f"True 0: -{bet}")
+            BlackjackLogger.debug(f"True 0: +{payout}")
+            profit_from_true_zero += payout
+          case 1:
+            if hand_result == HandResult.LOSS:
+              profit_from_true_one -= bet
+              BlackjackLogger.debug(f"True 1: -{bet}")
+            BlackjackLogger.debug(f"True 1: +{payout}")
+            profit_from_true_one += payout
+          case 2:
+            if hand_result == HandResult.LOSS:
+              profit_from_true_two -= bet
+              BlackjackLogger.debug(f"True 2: -{bet}")
+            BlackjackLogger.debug(f"True 2: +{payout}")
+            profit_from_true_two += payout
+          case 3:
+            if hand_result == HandResult.LOSS:
+              profit_from_true_three -= bet
+              BlackjackLogger.debug(f"True 3: -{bet}")
+            BlackjackLogger.debug(f"True 3: +{payout}")
+            profit_from_true_three += payout
+          case 4:
+            if hand_result == HandResult.LOSS:
+              profit_from_true_four -= bet
+              BlackjackLogger.debug(f"True 4: -{bet}")
+            BlackjackLogger.debug(f"True 4: +{payout}")
+            profit_from_true_four += payout
+          case 5:
+            if hand_result == HandResult.LOSS:
+              profit_from_true_five -= bet
+              BlackjackLogger.debug(f"True 5: -{bet}")
+            BlackjackLogger.debug(f"True 5: +{payout}")
+            profit_from_true_five += payout
+          case x if x >= 6:
+            if hand_result == HandResult.LOSS:
+              profit_from_true_six -= bet
+              BlackjackLogger.debug(f"True 6: -{bet}")
+            BlackjackLogger.debug(f"True 6: +{payout}")
+            profit_from_true_six += payout
+        if hand_result == HandResult.BLACKJACK:
+          blackjack_count += 1
+          hands_won_count += 1
+        elif hand_result == HandResult.WIN:
+          hands_won_count += 1
+        elif hand_result == HandResult.LOSS:
+          hands_lost_count += 1
+        elif hand_result == HandResult.DRAW:
+          hands_drawn_count += 1
+        BlackjackLogger.debug(f"\t\tHand result: {hand_result}")
+        BlackjackLogger.debug(f"\t\tPayout: {payout}")
+      BlackjackLogger.debug(f"~~~~~~~~~~~~~~~{t}~~~~~~~~~~~~~~~")
       self.__game.finish_round()
       total_hands_played = hands_won_count + hands_lost_count + hands_drawn_count
       await self.__occasionally_yield_event_loop_control(total_hands_played)
