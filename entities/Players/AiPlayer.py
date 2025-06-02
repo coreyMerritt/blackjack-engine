@@ -100,6 +100,7 @@ class AiPlayer(Player):
     if bet > max_bet:
       bet = max_bet
 
+    assert rules_engine.bet_is_legal(bet)
     return bet
 
   def wants_insurance(self, dealer_upcard_face: Face) -> bool:
