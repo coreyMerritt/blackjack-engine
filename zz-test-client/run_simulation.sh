@@ -6,7 +6,7 @@ curl -s --no-keepalive -X POST "http://localhost:8000/session/$session_id/simula
   -H "Content-Type: application/json" | jq
 
 sstatus=0
-while [[ $sstatus -ne 100 ]]; do
+while [[ $sstatus -ne 100 && $sstatus -ne -100 ]]; do
   sleep 1
   sstatus=$(curl -s -X GET "http://localhost:8000/session/$session_id/simulation/results/check_single" \
     -H "Content-Type: application/json" | jq .status)

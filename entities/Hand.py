@@ -102,7 +102,6 @@ class Hand():
     if not self.__doubled_down:
       self.__doubled_down = True
       self.__bet *= 2
-      self.__initial_bet *= 2
 
   def reset_an_ace(self) -> None:
     if self.get_value() > 21:
