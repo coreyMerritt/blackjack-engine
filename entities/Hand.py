@@ -79,18 +79,38 @@ class Hand():
   def get_card_value(self, card_index: int) -> int:
     return self.__cards[card_index].get_value()
 
-  def get_result(self) -> HandResult:
-    return self.__result
-
-  def get_card_face(self, card_index: int) -> Face:
-    return self.__cards[card_index].get_face()
-
   def pop_card(self) -> Card:
     card = self.__cards.pop()
     return card
 
+  def get_card_face(self, card_index: int) -> Face:
+    return self.__cards[card_index].get_face()
+
+  def get_result(self) -> HandResult:
+    return self.__result
+
   def get_cards(self) -> List[Card]:
     return self.__cards
+
+  def add_card(self, card: Card) -> None:
+    self.__cards.append(card)
+    if self.is_soft():
+      if self.get_value() > 21:
+        self.reset_an_ace()
+
+  def double_down(self) -> None:
+    if not self.__doubled_down:
+      self.__doubled_down = True
+      self.__bet *= 2
+      self.__initial_bet *= 2
+
+  def reset_an_ace(self) -> None:
+    if self.get_value() > 21:
+      if self.is_soft():
+        for card in self.__cards:
+          if card.calculate_if_value_can_reset():
+            card.set_value(1)
+            break
 
   def set_bet(self, bet: int) -> None:
     self.__bet = bet
@@ -104,23 +124,3 @@ class Hand():
   def set_result(self, result: HandResult) -> None:
     self.__result = result
     self.set_finalized()
-
-  def double_down(self) -> None:
-    if not self.__doubled_down:
-      self.__doubled_down = True
-      self.__bet *= 2
-      self.__initial_bet *= 2
-
-  def add_card(self, card: Card) -> None:
-    self.__cards.append(card)
-    if self.is_soft():
-      if self.get_value() > 21:
-        self.reset_an_ace()
-
-  def reset_an_ace(self) -> None:
-    if self.get_value() > 21:
-      if self.is_soft():
-        for card in self.__cards:
-          if card.calculate_if_value_can_reset():
-            card.set_value(1)
-            break

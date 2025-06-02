@@ -20,7 +20,7 @@ class AiPlayer(Player):
   __card_counting_engine: CardCountingEngine
   __bet_spread: BetSpread
 
-  def __init__(self, ai_player_info: AiPlayerInfo, rules_engine: RulesEngine) -> None:
+  def __init__(self, ai_player_info: AiPlayerInfo, rules_engine: RulesEngine):
     super().__init__(ai_player_info)
     self.__counts_cards = ai_player_info.counts_cards
     self.__plays_deviations = ai_player_info.plays_deviations

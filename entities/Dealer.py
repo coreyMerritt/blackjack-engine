@@ -11,7 +11,7 @@ class Dealer(Player):
   __blackjack_pays_multiplier: float
   __shoe: Shoe
 
-  def __init__(self, rules: DealerRules) -> None:
+  def __init__(self, rules: DealerRules):
     super().__init__(PlayerInfo(bankroll=999999999))
     self.__hits_soft_seventeen = rules.dealer_hits_soft_seventeen
     self.__blackjack_pays_multiplier = rules.blackjack_pays_multiplier

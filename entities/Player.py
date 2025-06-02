@@ -3,7 +3,6 @@ from typing import List
 from uuid import UUID, uuid4
 from entities.Card import Card
 from entities.Hand import Hand
-from models.core.BetSpread import BetSpread
 from models.core.player_info.PlayerInfo import PlayerInfo
 from models.enums.HandResult import HandResult
 from services.BlackjackLogger import BlackjackLogger
@@ -14,7 +13,7 @@ class Player(ABC):
   __id: UUID
   __hands: List[Hand]
 
-  def __init__(self, player_info: PlayerInfo) -> None:
+  def __init__(self, player_info: PlayerInfo):
     self.__hands = []
     self.__bankroll = player_info.bankroll
     self.__id = uuid4()

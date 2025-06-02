@@ -8,11 +8,14 @@ class Shoe:
   __reset_percentage: int
   __cards: List[Card]
 
-  def __init__(self, deck_count: int, reset_percentage: int) -> None:
+  def __init__(self, deck_count: int, reset_percentage: int):
     self.__deck_count = deck_count
     self.__full_size = deck_count * 52
     self.__reset_percentage = reset_percentage
     self.__cards = []
+
+  def get_card_count(self) -> int:
+    return len(self.__cards)
 
   def get_deck_count(self) -> int:
     return self.__deck_count
@@ -23,20 +26,17 @@ class Shoe:
   def get_full_size(self) -> int:
     return self.__full_size
 
-  def get_card_count(self) -> int:
-    return len(self.__cards)
-
   def get_reset_percentage(self) -> int:
     return self.__reset_percentage
 
-  def set_cards(self, cards: List[Card]) -> None:
-    self.__cards = cards
+  def draw(self) -> Card:
+    return self.__cards.pop()
 
   def add_card(self, card: Card) -> None:
     self.__cards.append(card)
 
-  def draw(self) -> Card:
-    return self.__cards.pop()
+  def set_cards(self, cards: List[Card]) -> None:
+    self.__cards = cards
 
   def shuffle(self) -> None:
     shuffle(self.__cards)

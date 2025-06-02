@@ -28,7 +28,7 @@ class Game:
     rules: GameRules,
     human_player_info: List[HumanPlayerInfo] | None,
     ai_player_info: List[AiPlayerInfo] | None
-  ) -> None:
+  ):
     self.__rules_engine = RulesEngine(rules)
     self.__state = GameState.NOT_STARTED
     self.__dealer = Dealer(rules.dealer_rules)
@@ -45,11 +45,17 @@ class Game:
         ai_player = AiPlayer(single_ai_player_info, self.__rules_engine)
         self.__ai_players.append(ai_player)
 
-  def get_state(self) -> GameState:
-    return self.__state
+  def someone_has_bankroll(self) -> bool:
+    for player in self.__ai_players + self.__human_players:
+      if player.get_bankroll() > 0:
+        return True
+    return False
 
   def get_dealer(self) -> Dealer:
     return self.__dealer
+
+  def get_state(self) -> GameState:
+    return self.__state
 
   def get_ai_players(self) -> List[AiPlayer]:
     return self.__ai_players
@@ -57,69 +63,19 @@ class Game:
   def get_human_and_ai_players(self) -> List[Player]:
     return self.__human_players + self.__ai_players
 
-  def someone_has_bankroll(self) -> bool:
-    for player in self.__ai_players + self.__human_players:
-      if player.get_bankroll() > 0:
-        return True
-    return False
-
-  def set_state(self, state: GameState) -> None:
-    BlackjackLogger.debug(f"State: {state}")
-    self.__state = state
-
-  def next_state(self) -> None:
-    if self.get_state() == GameState.NOT_STARTED:
-      # Nothing needs to happen
-      self.set_state(GameState.BETTING)
-    elif self.get_state() == GameState.BETTING:
-      self.__handle_ai_bets()
-      self.set_state(GameState.DEALING)
-    elif self.get_state() == GameState.DEALING:
-      self.__deal_cards()
-      self.set_state(GameState.PLAYER_BLACKJACK_CHECK)
-    elif self.get_state() == GameState.PLAYER_BLACKJACK_CHECK:
-      self.__player_blackjack_check()
-      self.set_state(GameState.INSURANCE)
-    elif self.get_state() == GameState.INSURANCE:
-      self.__handle_insurance()
-      self.set_state(GameState.EARLY_SURRENDER)
-    elif self.get_state() == GameState.EARLY_SURRENDER:
-      self.__handle_early_surrender()
-      self.set_state(GameState.DEALER_BLACKJACK_CHECK)
-    elif self.get_state() == GameState.DEALER_BLACKJACK_CHECK:
-      next_state = self.__dealer_blackjack_check()
-      self.set_state(next_state)
-    elif self.get_state() == GameState.LATE_SURRENDER:
-      self.__handle_late_surrender()
-      self.set_state(GameState.HUMAN_PLAYER_DECISIONS)
-    elif self.get_state() == GameState.HUMAN_PLAYER_DECISIONS:
-      # Human decisions should be handled via API only
-      self.set_state(GameState.AI_PLAYER_DECISIONS)
-    elif self.get_state() == GameState.AI_PLAYER_DECISIONS:
-      self.__handle_ai_decisions()
-      self.set_state(GameState.DEALER_DECISIONS)
-    elif self.get_state() == GameState.DEALER_DECISIONS:
-      self.__handle_dealer_decisions()
-      self.set_state(GameState.RESULTS)
-    elif self.get_state() == GameState.RESULTS:
-      self.__set_results()
-      self.set_state(GameState.PAYOUTS)
-    elif self.get_state() == GameState.PAYOUTS:
-      self.__handle_payouts()
-      self.set_state(GameState.CLEANUP)
-    elif self.get_state() == GameState.CLEANUP:
-      self.__reset_hands()
-      self.set_state(GameState.BETTING)
-
   def continue_until_state(self, state: GameState) -> None:
     while True:
       if self.get_state() == state:
         return
-      self.next_state()
+      self.__to_next_state()
 
   def finish_round(self) -> None:
     while self.get_state() != GameState.BETTING:
-      self.next_state()
+      self.__to_next_state()
+
+  def set_state(self, state: GameState) -> None:
+    BlackjackLogger.debug(f"State: {state}")
+    self.__state = state
 
   def to_dict(self) -> dict:
     return {
@@ -197,6 +153,10 @@ class Game:
     else:
       raise NotImplementedError("Unexpected conditions @dealer.handle_payout")
 
+  def __handle_potential_21(self, hand: Hand) -> None:
+    if hand.get_value() == 21:
+      hand.set_finalized()
+
   def __handle_potential_bust(self, hand: Hand) -> None:
     hand_value = hand.get_value()
     if hand_value > 21:
@@ -208,10 +168,6 @@ class Game:
         hand.set_result(HandResult.LOSS)
         BlackjackLogger.debug("\t\tBUST!")
 
-  def __handle_potential_21(self, hand: Hand) -> None:
-    if hand.get_value() == 21:
-      hand.set_finalized()
-
   def __update_running_counts(self, card: Card) -> None:
     for ai_player in self.__ai_players:
       ai_player.update_running_count(card.get_value())
@@ -219,6 +175,50 @@ class Game:
 ###############################
 # State-Related Private Methods
 ###############################
+
+  def __to_next_state(self) -> None:
+    if self.get_state() == GameState.NOT_STARTED:
+      # Nothing needs to happen
+      self.set_state(GameState.BETTING)
+    elif self.get_state() == GameState.BETTING:
+      self.__handle_ai_bets()
+      self.set_state(GameState.DEALING)
+    elif self.get_state() == GameState.DEALING:
+      self.__deal_cards()
+      self.set_state(GameState.PLAYER_BLACKJACK_CHECK)
+    elif self.get_state() == GameState.PLAYER_BLACKJACK_CHECK:
+      self.__player_blackjack_check()
+      self.set_state(GameState.INSURANCE)
+    elif self.get_state() == GameState.INSURANCE:
+      self.__handle_insurance()
+      self.set_state(GameState.EARLY_SURRENDER)
+    elif self.get_state() == GameState.EARLY_SURRENDER:
+      self.__handle_early_surrender()
+      self.set_state(GameState.DEALER_BLACKJACK_CHECK)
+    elif self.get_state() == GameState.DEALER_BLACKJACK_CHECK:
+      next_state = self.__dealer_blackjack_check()
+      self.set_state(next_state)
+    elif self.get_state() == GameState.LATE_SURRENDER:
+      self.__handle_late_surrender()
+      self.set_state(GameState.HUMAN_PLAYER_DECISIONS)
+    elif self.get_state() == GameState.HUMAN_PLAYER_DECISIONS:
+      # Human decisions should be handled via API only
+      self.set_state(GameState.AI_PLAYER_DECISIONS)
+    elif self.get_state() == GameState.AI_PLAYER_DECISIONS:
+      self.__handle_ai_decisions()
+      self.set_state(GameState.DEALER_DECISIONS)
+    elif self.get_state() == GameState.DEALER_DECISIONS:
+      self.__handle_dealer_decisions()
+      self.set_state(GameState.RESULTS)
+    elif self.get_state() == GameState.RESULTS:
+      self.__set_results()
+      self.set_state(GameState.PAYOUTS)
+    elif self.get_state() == GameState.PAYOUTS:
+      self.__handle_payouts()
+      self.set_state(GameState.CLEANUP)
+    elif self.get_state() == GameState.CLEANUP:
+      self.__reset_hands()
+      self.set_state(GameState.BETTING)
 
   def __deal_cards(self) -> int:
     if self.__rules_engine.shoe_must_be_shuffled(self.__dealer.get_shoe()):

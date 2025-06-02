@@ -7,7 +7,7 @@ class Card:
   __face: Face
   __value: int
 
-  def __init__(self, suit: Suit, face: Face) -> None:
+  def __init__(self, suit: Suit, face: Face):
     self.__suit = suit
     self.__face = face
     match self.__face.value:
