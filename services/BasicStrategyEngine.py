@@ -116,7 +116,7 @@ class BasicStrategyEngine():
 
   def __get_adjusted_player_hand_value(self, player_hand: Hand) -> int:
     hand_is_soft = player_hand.is_soft()
-    active_player_hand_value = player_hand.get_value()
+    player_hand_value = player_hand.get_value()
 
     if hand_is_soft:
       minimum = 12
@@ -125,12 +125,14 @@ class BasicStrategyEngine():
 
     return self.__get_some_adjusted_value(
       self.__basic_strategy_skill_level,
-      active_player_hand_value,
+      player_hand_value,
       minimum,
       21
     )
 
   def __get_adjusted_true_count(self, true_count: int) -> int:
+    if true_count is None:
+      return None
     return self.__get_some_adjusted_value(
       self.__deviations_skill_level,
       true_count,
@@ -153,3 +155,5 @@ class BasicStrategyEngine():
       adjusted_player_hand_value = maximum
     elif adjusted_player_hand_value < minimum:
       adjusted_player_hand_value = minimum
+
+    return adjusted_player_hand_value
