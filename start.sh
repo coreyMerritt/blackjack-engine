@@ -1,4 +1,4 @@
 #!/bin/bash
-
-uvicorn main:app --reload
+source ./venv/bin/activate
+exec ./venv/bin/uvicorn main:app --reload
 

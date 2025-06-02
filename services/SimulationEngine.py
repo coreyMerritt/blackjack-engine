@@ -40,16 +40,14 @@ class SimulationEngine():
       self.__full_reset()
     start_time = time.time()
     (starting_bankroll, highest_bankroll) = (self.__game.get_ai_players()[0].get_bankroll(),) * 2
-    (hands_won_count, hands_lost_count, hands_drawn_count, blackjack_count,
-    profit_from_true_zero, profit_from_true_one, profit_from_true_two, profit_from_true_three,
-    profit_from_true_four, profit_from_true_five, profit_from_true_six, t) = (0,) * 12
+    (hands_won_count, hands_lost_count, hands_drawn_count, blackjack_count) = (0,) * 4
+    profit_from_true = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
 
     someone_has_bankroll = self.__game.someone_has_bankroll()
     bankroll_is_below_goal = self.__game.get_ai_players()[0].get_bankroll() < self.__bankroll_goal
     while(someone_has_bankroll and bankroll_is_below_goal):
       ai_player = self.__game.get_ai_players()[0]
       true_count = ai_player.calculate_true_count(self.__game.get_dealer().get_decks_remaining())
-      BlackjackLogger.debug(f"~~~~~~~~~~True count: {true_count}~~~~~~~~~~~~~~~~~~~~")
       self.__game.continue_until_state(GameState.CLEANUP)
 
       bankroll = self.__game.get_ai_players()[0].get_bankroll()
@@ -62,52 +60,36 @@ class SimulationEngine():
         initial_bet = hand.get_initial_bet()
         BlackjackLogger.debug(f"\t\tBet history: {initial_bet}")
         payout = hand.get_payout()
-        BlackjackLogger.debug(f"~~~~~~~~~~~~PAYOUT: {payout}~~~~~~~~~~~~~~~")
-        t += payout
         bankroll = self.__game.get_ai_players()[0].get_bankroll()
         match true_count:
           case x if x <= 0:
             if hand_result == HandResult.LOSS:
-              profit_from_true_zero -= bet
-              BlackjackLogger.debug(f"True 0: -{bet}")
-            BlackjackLogger.debug(f"True 0: +{payout}")
-            profit_from_true_zero += payout
+              profit_from_true[0] -= bet
+            profit_from_true[0] += payout
           case 1:
             if hand_result == HandResult.LOSS:
-              profit_from_true_one -= bet
-              BlackjackLogger.debug(f"True 1: -{bet}")
-            BlackjackLogger.debug(f"True 1: +{payout}")
-            profit_from_true_one += payout
+              profit_from_true[1] -= bet
+            profit_from_true[1] += payout
           case 2:
             if hand_result == HandResult.LOSS:
-              profit_from_true_two -= bet
-              BlackjackLogger.debug(f"True 2: -{bet}")
-            BlackjackLogger.debug(f"True 2: +{payout}")
-            profit_from_true_two += payout
+              profit_from_true[2] -= bet
+            profit_from_true[2] += payout
           case 3:
             if hand_result == HandResult.LOSS:
-              profit_from_true_three -= bet
-              BlackjackLogger.debug(f"True 3: -{bet}")
-            BlackjackLogger.debug(f"True 3: +{payout}")
-            profit_from_true_three += payout
+              profit_from_true[3] -= bet
+            profit_from_true[3] += payout
           case 4:
             if hand_result == HandResult.LOSS:
-              profit_from_true_four -= bet
-              BlackjackLogger.debug(f"True 4: -{bet}")
-            BlackjackLogger.debug(f"True 4: +{payout}")
-            profit_from_true_four += payout
+              profit_from_true[4] -= bet
+            profit_from_true[4] += payout
           case 5:
             if hand_result == HandResult.LOSS:
-              profit_from_true_five -= bet
-              BlackjackLogger.debug(f"True 5: -{bet}")
-            BlackjackLogger.debug(f"True 5: +{payout}")
-            profit_from_true_five += payout
+              profit_from_true[5] -= bet
+            profit_from_true[5] += payout
           case x if x >= 6:
             if hand_result == HandResult.LOSS:
-              profit_from_true_six -= bet
-              BlackjackLogger.debug(f"True 6: -{bet}")
-            BlackjackLogger.debug(f"True 6: +{payout}")
-            profit_from_true_six += payout
+              profit_from_true[6] -= bet
+            profit_from_true[6] += payout
         if hand_result == HandResult.BLACKJACK:
           blackjack_count += 1
           hands_won_count += 1
@@ -119,7 +101,6 @@ class SimulationEngine():
           hands_drawn_count += 1
         BlackjackLogger.debug(f"\t\tHand result: {hand_result}")
         BlackjackLogger.debug(f"\t\tPayout: {payout}")
-      BlackjackLogger.debug(f"~~~~~~~~~~~~~~~{t}~~~~~~~~~~~~~~~")
       self.__game.finish_round()
       total_hands_played = hands_won_count + hands_lost_count + hands_drawn_count
       await self.__occasionally_yield_event_loop_control(total_hands_played)
@@ -138,13 +119,13 @@ class SimulationEngine():
     hands_drawn_percent = (hands_drawn_count / total_hands_played) * 100
     ending_bankroll = round(self.__game.get_ai_players()[0].get_bankroll(), 0)
     total_profit = round(ending_bankroll - starting_bankroll, 2)
-    profit_from_true_zero = round(profit_from_true_zero, 2)
-    profit_from_true_one = round(profit_from_true_one, 2)
-    profit_from_true_two = round(profit_from_true_two, 2)
-    profit_from_true_three = round(profit_from_true_three, 2)
-    profit_from_true_four = round(profit_from_true_four, 2)
-    profit_from_true_five = round(profit_from_true_five, 2)
-    profit_from_true_six = round(profit_from_true_six, 2)
+    profit_from_true_zero = round(profit_from_true[0], 2)
+    profit_from_true_one = round(profit_from_true[1], 2)
+    profit_from_true_two = round(profit_from_true[2], 2)
+    profit_from_true_three = round(profit_from_true[3], 2)
+    profit_from_true_four = round(profit_from_true[4], 2)
+    profit_from_true_five = round(profit_from_true[5], 2)
+    profit_from_true_six = round(profit_from_true[6], 2)
     profit_per_hand = round(total_profit / total_hands_played, 2)
     profit_per_hour = round(profit_per_hand * 60, 2)
     # TODO: Modularize the human_time -- allow user to define how long an average hand takes
@@ -399,6 +380,7 @@ class SimulationEngine():
     if total_runs == 0:
       return {}
 
+    print(SimulationSingleResults.__mro__)
     summed = SimulationSingleResults().model_dump()
     for r in results_list:
       summed["total_hands_played"] += int(r["total_hands_played"])
