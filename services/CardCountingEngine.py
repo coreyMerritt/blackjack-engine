@@ -1,5 +1,6 @@
 import random
 
+
 class CardCountingEngine():
   __skill_level: int
 
@@ -13,10 +14,10 @@ class CardCountingEngine():
       actual_adjustment = 0
     else:
       actual_adjustment = -1
-    adjusted_adjustment = self.__get_drunked_adjustment(actual_adjustment)
+    adjusted_adjustment = self.__get_adjusted_count_adjustment(actual_adjustment)
     return adjusted_adjustment
 
-  def __get_drunked_adjustment(self, actual_adjustment: int) -> int:
+  def __get_adjusted_count_adjustment(self, actual_adjustment: int) -> int:
     accuracy_roll = random.randint(self.__skill_level, 100)
     if accuracy_roll >= 66:
       return actual_adjustment
