@@ -7,16 +7,16 @@ from models.core.player_info.HumanPlayerInfo import HumanPlayerInfo
 from services.SimulationEngine import SimulationEngine
 
 class SessionManagerSingleton:
-  _instance: "SessionManagerSingleton" = None
-  game_sessions: dict
-  simulation_sessions: dict
+  _game_sessions: dict
+  _simulation_sessions: dict
+  __instance: "SessionManagerSingleton" = None
 
   def __new__(cls) -> "SessionManagerSingleton":
-    if cls._instance is None:
-      cls._instance = super().__new__(cls)
-      cls._instance.game_sessions = {}
-      cls._instance.simulation_sessions = {}
-    return cls._instance
+    if cls.__instance is None:
+      cls.__instance = super().__new__(cls)
+      cls.__instance._game_sessions = {}
+      cls.__instance._simulation_sessions = {}
+    return cls.__instance
 
   def create_game(
     self,
@@ -30,7 +30,7 @@ class SessionManagerSingleton:
       human_player_info,
       ai_player_info
     )
-    self.game_sessions[session_id] = game
+    self._game_sessions[session_id] = game
     return session_id
 
   def create_simulation(
@@ -48,11 +48,11 @@ class SessionManagerSingleton:
       ai_player_info
     )
     simulation_engine = SimulationEngine(game, bankroll_goal, human_time_limit, sim_time_limit)
-    self.simulation_sessions[session_id] = simulation_engine
+    self._simulation_sessions[session_id] = simulation_engine
     return session_id
 
   def get_game(self, session_id: str) -> Game:
-    return self.game_sessions.get(session_id)
+    return self._game_sessions.get(session_id)
 
   def get_simulation(self, session_id: str) -> SimulationEngine:
-    return self.simulation_sessions.get(session_id)
+    return self._simulation_sessions.get(session_id)
