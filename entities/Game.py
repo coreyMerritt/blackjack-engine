@@ -237,8 +237,7 @@ class Game:
         card = self.__dealer.draw()
         player.add_to_active_hand(card)
         BlackjackLogger.debug(f"\t\tDealt: {card.get_value()}")
-        for ai_player in self.__ai_players:
-          ai_player.update_running_count(card.get_value())
+        self.__update_running_counts(card)
       player_hand_value = player.calculate_active_hand().get_value()
       BlackjackLogger.debug(f"\t\tHand: {player_hand_value}")
       if player_hand_value == 21:
@@ -252,8 +251,7 @@ class Game:
       card = self.__dealer.draw()
       dealer_hand.add_card(card)
       BlackjackLogger.debug(f"\t\tDealt: {card.get_value()}")
-      for ai_player in self.__ai_players:
-        ai_player.update_running_count(card.get_value())
+      self.__update_running_counts(card)
     dealer_hand_value = dealer_hand.get_value()
     BlackjackLogger.debug(f"\t\tHand: {dealer_hand_value}")
     if dealer_hand_value == 21:

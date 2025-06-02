@@ -110,9 +110,9 @@ class SimulationEngine():
       bankroll = self.__game.get_ai_players()[0].get_bankroll()
       if highest_bankroll < bankroll:
         highest_bankroll = bankroll
-      for player in self.__game.get_human_and_ai_players():
-        bet_spread = player.get_bet_spread()
-        for hand in player.get_hands():
+      for ai_player in self.__game.get_ai_players():
+        bet_spread = ai_player.get_bet_spread()
+        for hand in ai_player.get_hands():
           hand_result = hand.get_result()
           bet = hand.get_bet()
           initial_bet = hand.get_initial_bet()
