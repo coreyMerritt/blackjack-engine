@@ -3,9 +3,16 @@
 curl -s -X POST "http://localhost:8000/session/simulation/create" \
   -H "Content-Type: application/json" \
   -d '{
-        "bankroll_goal": 999999999,
-        "human_time_limit": 1728000,
-        "sim_time_limit": 28800,
+        "bounds": {
+          "bankroll_goal": 10000,
+          "human_time_limit": null,
+          "sim_time_limit": 30000
+        },
+        "time": {
+          "hands_per_hour": 100,
+          "hours_per_day": 10,
+          "days_per_week": 3
+        },
         "rules": {
           "betting_rules": {
             "min_bet": 0,
@@ -49,7 +56,7 @@ curl -s -X POST "http://localhost:8000/session/simulation/create" \
               "true_three": 30,
               "true_four": 40,
               "true_five": 50,
-              "true_six": 60
+              "true_six": 50
             }
           }
         ]

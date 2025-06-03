@@ -1,6 +1,8 @@
 from typing import List
 import uuid
 from entities.Game import Game
+from models.core.HumanTime import HumanTime
+from models.core.SimulationBounds import SimulationBounds
 from models.core.player_info.AiPlayerInfo import AiPlayerInfo
 from models.core.rules.GameRules import GameRules
 from models.core.player_info.HumanPlayerInfo import HumanPlayerInfo
@@ -35,11 +37,10 @@ class SessionManagerSingleton:
 
   def create_simulation(
     self,
+    bounds: SimulationBounds,
+    time: HumanTime,
     rules: GameRules,
-    ai_player_info: List[AiPlayerInfo],
-    bankroll_goal: int,
-    human_time_limit: int | None,
-    sim_time_limit: int | None
+    ai_player_info: List[AiPlayerInfo]
   ) -> str:
     session_id = str(uuid.uuid4())
     game = Game(
@@ -47,7 +48,7 @@ class SessionManagerSingleton:
       None,
       ai_player_info
     )
-    simulation_engine = SimulationEngine(game, bankroll_goal, human_time_limit, sim_time_limit)
+    simulation_engine = SimulationEngine(game, bounds, time)
     self._simulation_sessions[session_id] = simulation_engine
     return session_id
 

@@ -18,11 +18,10 @@ class SessionController:
 
   async def create_simulation(self, req: CreateSimulationReq) -> JSONResponse:
     session_id = session_manager.create_simulation(
+      req.bounds,
+      req.time,
       req.rules,
-      req.ai_player_info,
-      req.bankroll_goal,
-      req.human_time_limit,
-      req.sim_time_limit
+      req.ai_player_info
     )
 
     return JSONResponse(content=session_id)

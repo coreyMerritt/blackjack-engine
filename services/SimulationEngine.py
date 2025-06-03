@@ -1,7 +1,10 @@
 import asyncio
+from cmath import inf
 from copy import deepcopy
 import time
 from entities.Game import Game
+from models.core.HumanTime import HumanTime
+from models.core.SimulationBounds import SimulationBounds
 from models.core.results.SimulationMultiResultsFormatted import SimulationMultiResultsFormatted
 from models.core.results.SimulationSingleResultsFormatted import SimulationSingleResultsFormatted
 from models.core.results.SimulationMultiResults import SimulationMultiResults
@@ -15,20 +18,29 @@ class SimulationEngine():
   __bankroll_goal: int
   __human_time_limit: int
   __sim_time_limit: int
-  __single_results_status: int
-  __multi_results_status: int
+  __hands_per_hour: int
+  __hours_per_day: int
+  __days_per_week: int
+  __single_results_progress: int
+  __multi_results_progress: int
   __multi_start_time: float | None
   __game: Game
   __game_starting_point: Game
   __single_results: SimulationSingleResults
   __multi_results: SimulationMultiResults
 
-  def __init__(self, game: Game, bankroll_goal: int, human_time_limit: int | None, sim_time_limit: int | None):
-    self.__bankroll_goal = bankroll_goal
-    self.__human_time_limit = human_time_limit
-    self.__sim_time_limit = sim_time_limit
-    self.__single_results_status = 0
-    self.__multi_results_status = 0
+  def __init__(self, game: Game, bounds: SimulationBounds, human_time: HumanTime):
+    if bounds.bankroll_goal is None:
+      self.__bankroll_goal = inf
+    else:
+      self.__bankroll_goal = bounds.bankroll_goal
+    self.__human_time_limit = bounds.human_time_limit
+    self.__sim_time_limit = bounds.sim_time_limit
+    self.__hands_per_hour = human_time.hands_per_hour
+    self.__hours_per_day = human_time.hours_per_day
+    self.__days_per_week = human_time.days_per_week
+    self.__single_results_progress = 0
+    self.__multi_results_progress = 0
     self.__multi_start_time = None
     self.__game = game
     self.__game_starting_point = deepcopy(game)
@@ -44,7 +56,10 @@ class SimulationEngine():
     profit_from_true = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
 
     someone_has_bankroll = self.__game.someone_has_bankroll()
-    bankroll_is_below_goal = self.__game.get_ai_players()[0].get_bankroll() < self.__bankroll_goal
+    if self.__bankroll_goal:
+      bankroll_is_below_goal = self.__game.get_ai_players()[0].get_bankroll() < self.__bankroll_goal
+    else:
+      bankroll_is_below_goal = True
     while(someone_has_bankroll and bankroll_is_below_goal):
       ai_player = self.__game.get_ai_players()[0]
       true_count = ai_player.calculate_true_count(self.__game.get_dealer().get_decks_remaining())
@@ -104,13 +119,15 @@ class SimulationEngine():
       self.__game.finish_round()
       total_hands_played = hands_won_count + hands_lost_count + hands_drawn_count
       await self.__occasionally_yield_event_loop_control(total_hands_played)
-      self.__update_single_results_status()
-      if self.__single_sim_time_limit_exceeded(start_time, total_hands_played):
-        self.__single_results_status = 100
+      self.__update_single_results_progress(total_hands_played, time.time() - start_time)
+      if self.__single_results_progress == 100 or self.__single_results_progress == -100:
         break
 
       someone_has_bankroll = self.__game.someone_has_bankroll()
-      bankroll_is_below_goal = self.__game.get_ai_players()[0].get_bankroll() < self.__bankroll_goal
+      if self.__bankroll_goal:
+        bankroll_is_below_goal = self.__game.get_ai_players()[0].get_bankroll() < self.__bankroll_goal
+      else:
+        bankroll_is_below_goal = True
 
     simulation_time = round(time.time() - start_time, 2)
     total_hands_played = hands_won_count + hands_lost_count + hands_drawn_count
@@ -127,8 +144,7 @@ class SimulationEngine():
     profit_from_true_five = round(profit_from_true[5], 2)
     profit_from_true_six = round(profit_from_true[6], 2)
     profit_per_hand = round(total_profit / total_hands_played, 2)
-    profit_per_hour = round(profit_per_hand * 60, 2)
-    # TODO: Modularize the human_time -- allow user to define how long an average hand takes
+    profit_per_hour = round(profit_per_hand * self.__hands_per_hour, 2)
     human_time = self.__get_human_time(total_hands_played)
     self.__single_results = {
       "total_hands_played": total_hands_played,
@@ -187,11 +203,11 @@ class SimulationEngine():
         sims_lost += 1
       else:
         sims_unfinished += 1
-      self.__multi_results_status = int((sims_run / runs) * 100)
+      self.__multi_results_progress = int((sims_run / runs) * 100)
 
       if self.__sim_time_limit:
         if time.time() - self.__multi_start_time > self.__sim_time_limit:
-          self.__multi_results_status = 100
+          self.__multi_results_progress = 100
           break
 
       if self.__human_time_limit:
@@ -200,7 +216,7 @@ class SimulationEngine():
           total_hands_played += result["total_hands_played"]
         human_time = self.__get_human_time(total_hands_played)
         if human_time > self.__human_time_limit:
-          self.__multi_results_status = 100
+          self.__multi_results_progress = 100
           break
 
     end_time = time.time()
@@ -218,11 +234,11 @@ class SimulationEngine():
     }
     self.__set_multi_results(results, sim_results)
 
-  def get_single_results_status(self) -> int:
-    return self.__single_results_status
+  def get_single_results_progress(self) -> int:
+    return self.__single_results_progress
 
-  def get_multi_results_status(self) -> int:
-    return self.__multi_results_status
+  def get_multi_results_progress(self) -> int:
+    return self.__multi_results_progress
 
   def get_single_results(self) -> SimulationSingleResults | None:
     if self.__single_results is None:
@@ -320,26 +336,8 @@ class SimulationEngine():
       "average": formatted_average
     }
 
-  def __single_sim_time_limit_exceeded(self, start_time: int, total_hands_played: int) -> bool:
-    current_time = time.time()
-    if self.__sim_time_limit:
-      if self.__multi_start_time:
-        if current_time - self.__multi_start_time > self.__sim_time_limit:
-          return True
-      else:
-        if current_time - start_time > self.__sim_time_limit:
-          return True
-
-    if self.__human_time_limit:
-      human_time = self.__get_human_time(total_hands_played)
-      if human_time > self.__human_time_limit:
-        return True
-
-    return False
-
   def __get_human_time(self, total_hands_played: int) -> float:
-    hands_per_hour = 60
-    hours = total_hands_played / hands_per_hour
+    hours = total_hands_played / self.__hands_per_hour
     minutes = hours * 60
     seconds = minutes * 60
     human_time = round(seconds, 2)
@@ -353,10 +351,10 @@ class SimulationEngine():
       minutes = seconds / 60
       if minutes > 60:
         hours = minutes / 60
-        if hours > 24:
-          days = hours / 24
-          if days > 7:
-            weeks = days / 7
+        if hours > self.__hours_per_day:
+          days = hours / self.__hours_per_day
+          if days > self.__days_per_week:
+            weeks = days / self.__days_per_week
             if weeks > 4.345:
               months = weeks / 4.345
               if months > 12:
@@ -446,8 +444,8 @@ class SimulationEngine():
 
   def __full_reset(self) -> None:
     self.__game = deepcopy(self.__game_starting_point)
-    self.__single_results_status = 0
-    self.__multi_results_status = 0
+    self.__single_results_progress = 0
+    self.__multi_results_progress = 0
     self.__single_results = None
     self.__multi_results = None
 
@@ -461,11 +459,28 @@ class SimulationEngine():
   def __set_single_results(self, results: SimulationSingleResults) -> None:
     self.__single_results = results
 
-  def __update_single_results_status(self) -> None:
-    bankroll_after_round = self.__game.get_ai_players()[0].get_bankroll()
-    if bankroll_after_round == 0:
-      self.__single_results_status = -100
-    else:
-      winning_progress = int(((bankroll_after_round / self.__bankroll_goal) * 200) - 100)
-      winning_progress = max(-100, min(100, winning_progress))
-      self.__single_results_status = winning_progress
+  def __update_single_results_progress(self, total_hands_played: int, time_elapsed_seconds: float) -> None:
+    if self.__bankroll_goal != inf:
+      bankroll_after_round = self.__game.get_ai_players()[0].get_bankroll()
+      if bankroll_after_round == 0:
+        self.__single_results_progress = -100
+        return
+      else:
+        winning_progress = int(((bankroll_after_round / self.__bankroll_goal) * 200) - 100)
+        winning_progress = max(-100, min(100, winning_progress))
+        self.__single_results_progress = winning_progress
+        return
+
+    if self.__human_time_limit is not None:
+      human_seconds = self.__get_human_time(total_hands_played)
+      human_time_progress = int(human_seconds / self.__human_time_limit) * 100
+      self.__single_results_progress = min(human_time_progress, 100)
+      return
+
+    if self.__sim_time_limit is not None:
+      sim_time_progress = int(time_elapsed_seconds / self.__sim_time_limit)
+      self.__single_results_progress = min(sim_time_progress, 100)
+      return
+
+    self.__single_results_progress = 0
+    return

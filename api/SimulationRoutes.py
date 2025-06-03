@@ -23,8 +23,8 @@ async def get_single_results_formatted(session_id: str) -> JSONResponse:
   return await controller.get_single_results_formatted(session_id)
 
 @router.get("/session/{session_id}/simulation/results/check_single")
-async def get_single_results_status(session_id: str) -> JSONResponse:
-  return await controller.get_single_results_status(session_id)
+async def get_single_results_progress(session_id: str) -> JSONResponse:
+  return await controller.get_single_results_progress(session_id)
 
 @router.get("/session/{session_id}/simulation/results/get_multi")
 async def get_multi_results(session_id: str) -> JSONResponse:
@@ -35,5 +35,5 @@ async def get_multi_results_formatted(session_id: str) -> JSONResponse:
   return await controller.get_multi_results_formatted(session_id)
 
 @router.get("/session/{session_id}/simulation/results/check_multi")
-async def get_multi_results_status(session_id: str) -> JSONResponse:
-  return await controller.get_multi_results_status(session_id)
+async def get_multi_results_progress(session_id: str) -> JSONResponse:
+  return await controller.get_multi_results_progress(session_id)
