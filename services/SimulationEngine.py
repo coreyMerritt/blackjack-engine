@@ -2,7 +2,9 @@ import asyncio
 from cmath import inf
 from copy import deepcopy
 import time
+from typing import List
 from entities.Game import Game
+from entities.Hand import Hand
 from models.core.HumanTime import HumanTime
 from models.core.SimulationBounds import SimulationBounds
 from models.core.results.SimulationMultiResultsFormatted import SimulationMultiResultsFormatted
@@ -50,16 +52,15 @@ class SimulationEngine():
   async def run(self, called_from_multi=False) -> None:
     if not called_from_multi:
       self.__full_reset()
+
     start_time = time.time()
-    (starting_bankroll, highest_bankroll) = (self.__game.get_ai_players()[0].get_bankroll(),) * 2
-    (hands_won_count, hands_lost_count, hands_drawn_count, blackjack_count) = (0,) * 4
-    profit_from_true = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}
+    (starting_bankroll, highest_bankroll, lowest_bankroll) = (self.__game.get_ai_players()[0].get_bankroll(),) * 3
+    counts = {"total": 0, "won": 0, "lost": 0, "drawn": 0, "blackjack": 0}
+    profit_from_true = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 
     someone_has_bankroll = self.__game.someone_has_bankroll()
-    if self.__bankroll_goal:
-      bankroll_is_below_goal = self.__game.get_ai_players()[0].get_bankroll() < self.__bankroll_goal
-    else:
-      bankroll_is_below_goal = True
+    bankroll_is_below_goal = self.__calculate_if_bankroll_is_below_goal()
+
     while(someone_has_bankroll and bankroll_is_below_goal):
       ai_player = self.__game.get_ai_players()[0]
       true_count = ai_player.calculate_true_count(self.__game.get_dealer().get_decks_remaining())
@@ -68,111 +69,43 @@ class SimulationEngine():
       bankroll = self.__game.get_ai_players()[0].get_bankroll()
       if highest_bankroll < bankroll:
         highest_bankroll = bankroll
+      if lowest_bankroll > bankroll:
+        lowest_bankroll = bankroll
 
       for hand in ai_player.get_hands():
-        hand_result = hand.get_result()
-        bet = hand.get_bet()
-        initial_bet = hand.get_initial_bet()
-        BlackjackLogger.debug(f"\t\tBet history: {initial_bet}")
-        payout = hand.get_payout()
-        bankroll = self.__game.get_ai_players()[0].get_bankroll()
-        match true_count:
-          case x if x <= 0:
-            if hand_result == HandResult.LOSS:
-              profit_from_true[0] -= bet
-            profit_from_true[0] += payout
-          case 1:
-            if hand_result == HandResult.LOSS:
-              profit_from_true[1] -= bet
-            profit_from_true[1] += payout
-          case 2:
-            if hand_result == HandResult.LOSS:
-              profit_from_true[2] -= bet
-            profit_from_true[2] += payout
-          case 3:
-            if hand_result == HandResult.LOSS:
-              profit_from_true[3] -= bet
-            profit_from_true[3] += payout
-          case 4:
-            if hand_result == HandResult.LOSS:
-              profit_from_true[4] -= bet
-            profit_from_true[4] += payout
-          case 5:
-            if hand_result == HandResult.LOSS:
-              profit_from_true[5] -= bet
-            profit_from_true[5] += payout
-          case x if x >= 6:
-            if hand_result == HandResult.LOSS:
-              profit_from_true[6] -= bet
-            profit_from_true[6] += payout
-        if hand_result == HandResult.BLACKJACK:
-          blackjack_count += 1
-          hands_won_count += 1
-        elif hand_result == HandResult.WIN:
-          hands_won_count += 1
-        elif hand_result == HandResult.LOSS:
-          hands_lost_count += 1
-        elif hand_result == HandResult.DRAW:
-          hands_drawn_count += 1
-        BlackjackLogger.debug(f"\t\tHand result: {hand_result}")
-        BlackjackLogger.debug(f"\t\tPayout: {payout}")
+        self.__update_profits(hand, true_count, profit_from_true, counts)
+
       self.__game.finish_round()
-      total_hands_played = hands_won_count + hands_lost_count + hands_drawn_count
-      await self.__occasionally_yield_event_loop_control(total_hands_played)
-      self.__update_single_results_progress(total_hands_played, time.time() - start_time)
+      await self.__occasionally_yield_event_loop_control(counts["total"])
+      self.__update_single_results_progress(counts["total"], time.time() - start_time)
       if self.__single_results_progress == 100 or self.__single_results_progress == -100:
         break
 
       someone_has_bankroll = self.__game.someone_has_bankroll()
-      if self.__bankroll_goal:
-        bankroll_is_below_goal = self.__game.get_ai_players()[0].get_bankroll() < self.__bankroll_goal
-      else:
-        bankroll_is_below_goal = True
+      bankroll_is_below_goal = self.__calculate_if_bankroll_is_below_goal()
 
     simulation_time = round(time.time() - start_time, 2)
-    total_hands_played = hands_won_count + hands_lost_count + hands_drawn_count
-    hands_won_percent = (hands_won_count / total_hands_played) * 100
-    hands_lost_percent = (hands_lost_count / total_hands_played) * 100
-    hands_drawn_percent = (hands_drawn_count / total_hands_played) * 100
+    percentages = {"won": 0.0, "lost": 0.0, "drawn": 0.0}
+    percentages["won"] = (counts["won"] / counts["total"]) * 100
+    percentages["lost"] = (counts["lost"] / counts["total"]) * 100
+    percentages["drawn"] = (counts["drawn"] / counts["total"]) * 100
     ending_bankroll = round(self.__game.get_ai_players()[0].get_bankroll(), 0)
     total_profit = round(ending_bankroll - starting_bankroll, 2)
-    profit_from_true_zero = round(profit_from_true[0], 2)
-    profit_from_true_one = round(profit_from_true[1], 2)
-    profit_from_true_two = round(profit_from_true[2], 2)
-    profit_from_true_three = round(profit_from_true[3], 2)
-    profit_from_true_four = round(profit_from_true[4], 2)
-    profit_from_true_five = round(profit_from_true[5], 2)
-    profit_from_true_six = round(profit_from_true[6], 2)
-    profit_per_hand = round(total_profit / total_hands_played, 2)
+    for i in range(7):
+      profit_from_true[i] = round(profit_from_true[i], 2)
+    profit_per_hand = round(total_profit / counts["total"], 2)
     profit_per_hour = round(profit_per_hand * self.__hands_per_hour, 2)
-    human_time = self.__get_human_time(total_hands_played)
+    human_time = self.__get_human_time(counts["total"])
     self.__single_results = {
-      "total_hands_played": total_hands_played,
-      "hands_won": {
-        "count": hands_won_count,
-        "percent": hands_won_percent
-      },
-      "hands_lost": {
-        "count": hands_lost_count,
-        "percent": hands_lost_percent
-      },
-      "hands_drawn": {
-        "count": hands_drawn_count,
-        "percent": hands_drawn_percent
+      "hands": {
+        "counts": counts,
+        "percentages": percentages
       },
       "bankroll": {
         "starting": starting_bankroll,
         "ending": ending_bankroll,
         "total_profit": total_profit,
-        "profit_from_true": {
-          "zero": profit_from_true_zero,
-          "one": profit_from_true_one,
-          "two": profit_from_true_two,
-          "three": profit_from_true_three,
-          "four": profit_from_true_four,
-          "five": profit_from_true_five,
-          "six": profit_from_true_six
-        },
+        "profit_from_true": profit_from_true,
         "profit_per_hand": profit_per_hand,
         "profit_per_hour": profit_per_hour,
         "peak": highest_bankroll
@@ -253,54 +186,53 @@ class SimulationEngine():
   def get_single_results_formatted(self) -> SimulationSingleResultsFormatted:
     if not self.__single_results:
       return None
-    total_hands_played = int(self.__single_results["total_hands_played"])
-    hands_won_count = int(self.__single_results["hands_won"]["count"])
-    hands_won_percent = float(self.__single_results["hands_won"]["percent"])
-    hands_lost_count = int(self.__single_results["hands_lost"]["count"])
-    hands_lost_percent = float(self.__single_results["hands_lost"]["percent"])
-    hands_drawn_count = int(self.__single_results["hands_drawn"]["count"])
-    hands_drawn_percent = float(self.__single_results["hands_drawn"]["percent"])
+
+    counts = {"total": 0, "won": 0, "lost": 0, "drawn": 0}
+    percentages = {"won": 0.0, "lost": 0.0, "drawn": 0.0}
+    profit_from_true = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+    total_hands_played = int(self.__single_results["hands"]["counts"]["total"])
+    counts["won"] = int(self.__single_results["hands"]["counts"]["won"])
+    counts["lost"] = int(self.__single_results["hands"]["counts"]["lost"])
+    counts["drawn"] = int(self.__single_results["hands"]["counts"]["drawn"])
+    percentages["won"] = float(self.__single_results["hands"]["percentages"]["won"])
+    percentages["lost"] = float(self.__single_results["hands"]["percentages"]["lost"])
+    percentages["drawn"] = float(self.__single_results["hands"]["percentages"]["drawn"])
     starting_bankroll = float(self.__single_results["bankroll"]["starting"])
     ending_bankroll = float(self.__single_results["bankroll"]["ending"])
     total_profit = float(self.__single_results["bankroll"]["total_profit"])
-    profit_from_true_zero = float(self.__single_results["bankroll"]["profit_from_true"]["zero"])
-    profit_from_true_one = float(self.__single_results["bankroll"]["profit_from_true"]["one"])
-    profit_from_true_two = float(self.__single_results["bankroll"]["profit_from_true"]["two"])
-    profit_from_true_three = float(self.__single_results["bankroll"]["profit_from_true"]["three"])
-    profit_from_true_four = float(self.__single_results["bankroll"]["profit_from_true"]["four"])
-    profit_from_true_five = float(self.__single_results["bankroll"]["profit_from_true"]["five"])
-    profit_from_true_six = float(self.__single_results["bankroll"]["profit_from_true"]["six"])
+    for i in range(7):
+      profit_from_true[i] = float(self.__single_results["bankroll"]["profit_from_true"][i])
     profit_per_hand = float(self.__single_results["bankroll"]["profit_per_hand"])
     profit_per_hour = float(self.__single_results["bankroll"]["profit_per_hour"])
     peak = float(self.__single_results["bankroll"]["peak"])
     human_time = float(self.__single_results["time"]["human_time"])
     simulation_time = float(self.__single_results["time"]["simulation_time"])
     return {
-      "total_hands_played": f"{total_hands_played:,}",
-      "hands_won": {
-        "count": f"{hands_won_count:,}",
-        "percent": f"{round(hands_won_percent, 2):.2f}%"
-      },
-      "hands_lost": {
-        "count": f"{hands_lost_count:,}",
-        "percent": f"{round(hands_lost_percent, 2):.2f}%"
-      },
-      "hands_drawn": {
-        "count": f"{hands_drawn_count:,}",
-        "percent": f"{round(hands_drawn_percent, 2):.2f}%"
+      "hands": {
+        "counts": {
+          "total": f"{total_hands_played:,}",
+          "won": f"{counts["won"]:,}",
+          "lost": f"{counts["lost"]:,}",
+          "drawn": f"{counts["drawn"]:,}"
+        },
+        "percentages": {
+          "won": f"{round(percentages["won"], 2):.2f}%",
+          "lost": f"{round(percentages["lost"], 2):.2f}%",
+          "drawn": f"{round(percentages["drawn"], 2):.2f}%"
+        }
       },
       "bankroll": {
         "starting": self.__get_formatted_bankroll(starting_bankroll),
         "ending": self.__get_formatted_bankroll(ending_bankroll),
         "total_profit": self.__get_formatted_bankroll(total_profit),
         "profit_from_true": {
-          "zero": self.__get_formatted_bankroll(profit_from_true_zero),
-          "one": self.__get_formatted_bankroll(profit_from_true_one),
-          "two": self.__get_formatted_bankroll(profit_from_true_two),
-          "three": self.__get_formatted_bankroll(profit_from_true_three),
-          "four": self.__get_formatted_bankroll(profit_from_true_four),
-          "five": self.__get_formatted_bankroll(profit_from_true_five),
-          "six": self.__get_formatted_bankroll(profit_from_true_six)
+          0: self.__get_formatted_bankroll(profit_from_true[0]),
+          1: self.__get_formatted_bankroll(profit_from_true[1]),
+          2: self.__get_formatted_bankroll(profit_from_true[2]),
+          3: self.__get_formatted_bankroll(profit_from_true[3]),
+          4: self.__get_formatted_bankroll(profit_from_true[4]),
+          5: self.__get_formatted_bankroll(profit_from_true[5]),
+          6: self.__get_formatted_bankroll(profit_from_true[6])
         },
         "profit_per_hand": self.__get_formatted_bankroll(profit_per_hand),
         "profit_per_hour": self.__get_formatted_bankroll(profit_per_hour),
@@ -335,6 +267,12 @@ class SimulationEngine():
       "time_taken": time_taken,
       "average": formatted_average
     }
+
+  def __calculate_if_bankroll_is_below_goal(self) -> bool:
+    if self.__bankroll_goal:
+      return self.__game.get_ai_players()[0].get_bankroll() < self.__bankroll_goal
+    else:
+      return True
 
   def __get_human_time(self, total_hands_played: int) -> float:
     hours = total_hands_played / self.__hands_per_hour
@@ -378,60 +316,47 @@ class SimulationEngine():
     if total_runs == 0:
       return {}
 
-    summed = SimulationSingleResults().model_dump()
+    summed = SimulationSingleResults().model_dump(by_alias=True)
     for r in results_list:
-      summed["total_hands_played"] += int(r["total_hands_played"])
-      summed["hands_won"]["count"] += int(r["hands_won"]["count"])
-      summed["hands_lost"]["count"] += int(r["hands_lost"]["count"])
-      summed["hands_drawn"]["count"] += int(r["hands_drawn"]["count"])
+      summed["hands"]["counts"]["total"] += int(r["hands"]["counts"]["total"])
+      summed["hands"]["counts"]["won"] += int(r["hands"]["counts"]["won"])
+      summed["hands"]["counts"]["lost"] += int(r["hands"]["counts"]["lost"])
+      summed["hands"]["counts"]["drawn"] += int(r["hands"]["counts"]["drawn"])
       summed["bankroll"]["starting"] += float(r["bankroll"]["starting"])
       summed["bankroll"]["ending"] += float(r["bankroll"]["ending"])
       summed["bankroll"]["total_profit"] += float(r["bankroll"]["total_profit"])
-      summed["bankroll"]["profit_from_true"]["zero"] += float(r["bankroll"]["profit_from_true"]["zero"])
-      summed["bankroll"]["profit_from_true"]["one"] += float(r["bankroll"]["profit_from_true"]["one"])
-      summed["bankroll"]["profit_from_true"]["two"] += float(r["bankroll"]["profit_from_true"]["two"])
-      summed["bankroll"]["profit_from_true"]["three"] += float(r["bankroll"]["profit_from_true"]["three"])
-      summed["bankroll"]["profit_from_true"]["four"] += float(r["bankroll"]["profit_from_true"]["four"])
-      summed["bankroll"]["profit_from_true"]["five"] += float(r["bankroll"]["profit_from_true"]["five"])
-      summed["bankroll"]["profit_from_true"]["six"] += float(r["bankroll"]["profit_from_true"]["six"])
+      for i in range(7):
+        summed["bankroll"]["profit_from_true"][i] += float(r["bankroll"]["profit_from_true"][i])
       summed["bankroll"]["profit_per_hand"] += float(r["bankroll"]["profit_per_hand"])
       summed["bankroll"]["profit_per_hour"] += float(r["bankroll"]["profit_per_hour"])
       summed["bankroll"]["peak"] += float(r["bankroll"]["peak"])
       summed["time"]["human_time"] += float(r["time"]["human_time"])
       summed["time"]["simulation_time"] += float(r["time"]["simulation_time"])
 
-    summed_hands_won = summed["hands_won"]["count"]
-    summed_hands_lost = summed["hands_lost"]["count"]
-    summed_hands_drawn = summed["hands_drawn"]["count"]
-    summed_total_hands = summed["total_hands_played"]
-    hands_won_percent = (summed_hands_won / summed_total_hands) * 100
-    hands_lost_percent = (summed_hands_lost / summed_total_hands) * 100
-    hands_drawn_percent = (summed_hands_drawn / summed_total_hands) * 100
-    averaged = SimulationSingleResults().model_dump()
-    averaged["total_hands_played"] = summed["total_hands_played"] // total_runs
-    averaged["hands_won"]["count"] = summed["hands_won"]["count"] // total_runs
-    averaged["hands_won"]["percent"] = hands_won_percent
-    averaged["hands_lost"]["count"] = summed["hands_lost"]["count"] // total_runs
-    averaged["hands_lost"]["percent"] = hands_lost_percent
-    averaged["hands_drawn"]["count"] = summed["hands_drawn"]["count"] // total_runs
-    averaged["hands_drawn"]["percent"] = hands_drawn_percent
+    percentages = {"won": 0.0, "lost": 0.0, "drawn": 0.0}
+    percentages["won"] = (summed["hands"]["counts"]["won"] / summed["hands"]["counts"]["total"]) * 100
+    percentages["lost"] = (summed["hands"]["counts"]["lost"] / summed["hands"]["counts"]["total"]) * 100
+    percentages["drawn"] = (summed["hands"]["counts"]["drawn"] / summed["hands"]["counts"]["total"]) * 100
+    averaged = SimulationSingleResults().model_dump(by_alias=True)
+    averaged["hands"]["counts"]["total"] = summed["hands"]["counts"]["total"] // total_runs
+    averaged["hands"]["counts"]["won"] = summed["hands"]["counts"]["won"] // total_runs
+    averaged["hands"]["counts"]["lost"] = summed["hands"]["counts"]["lost"] // total_runs
+    averaged["hands"]["counts"]["drawn"] = summed["hands"]["counts"]["drawn"] // total_runs
+    averaged["hands"]["percentages"]["won"] = percentages["won"] / total_runs
+    averaged["hands"]["percentages"]["lost"] = percentages["lost"] / total_runs
+    averaged["hands"]["percentages"]["drawn"] = percentages["drawn"] / total_runs
     averaged["bankroll"]["starting"] = summed["bankroll"]["starting"] / total_runs
     averaged["bankroll"]["ending"] = summed["bankroll"]["ending"] / total_runs
     averaged["bankroll"]["total_profit"] = summed["bankroll"]["total_profit"] / total_runs
-    averaged["bankroll"]["profit_from_true"]["zero"] = summed["bankroll"]["profit_from_true"]["zero"] / total_runs
-    averaged["bankroll"]["profit_from_true"]["one"] = summed["bankroll"]["profit_from_true"]["one"] / total_runs
-    averaged["bankroll"]["profit_from_true"]["two"] = summed["bankroll"]["profit_from_true"]["two"] / total_runs
-    averaged["bankroll"]["profit_from_true"]["three"] = summed["bankroll"]["profit_from_true"]["three"] / total_runs
-    averaged["bankroll"]["profit_from_true"]["four"] = summed["bankroll"]["profit_from_true"]["four"] / total_runs
-    averaged["bankroll"]["profit_from_true"]["five"] = summed["bankroll"]["profit_from_true"]["five"] / total_runs
-    averaged["bankroll"]["profit_from_true"]["six"] = summed["bankroll"]["profit_from_true"]["six"] / total_runs
+    for i in range(7):
+      averaged["bankroll"]["profit_from_true"][i] = summed["bankroll"]["profit_from_true"][i] / total_runs
     averaged["bankroll"]["profit_per_hand"] = summed["bankroll"]["profit_per_hand"] / total_runs
     averaged["bankroll"]["profit_per_hour"] = summed["bankroll"]["profit_per_hour"] / total_runs
     averaged["bankroll"]["peak"] = summed["bankroll"]["peak"] / total_runs
     averaged["time"]["human_time"] = summed["time"]["human_time"] / total_runs
     averaged["time"]["simulation_time"] = summed["time"]["simulation_time"] / total_runs
 
-    multi_sim = SimulationMultiResults().model_dump()
+    multi_sim = SimulationMultiResults().model_dump(by_alias=True)
     multi_sim["sims_run"] = sim_results["sims_run"]
     multi_sim["sims_won"] = sim_results["sims_won"]
     multi_sim["sims_lost"] = sim_results["sims_lost"]
@@ -458,6 +383,34 @@ class SimulationEngine():
 
   def __set_single_results(self, results: SimulationSingleResults) -> None:
     self.__single_results = results
+
+  def __update_profits(self, hand: Hand, true_count: int, profit_from_true: List[float], counts: dict) -> None:
+    hand_result = hand.get_result()
+    bet = hand.get_bet()
+    initial_bet = hand.get_initial_bet()
+    BlackjackLogger.debug(f"\t\tBet history: {initial_bet}")
+    payout = hand.get_payout()
+    if true_count > 6:
+      adjusted_true_count = 6
+    elif true_count < 0:
+      adjusted_true_count = 0
+    else:
+      adjusted_true_count = true_count
+    if hand_result == HandResult.LOSS:
+      profit_from_true[adjusted_true_count] -= bet
+    profit_from_true[adjusted_true_count] += payout
+    if hand_result == HandResult.BLACKJACK:
+      counts["blackjack"] += 1
+      counts["won"] += 1
+    elif hand_result == HandResult.WIN:
+      counts["won"] += 1
+    elif hand_result == HandResult.LOSS:
+      counts["lost"] += 1
+    elif hand_result == HandResult.DRAW:
+      counts["drawn"] += 1
+    counts["total"] += 1
+    BlackjackLogger.debug(f"\t\tHand result: {hand_result}")
+    BlackjackLogger.debug(f"\t\tPayout: {payout}")
 
   def __update_single_results_progress(self, total_hands_played: int, time_elapsed_seconds: float) -> None:
     if self.__bankroll_goal != inf:

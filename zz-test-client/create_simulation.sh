@@ -50,7 +50,7 @@ curl -s -X POST "http://localhost:8000/session/simulation/create" \
             "card_counting_skill_level": 100,
             "deviations_skill_level": 100,
             "bet_spread": {
-              "true_zero": 5,
+              "true_zero": 200,
               "true_one": 10,
               "true_two": 20,
               "true_three": 30,

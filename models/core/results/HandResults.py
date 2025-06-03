@@ -1,6 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+from models.core.results.HandResultsPercentages import HandResultsPercentages
+from models.core.results.HandResultsCounts import HandResultsCounts
 
 
 class HandResults(BaseModel):
-  count: int = 0
-  percent: float = 0
+  counts: HandResultsCounts = Field(default_factory=HandResultsCounts)
+  percentages: HandResultsPercentages = Field(default_factory=HandResultsPercentages)
