@@ -9,7 +9,7 @@ from services.BlackjackLogger import BlackjackLogger
 
 
 class Player(ABC):
-  __bankroll: int
+  __bankroll: float
   __id: UUID
   __hands: List[Hand]
 
@@ -31,7 +31,7 @@ class Player(ABC):
           return True
     return False
 
-  def get_bankroll(self) -> int:
+  def get_bankroll(self) -> float:
     return self.__bankroll
 
   def get_hand_value(self, hand_index: int) -> int:
@@ -72,13 +72,13 @@ class Player(ABC):
   def add_new_hand(self, hand: Hand) -> None:
     self.__hands.append(hand)
 
-  def increment_bankroll(self, amount: int, silent=False) -> None:
+  def increment_bankroll(self, amount: float, silent=False) -> None:
     if amount != 0:
       if not silent:
         BlackjackLogger.debug(f"\t\tAdjusting bankroll from: {self.__bankroll} -> {self.__bankroll + amount}")
       self.__bankroll += amount
 
-  def decrement_bankroll(self, amount: int, silent=False) -> None:
+  def decrement_bankroll(self, amount: float, silent=False) -> None:
     if amount != 0:
       if not silent:
         BlackjackLogger.debug(f"\t\tAdjusting bankroll from: {self.__bankroll} -> {self.__bankroll - amount}")

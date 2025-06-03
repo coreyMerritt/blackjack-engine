@@ -380,7 +380,6 @@ class SimulationEngine():
     if total_runs == 0:
       return {}
 
-    print(SimulationSingleResults.__mro__)
     summed = SimulationSingleResults().model_dump()
     for r in results_list:
       summed["total_hands_played"] += int(r["total_hands_played"])

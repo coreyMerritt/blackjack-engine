@@ -3,18 +3,18 @@
 curl -s -X POST "http://localhost:8000/session/simulation/create" \
   -H "Content-Type: application/json" \
   -d '{
-        "bankroll_goal": 50000,
-        "human_time_limit": null,
+        "bankroll_goal": 999999999,
+        "human_time_limit": 1728000,
         "sim_time_limit": 28800,
         "rules": {
           "betting_rules": {
-            "min_bet": 25,
+            "min_bet": 0,
             "max_bet": 2500
           },
           "dealer_rules": {
             "dealer_hits_soft_seventeen": true,
             "deck_count": 8,
-            "shoe_reset_percentage": 20,
+            "shoe_reset_percentage": 30,
             "blackjack_pays_multiplier": 1.5
           },
           "double_down_rules": {
@@ -37,19 +37,19 @@ curl -s -X POST "http://localhost:8000/session/simulation/create" \
         "ai_player_info": [
           {
             "counts_cards": true,
-            "plays_deviations": false,
-            "bankroll": 25000,
+            "plays_deviations": true,
+            "bankroll": 5000,
             "basic_strategy_skill_level": 100,
             "card_counting_skill_level": 100,
             "deviations_skill_level": 100,
             "bet_spread": {
-              "true_zero": 25,
-              "true_one": 50,
-              "true_two": 100,
-              "true_three": 150,
-              "true_four": 200,
-              "true_five": 250,
-              "true_six": 300
+              "true_zero": 5,
+              "true_one": 10,
+              "true_two": 20,
+              "true_three": 30,
+              "true_four": 40,
+              "true_five": 50,
+              "true_six": 60
             }
           }
         ]
