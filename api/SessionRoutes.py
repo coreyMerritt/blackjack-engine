@@ -12,6 +12,10 @@ controller = SessionController()
 async def create_game(req: CreateGameReq) -> JSONResponse:
   return await controller.create_game(req)
 
-@router.post("/session/simulation/create")
-async def create_simulation(req: CreateSimulationReq) -> JSONResponse:
-  return await controller.create_simulation(req)
+@router.post("/session/simulation/single/create")
+async def create_single_sim_runner(req: CreateSimulationReq) -> JSONResponse:
+  return await controller.create_single_sim_runner(req)
+
+@router.post("/session/simulation/multi/create")
+async def create_multi_sim_runner(req: CreateSimulationReq) -> JSONResponse:
+  return await controller.create_multi_sim_runner(req)

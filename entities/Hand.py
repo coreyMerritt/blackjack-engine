@@ -53,14 +53,13 @@ class Hand():
     return self.__insurance_bet > 0
 
   def get_value(self) -> int:
-    value = 0
-    for card in self.__cards:
-      value += card.get_value()
+    value = sum(card.get_value() for card in self.__cards)
     if value > 21 and self.is_soft():
       for card in self.__cards:
         if card.calculate_if_value_can_reset():
           card.set_value(1)
           break
+      value = sum(card.get_value() for card in self.__cards)
     return value
 
   def get_bet(self) -> int:

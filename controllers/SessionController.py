@@ -16,8 +16,18 @@ class SessionController:
 
     return JSONResponse(content=session_id)
 
-  async def create_simulation(self, req: CreateSimulationReq) -> JSONResponse:
-    session_id = session_manager.create_simulation(
+  async def create_single_sim_runner(self, req: CreateSimulationReq) -> JSONResponse:
+    session_id = session_manager.create_single_sim_runner(
+      req.bounds,
+      req.time,
+      req.rules,
+      req.ai_player_info
+    )
+
+    return JSONResponse(content=session_id)
+
+  async def create_multi_sim_runner(self, req: CreateSimulationReq) -> JSONResponse:
+    session_id = session_manager.create_multi_sim_runner(
       req.bounds,
       req.time,
       req.rules,

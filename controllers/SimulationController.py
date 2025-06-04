@@ -8,65 +8,65 @@ session_manager = SessionManagerSingleton()
 
 class SimulationController:
   async def run(self, session_id: str) -> JSONResponse:
-    simulation_engine = session_manager.get_simulation(session_id)
-    if not simulation_engine:
+    single_sim_runner = session_manager.get_single_sim_runner(session_id)
+    if not single_sim_runner:
       raise HTTPException(status_code=401, detail="Invalid session")
 
-    asyncio.create_task(simulation_engine.run())
+    asyncio.create_task(single_sim_runner.run())
     return JSONResponse(status_code=200, content={"status": "started"})
 
-  async def multi_run(self, session_id: str, run_count: int) -> JSONResponse:
-    simulation_engine = session_manager.get_simulation(session_id)
-    if not simulation_engine:
+  async def get_single_results_progress(self, session_id: str) -> JSONResponse:
+    single_sim_runner = session_manager.get_single_sim_runner(session_id)
+    if not single_sim_runner:
       raise HTTPException(status_code=401, detail="Invalid session")
 
-    asyncio.create_task(simulation_engine.multi_run(run_count))
-    return JSONResponse(status_code=200, content={"status": "started"})
+    status = single_sim_runner.get_results_progress()
+    return JSONResponse(content={"status": status})
 
   async def get_single_results(self, session_id: str) -> JSONResponse:
-    simulation_engine = session_manager.get_simulation(session_id)
-    if not simulation_engine:
+    single_sim_runner = session_manager.get_single_sim_runner(session_id)
+    if not single_sim_runner:
       raise HTTPException(status_code=401, detail="Invalid session")
 
-    results = simulation_engine.get_single_results()
+    results = single_sim_runner.get_results()
     return JSONResponse(content={"results": results})
 
   async def get_single_results_formatted(self, session_id: str) -> JSONResponse:
-    simulation_engine = session_manager.get_simulation(session_id)
-    if not simulation_engine:
+    single_sim_runner = session_manager.get_single_sim_runner(session_id)
+    if not single_sim_runner:
       raise HTTPException(status_code=401, detail="Invalid session")
 
-    results = simulation_engine.get_single_results_formatted()
+    results = single_sim_runner.get_results_formatted()
     return JSONResponse(content={"results": results})
 
-  async def get_single_results_progress(self, session_id: str) -> JSONResponse:
-    simulation_engine = session_manager.get_simulation(session_id)
-    if not simulation_engine:
+  async def multi_run(self, session_id: str, run_count: int) -> JSONResponse:
+    multi_sim_runner = session_manager.get_multi_sim_runner(session_id)
+    if not multi_sim_runner:
       raise HTTPException(status_code=401, detail="Invalid session")
 
-    status = simulation_engine.get_single_results_progress()
+    asyncio.create_task(multi_sim_runner.run(run_count))
+    return JSONResponse(status_code=200, content={"status": "started"})
+
+  async def get_multi_results_progress(self, session_id: str) -> JSONResponse:
+    multi_sim_runner = session_manager.get_multi_sim_runner(session_id)
+    if not multi_sim_runner:
+      raise HTTPException(status_code=401, detail="Invalid session")
+
+    status = multi_sim_runner.get_results_progress()
     return JSONResponse(content={"status": status})
 
   async def get_multi_results(self, session_id: str) -> JSONResponse:
-    simulation_engine = session_manager.get_simulation(session_id)
-    if not simulation_engine:
+    multi_sim_runner = session_manager.get_multi_sim_runner(session_id)
+    if not multi_sim_runner:
       raise HTTPException(status_code=401, detail="Invalid session")
 
-    results = simulation_engine.get_multi_results()
+    results = multi_sim_runner.get_results()
     return JSONResponse(content={"results": results})
 
   async def get_multi_results_formatted(self, session_id: str) -> JSONResponse:
-    simulation_engine = session_manager.get_simulation(session_id)
-    if not simulation_engine:
+    multi_sim_runner = session_manager.get_multi_sim_runner(session_id)
+    if not multi_sim_runner:
       raise HTTPException(status_code=401, detail="Invalid session")
 
-    results = simulation_engine.get_multi_results_formatted()
+    results = multi_sim_runner.get_results_formatted()
     return JSONResponse(content={"results": results})
-
-  async def get_multi_results_progress(self, session_id: str) -> JSONResponse:
-    simulation_engine = session_manager.get_simulation(session_id)
-    if not simulation_engine:
-      raise HTTPException(status_code=401, detail="Invalid session")
-
-    status = simulation_engine.get_multi_results_progress()
-    return JSONResponse(content={"status": status})

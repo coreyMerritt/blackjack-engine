@@ -10,14 +10,14 @@ class Card:
   def __init__(self, suit: Suit, face: Face):
     self.__suit = suit
     self.__face = face
-    match self.__face.value:
-      case "J":
+    match self.__face:
+      case Face.JACK:
         self.__value = 10
-      case "Q":
+      case Face.QUEEN:
         self.__value = 10
-      case "K":
+      case Face.KING:
         self.__value = 10
-      case "A":
+      case Face.ACE:
         self.__value = 11
       case _:
         self.__value = int(self.__face.value)

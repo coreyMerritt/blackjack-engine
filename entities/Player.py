@@ -15,7 +15,7 @@ class Player(ABC):
 
   def __init__(self, player_info: PlayerInfo):
     self.__hands = []
-    self.__bankroll = player_info.bankroll
+    self.__bankroll = float(player_info.bankroll)
     self.__id = uuid4()
 
   def has_active_hand(self) -> bool:

@@ -54,12 +54,7 @@ class AiPlayer(Player):
   def calculate_true_count(self, decks_remaining: float) -> int:
     genuine_true_count = floor(self.get_running_count() / ceil(decks_remaining))
     BlackjackLogger.debug(f"\t\tGenuine true count is: {genuine_true_count}")
-    if genuine_true_count > 6:
-      return 6
-    elif genuine_true_count < -1:
-      return -1
-    else:
-      return genuine_true_count
+    return genuine_true_count
 
   def get_running_count(self) -> int:
     return self.__running_count
@@ -89,6 +84,9 @@ class AiPlayer(Player):
 
   def get_insurance_bet(self) -> int:
     return self.get_hands()[0].get_insurance_bet()
+
+  def set_running_count(self, running_count: int) -> None:
+    self.__running_count = running_count
 
   def reset_running_count(self) -> None:
     self.__running_count = 0

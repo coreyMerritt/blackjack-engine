@@ -1,6 +1,6 @@
 #!/bin/bash
 
-curl -s -X POST "http://localhost:8000/session/simulation/create" \
+curl -s -X POST "http://localhost:8000/session/simulation/single/create" \
   -H "Content-Type: application/json" \
   -d '{
         "bounds": {

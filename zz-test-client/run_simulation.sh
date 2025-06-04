@@ -1,6 +1,6 @@
 #!/bin/bash
 
-session_id="$(./create_simulation.sh | tr -d '"')"
+session_id="$(./create_single_sim_runner.sh | tr -d '"')"
 
 curl -s --no-keepalive -X POST "http://localhost:8000/session/$session_id/simulation/run" \
   -H "Content-Type: application/json" | jq
