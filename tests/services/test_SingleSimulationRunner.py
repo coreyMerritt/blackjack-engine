@@ -1,3 +1,5 @@
+# pylint: disable=redefined-outer-name
+
 from unittest.mock import MagicMock
 import pytest
 from entities.Game import Game
@@ -15,7 +17,6 @@ def mock_game():
   game.someone_has_bankroll.return_value = True
   return game
 
-
 @pytest.fixture
 def mock_bounds():
   return SimulationBounds(
@@ -23,7 +24,6 @@ def mock_bounds():
     human_time_limit=3600,
     sim_time_limit=None
   )
-
 
 @pytest.fixture
 def mock_human_time():
@@ -33,23 +33,18 @@ def mock_human_time():
     days_per_week=7
   )
 
-
 @pytest.fixture
 def runner(mock_game, mock_bounds, mock_human_time):
   return SingleSimulationRunner(mock_game, mock_bounds, mock_human_time)
 
-
 def test_initial_bankroll_goal(runner):
   assert runner.get_bankroll_goal() == 1500
-
 
 def test_get_bankroll(runner):
   assert runner.get_bankroll() == 1000
 
-
 def test_results_progress_default(runner):
   assert runner.get_results_progress() == 0
-
 
 def test_set_and_get_results(runner):
   dummy_results = {
@@ -77,7 +72,6 @@ def test_set_and_get_results(runner):
   assert formatted["hands"]["counts"]["won"] == "1"
   assert formatted["bankroll"]["total_profit"] == "$100.00"
   assert formatted["time"]["human_time"].endswith("secs") or "mins" in formatted["time"]["human_time"]
-
 
 def test_reset_game(runner):
   runner.reset_game()

@@ -20,8 +20,8 @@ curl -s -X POST "http://localhost:8000/session/simulation/multi/create" \
           },
           "dealer_rules": {
             "dealer_hits_soft_seventeen": true,
-            "deck_count": 8,
-            "shoe_reset_percentage": 30,
+            "deck_count": 6,
+            "shoe_reset_percentage": 10,
             "blackjack_pays_multiplier": 1.5
           },
           "double_down_rules": {

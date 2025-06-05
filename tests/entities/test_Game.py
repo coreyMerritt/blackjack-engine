@@ -1,3 +1,5 @@
+# pylint: disable=redefined-outer-name
+
 import pytest
 from entities.Game import Game
 from models.core.rules.GameRules import GameRules
@@ -42,7 +44,6 @@ def rules():
     )
   )
 
-
 @pytest.fixture
 def ai_info():
   return [
@@ -65,30 +66,26 @@ def ai_info():
     )
   ]
 
-
 def test_game_initial_state(rules, ai_info):
-  game = Game(rules, human_player_info=None, ai_player_info=ai_info)
+  game = Game(rules, ai_player_info=ai_info)
   assert game.get_state() == GameState.NOT_STARTED
   assert game.get_ai_players()
   assert game.get_dealer().get_shoe().get_card_count() > 0
 
-
 def test_game_state_transitions(rules, ai_info):
-  game = Game(rules, human_player_info=None, ai_player_info=ai_info)
+  game = Game(rules, ai_player_info=ai_info)
   game.continue_until_state(GameState.BETTING)
   assert game.get_state() == GameState.BETTING
   game.continue_until_state(GameState.DEALING)
   assert game.get_state() == GameState.DEALING
 
-
 def test_game_to_dict(rules, ai_info):
-  game = Game(rules, human_player_info=None, ai_player_info=ai_info)
+  game = Game(rules, ai_player_info=ai_info)
   result = game.to_dict()
   assert "state" in result
   assert "dealer" in result
   assert "ai_players" in result
   assert isinstance(result["ai_players"], list)
-
 
 def test_someone_has_bankroll_false(rules):
   empty_ai_info = [
@@ -110,11 +107,11 @@ def test_someone_has_bankroll_false(rules):
       bankroll=0
     )
   ]
-  game = Game(rules, human_player_info=None, ai_player_info=empty_ai_info)
+  game = Game(rules, ai_player_info=empty_ai_info)
   assert not game.someone_has_bankroll()
 
 def test_ai_player_places_bet(rules, ai_info):
-  game = Game(rules, human_player_info=None, ai_player_info=ai_info)
+  game = Game(rules, ai_player_info=ai_info)
   game.continue_until_state(GameState.DEALING)
   ai_player = game.get_ai_players()[0]
   assert ai_player.get_hand_count() == 1

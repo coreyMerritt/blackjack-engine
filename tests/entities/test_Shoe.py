@@ -8,14 +8,12 @@ from models.enums.Suit import Suit
 def make_card(face: Face = Face.TWO, suit: Suit = Suit.HEARTS) -> Card:
   return Card(suit, face)
 
-
 def test_shoe_initial_state():
   shoe = Shoe(deck_count=4, reset_percentage=75)
   assert shoe.get_card_count() == 0
   assert shoe.get_deck_count() == 4
   assert shoe.get_full_size() == 208
   assert shoe.get_reset_percentage() == 75
-
 
 def test_add_card_and_draw():
   shoe = Shoe(deck_count=1, reset_percentage=50)
@@ -26,7 +24,6 @@ def test_add_card_and_draw():
   assert drawn == card
   assert shoe.get_card_count() == 0
 
-
 def test_set_cards():
   shoe = Shoe(deck_count=1, reset_percentage=50)
   cards = [make_card(Face.KING), make_card(Face.QUEEN)]
@@ -34,7 +31,6 @@ def test_set_cards():
   assert shoe.get_card_count() == 2
   drawn_card = shoe.draw()
   assert drawn_card.to_dict() == cards[1].to_dict()
-
 
 def test_shuffle_changes_order():
   shoe = Shoe(deck_count=1, reset_percentage=50)
@@ -46,14 +42,12 @@ def test_shuffle_changes_order():
   assert len(shuffled_cards) == 4
   assert set(tuple(c.items()) for c in shuffled_cards) == set(tuple(c.items()) for c in original_cards)
 
-
 def test_get_decks_remaining():
   shoe = Shoe(deck_count=4, reset_percentage=75)
   cards = [make_card(Face.FIVE)] * 52
   shoe.set_cards(cards)
   remaining = shoe.get_decks_remaining()
   assert remaining == pytest.approx(1.0)
-
 
 def test_to_dict():
   shoe = Shoe(deck_count=1, reset_percentage=50)

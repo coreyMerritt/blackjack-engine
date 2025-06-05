@@ -563,7 +563,7 @@ class Game:
     active_hand = self.__calculate_active_hand()
     active_player = self.__calculate_active_player()
     BlackjackLogger.debug("\t\tSurrender")
-    active_player.decrement_bankroll(active_hand.get_bet() / 2)
+    active_player.increment_bankroll(active_hand.get_bet() / 2)
     active_player.get_hands().remove(active_hand)
 
   def __handle_dealer_decisions(self) -> None:

@@ -1,3 +1,5 @@
+# pylint: disable=redefined-outer-name
+
 import json
 import pytest
 import pytest_asyncio
@@ -22,7 +24,6 @@ from models.core.SimulationBounds import SimulationBounds
 async def controller():
   return SessionController()
 
-
 @pytest.fixture
 def valid_game_rules():
   return GameRules(
@@ -45,7 +46,6 @@ def valid_game_rules():
     surrender_rules=SurrenderRules(early_surrender_allowed=False, late_surrender_allowed=True)
   )
 
-
 @pytest.fixture
 def valid_ai_info():
   return AiPlayerInfo(
@@ -66,11 +66,9 @@ def valid_ai_info():
     )
   )
 
-
 @pytest.fixture
 def valid_human_info():
   return [HumanPlayerInfo(bankroll=1000)]
-
 
 @pytest.fixture
 def create_game_req(valid_game_rules, valid_ai_info, valid_human_info):
@@ -79,7 +77,6 @@ def create_game_req(valid_game_rules, valid_ai_info, valid_human_info):
     human_player_info=valid_human_info,  # now a list
     ai_player_info=[valid_ai_info]
   )
-
 
 @pytest.fixture
 def create_sim_req(valid_game_rules, valid_ai_info):
@@ -90,7 +87,6 @@ def create_sim_req(valid_game_rules, valid_ai_info):
     ai_player_info=[valid_ai_info]
   )
 
-
 @pytest.mark.asyncio
 async def test_create_game(controller, create_game_req):
   response = await controller.create_game(create_game_req)
@@ -100,7 +96,6 @@ async def test_create_game(controller, create_game_req):
   assert isinstance(data, str)
   assert len(data) > 0
 
-
 @pytest.mark.asyncio
 async def test_create_single_sim_runner(controller, create_sim_req):
   response = await controller.create_single_sim_runner(create_sim_req)
@@ -109,7 +104,6 @@ async def test_create_single_sim_runner(controller, create_sim_req):
   data = json.loads(response.body)
   assert isinstance(data, str)
   assert len(data) > 0
-
 
 @pytest.mark.asyncio
 async def test_create_multi_sim_runner(controller, create_sim_req):
