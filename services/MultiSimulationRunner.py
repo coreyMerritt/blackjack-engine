@@ -1,3 +1,4 @@
+import json
 import time
 from typing import List
 from entities.Game import Game
@@ -6,6 +7,7 @@ from models.core.SimulationBounds import SimulationBounds
 from models.core.results.SimulationMultiResultsFormatted import SimulationMultiResultsFormatted
 from models.core.results.SimulationMultiResults import SimulationMultiResults
 from models.core.results.SimulationSingleResults import SimulationSingleResults
+from services.BlackjackLogger import BlackjackLogger
 from services.SingleSimulationRunner import SingleSimulationRunner
 
 
@@ -134,9 +136,11 @@ class MultiSimulationRunner():
     single_sims_summed = SimulationSingleResults().model_dump(by_alias=True)
     for r in single_sim_results:
       single_sims_summed["hands"]["counts"]["total"] += int(r["hands"]["counts"]["total"])
+      single_sims_summed["hands"]["counts"]["blackjack"] += int(r["hands"]["counts"]["blackjack"])
       single_sims_summed["hands"]["counts"]["won"] += int(r["hands"]["counts"]["won"])
-      single_sims_summed["hands"]["counts"]["lost"] += int(r["hands"]["counts"]["lost"])
       single_sims_summed["hands"]["counts"]["drawn"] += int(r["hands"]["counts"]["drawn"])
+      single_sims_summed["hands"]["counts"]["lost"] += int(r["hands"]["counts"]["lost"])
+      single_sims_summed["hands"]["counts"]["surrendered"] += int(r["hands"]["counts"]["surrendered"])
       single_sims_summed["bankroll"]["starting"] += float(r["bankroll"]["starting"])
       single_sims_summed["bankroll"]["ending"] += float(r["bankroll"]["ending"])
       single_sims_summed["bankroll"]["total_profit"] += float(r["bankroll"]["total_profit"])
@@ -151,33 +155,38 @@ class MultiSimulationRunner():
 
   def __get_percentages(self, single_sims_summed: dict) -> dict:
     s = single_sims_summed
-    percentages = {"won": 0.0, "lost": 0.0, "drawn": 0.0}
+    percentages = { "blackjack": 0.0, "won": 0.0, "lost": 0.0, "drawn": 0.0, "surrendered": 0.0 }
+    percentages["blackjack"] = (s["hands"]["counts"]["blackjack"] / s["hands"]["counts"]["total"]) * 100
     percentages["won"] = (s["hands"]["counts"]["won"] / s["hands"]["counts"]["total"]) * 100
-    percentages["lost"] = (s["hands"]["counts"]["lost"] / s["hands"]["counts"]["total"]) * 100
     percentages["drawn"] = (s["hands"]["counts"]["drawn"] / s["hands"]["counts"]["total"]) * 100
+    percentages["lost"] = (s["hands"]["counts"]["lost"] / s["hands"]["counts"]["total"]) * 100
+    percentages["surrendered"] = (s["hands"]["counts"]["surrendered"] / s["hands"]["counts"]["total"]) * 100
     return percentages
 
   def __get_single_sims_averaged(self, single_sims_summed: dict, total_runs: int, percentages: dict) -> dict:
     single_sims_averaged = SimulationSingleResults().model_dump(by_alias=True)
-    single_sims_averaged["hands"]["counts"]["total"] = single_sims_summed["hands"]["counts"]["total"] // total_runs
-    single_sims_averaged["hands"]["counts"]["won"] = single_sims_summed["hands"]["counts"]["won"] // total_runs
-    single_sims_averaged["hands"]["counts"]["lost"] = single_sims_summed["hands"]["counts"]["lost"] // total_runs
-    single_sims_averaged["hands"]["counts"]["drawn"] = single_sims_summed["hands"]["counts"]["drawn"] // total_runs
+    s = single_sims_summed
+    single_sims_averaged["hands"]["counts"]["total"] = s["hands"]["counts"]["total"] / total_runs
+    single_sims_averaged["hands"]["counts"]["blackjack"] = s["hands"]["counts"]["blackjack"] / total_runs
+    single_sims_averaged["hands"]["counts"]["won"] = s["hands"]["counts"]["won"] / total_runs
+    single_sims_averaged["hands"]["counts"]["drawn"] = s["hands"]["counts"]["drawn"] / total_runs
+    single_sims_averaged["hands"]["counts"]["lost"] = s["hands"]["counts"]["lost"] / total_runs
+    single_sims_averaged["hands"]["counts"]["surrendered"] = s["hands"]["counts"]["surrendered"] / total_runs
+    single_sims_averaged["hands"]["percentages"]["blackjack"] = percentages["blackjack"]
     single_sims_averaged["hands"]["percentages"]["won"] = percentages["won"]
-    single_sims_averaged["hands"]["percentages"]["lost"] = percentages["lost"]
     single_sims_averaged["hands"]["percentages"]["drawn"] = percentages["drawn"]
-    single_sims_averaged["bankroll"]["starting"] = single_sims_summed["bankroll"]["starting"] / total_runs
-    single_sims_averaged["bankroll"]["ending"] = single_sims_summed["bankroll"]["ending"] / total_runs
-    single_sims_averaged["bankroll"]["total_profit"] = single_sims_summed["bankroll"]["total_profit"] / total_runs
+    single_sims_averaged["hands"]["percentages"]["lost"] = percentages["lost"]
+    single_sims_averaged["hands"]["percentages"]["surrendered"] = percentages["surrendered"]
+    single_sims_averaged["bankroll"]["starting"] = s["bankroll"]["starting"] / total_runs
+    single_sims_averaged["bankroll"]["ending"] = s["bankroll"]["ending"] / total_runs
+    single_sims_averaged["bankroll"]["total_profit"] = s["bankroll"]["total_profit"] / total_runs
     for i in range(7):
-      single_sims_averaged["bankroll"]["profit_from_true"][i] = (
-        single_sims_summed["bankroll"]["profit_from_true"][i] / total_runs
-      )
-    single_sims_averaged["bankroll"]["profit_per_hand"] = single_sims_summed["bankroll"]["profit_per_hand"] / total_runs
-    single_sims_averaged["bankroll"]["profit_per_hour"] = single_sims_summed["bankroll"]["profit_per_hour"] / total_runs
-    single_sims_averaged["bankroll"]["peak"] = single_sims_summed["bankroll"]["peak"] / total_runs
-    single_sims_averaged["time"]["human_time"] = single_sims_summed["time"]["human_time"] / total_runs
-    single_sims_averaged["time"]["simulation_time"] = single_sims_summed["time"]["simulation_time"] / total_runs
+      single_sims_averaged["bankroll"]["profit_from_true"][i] = s["bankroll"]["profit_from_true"][i] / total_runs
+    single_sims_averaged["bankroll"]["profit_per_hand"] = s["bankroll"]["profit_per_hand"] / total_runs
+    single_sims_averaged["bankroll"]["profit_per_hour"] = s["bankroll"]["profit_per_hour"] / total_runs
+    single_sims_averaged["bankroll"]["peak"] = s["bankroll"]["peak"] / total_runs
+    single_sims_averaged["time"]["human_time"] = s["time"]["human_time"] / total_runs
+    single_sims_averaged["time"]["simulation_time"] = s["time"]["simulation_time"] / total_runs
     return single_sims_averaged
 
   def __get_all_sims_results(self, single_sims_averaged: List[dict], multi_sim_results: dict) -> dict:
@@ -196,10 +205,15 @@ class MultiSimulationRunner():
     total_runs = len(single_sim_results)
     if total_runs == 0:
       return {}
+    BlackjackLogger.debug(f"\n{json.dumps(single_sim_results, indent=2)}\n")
     single_sims_summed = self.__get_single_sims_summed(single_sim_results)
+    BlackjackLogger.debug(f"\n{json.dumps(single_sims_summed, indent=2)}\n")
     percentages = self.__get_percentages(single_sims_summed)
+    BlackjackLogger.debug(f"\n{json.dumps(percentages, indent=2)}\n")
     single_sims_averaged = self.__get_single_sims_averaged(single_sims_summed, total_runs, percentages)
+    BlackjackLogger.debug(f"\n{json.dumps(single_sims_averaged, indent=2)}\n")
     all_sims_results = self.__get_all_sims_results(single_sims_averaged, multi_sim_results)
+    BlackjackLogger.debug(f"\n{json.dumps(all_sims_results, indent=2)}\n")
     self.__results = all_sims_results
 
   def __count_sim(self, sims: dict) -> None:
@@ -216,6 +230,7 @@ class MultiSimulationRunner():
   def __full_reset(self) -> None:
     self.__results_progress = 0
     self.__results = None
+    self.__start_time = None
 
   def __update_results_progress(self, single_sim_results: dict, sims: dict, runs: int) -> None:
     self.__results_progress = int((sims["run"] / runs) * 100)

@@ -10,7 +10,6 @@ class Hand():
   __finalized: bool
   __from_split: bool
   __bet: int
-  __initial_bet: int
   __insurance_bet: int
   __payout: int
   __result: HandResult
@@ -21,7 +20,6 @@ class Hand():
     self.__finalized = False
     self.__from_split = from_split
     self.__bet = bet
-    self.__initial_bet = bet
     self.__insurance_bet = 0
     self.__payout = 0
     self.__result = HandResult.UNDETERMINED
@@ -65,9 +63,6 @@ class Hand():
   def get_bet(self) -> int:
     return self.__bet
 
-  def get_initial_bet(self) -> int:
-    return self.__initial_bet
-
   def get_insurance_bet(self) -> int:
     return self.__insurance_bet
 
@@ -110,6 +105,9 @@ class Hand():
   def set_payout(self, amount: int) -> None:
     self.__payout = amount
 
+  def set_from_split(self, val: bool) -> None:
+    self.__from_split = val
+
   def reset_an_ace(self) -> None:
     if self.get_value() > 21:
       if self.is_soft():
@@ -137,7 +135,6 @@ class Hand():
       "finalized": self.__finalized,
       "from_split": self.__from_split,
       "bet": self.__bet,
-      "initial_bet": self.__initial_bet,
       "insurance_bet": self.__insurance_bet,
       "payout": self.__payout,
       "result": self.__result.name,

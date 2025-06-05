@@ -33,11 +33,6 @@ class BasicStrategyEngine():
   ) -> List[PlayerDecision]:
     assert isinstance(dealer_face_card_value, int)
     decisions = []
-    if self.__rules_engine.can_late_surrender(active_player_hand):
-      wants_surrender = self.__check_for_surrender(active_player_hand, dealer_face_card_value, true_count)
-      if wants_surrender:
-        decisions.append(PlayerDecision.SURRENDER)
-
     if self.__rules_engine.can_split(active_player_hand, len(player_hands)):
       wants_split = self.__check_for_split(player_hands, active_player_hand, dealer_face_card_value, true_count)
       if wants_split:
@@ -71,11 +66,12 @@ class BasicStrategyEngine():
     return True
 
   def wants_to_surrender(self, dealer_face_card_value: int, player_hand: Hand, true_count: int) -> bool:
-    if not self.__rules_engine.can_late_surrender(player_hand):
-      return False
     adjusted_true_count = self.__get_adjusted_true_count(true_count)
     adjusted_player_hand_value = self.__get_adjusted_player_hand_value(player_hand)
-    return BasicStrategy.surrender[(adjusted_true_count, dealer_face_card_value, adjusted_player_hand_value)]
+    wants_surrender = BasicStrategy.surrender[
+      (adjusted_true_count, dealer_face_card_value, adjusted_player_hand_value)
+    ]
+    return wants_surrender
 
   def __check_for_split(
     self,
@@ -97,21 +93,6 @@ class BasicStrategyEngine():
       if splitting_decision == PairSplittingDecision.IF_DOUBLE_AFTER_SPLITTING_ALLOWED:
         if self.__rules_engine.can_double_after_split():
           return True
-    return False
-
-  def __check_for_surrender(
-    self,
-    player_hand: Hand,
-    dealer_face_card_value: int,
-    true_count: int
-  ) -> bool:
-    adjusted_true_count = self.__get_adjusted_true_count(true_count)
-    adjusted_player_hand_value = self.__get_adjusted_player_hand_value(player_hand)
-    should_surrender = BasicStrategy.surrender[
-      (adjusted_true_count, dealer_face_card_value, adjusted_player_hand_value)
-    ]
-    if should_surrender:
-      return True
     return False
 
   def __get_adjusted_player_hand_value(self, player_hand: Hand) -> int:

@@ -51,7 +51,7 @@ class RulesEngine():
           return self.can_split(active_hand, current_hand_count)
         return False
       case PlayerDecision.SURRENDER:
-        return self.can_late_surrender(active_hand)
+        return False
       case _:
         raise ValueError(f"PlayerDecision not implemented: {decision.value}")
 

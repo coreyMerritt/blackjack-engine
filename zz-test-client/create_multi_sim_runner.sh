@@ -21,7 +21,7 @@ curl -s -X POST "http://localhost:8000/session/simulation/multi/create" \
           "dealer_rules": {
             "dealer_hits_soft_seventeen": true,
             "deck_count": 6,
-            "shoe_reset_percentage": 10,
+            "shoe_reset_percentage": 20,
             "blackjack_pays_multiplier": 1.5
           },
           "double_down_rules": {
@@ -44,7 +44,7 @@ curl -s -X POST "http://localhost:8000/session/simulation/multi/create" \
         "ai_player_info": [
           {
             "counts_cards": true,
-            "plays_deviations": true,
+            "plays_deviations": false,
             "bankroll": 5000,
             "basic_strategy_skill_level": 100,
             "card_counting_skill_level": 100,

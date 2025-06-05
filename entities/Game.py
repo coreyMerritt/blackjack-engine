@@ -116,6 +116,10 @@ class Game:
     for player in self.__human_players:
       if str(player.get_id()) == str(player_id):
         player.set_wants_surrender(surrender)
+        hand = player.get_hand(0)
+        player.increment_bankroll(hand.get_bet() / 2)
+        hand.set_finalized()
+        hand.set_result(HandResult.SURRENDERED)
         return
     raise ValueError("player_id given does not match any existing player")
 
@@ -434,9 +438,9 @@ class Game:
         return False
       if self.__rules_engine.can_early_surrender(hand):
         if player.wants_to_surrender(self.__dealer.get_facecard().get_value(), self.__dealer.get_decks_remaining()):
+          player.increment_bankroll(hand.get_bet() / 2)
           hand.is_finalized()
           hand.set_result(HandResult.SURRENDERED)
-          hand.set_payout(hand.get_bet() / 2)
 
   def __dealer_blackjack_check(self) -> GameState:
     if self.__dealer.has_blackjack():
@@ -463,7 +467,11 @@ class Game:
         return
       if self.__rules_engine.can_late_surrender(hand):
         if player.wants_to_surrender(self.__dealer.get_facecard().get_value(), self.__dealer.get_decks_remaining()):
-          hand.set_payout(hand.get_bet() / 2)
+          BlackjackLogger.debug("\t\tSurrender")
+          player.increment_bankroll(hand.get_bet() / 2)
+          hand = player.get_hand(0)
+          hand.set_finalized()
+          hand.set_result(HandResult.SURRENDERED)
 
   def __handle_ai_decisions(self) -> None:
     while self.__is_unhandled_active_player_hand():
@@ -549,6 +557,7 @@ class Game:
         card.set_value(11)
     bet = active_hand.get_bet()
     active_player.decrement_bankroll(bet)
+    active_hand.set_from_split(True)
     card = active_hand.pop_card()
     new_hand = Hand([card], bet, True)
     active_player.add_new_hand(new_hand)
@@ -626,7 +635,7 @@ class Game:
         elif result == HandResult.SURRENDERED:
           BlackjackLogger.debug("\t\tSurrendered!")
           self.__dealer.increment_bankroll(bet, True)
-          player.increment_bankroll(payout)
+          # The half bet should already be returned before now
         else:
           raise NotImplementedError("HandResult not implemented")
 

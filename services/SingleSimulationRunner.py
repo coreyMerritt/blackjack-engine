@@ -1,6 +1,7 @@
 import asyncio
 from cmath import inf
 from copy import deepcopy
+import os
 import time
 from typing import List
 from entities.Game import Game
@@ -48,27 +49,34 @@ class SingleSimulationRunner():
     self.__start_time = time.time()
     br = self.__game.get_ai_players()[0].get_bankroll()
     bankroll = {"starting": br, "highest": br, "lowest": br}
-    counts = {"total": 0, "won": 0, "lost": 0, "drawn": 0, "blackjack": 0}
+    counts = {"total": 0, "won": 0, "lost": 0, "drawn": 0, "blackjack": 0, "surrendered": 0}
     profit_from_true = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     someone_has_bankroll = self.__game.someone_has_bankroll()
     bankroll_is_below_goal = self.__calculate_if_bankroll_is_below_goal()
 
     while(someone_has_bankroll and bankroll_is_below_goal):
       await self.__play_a_hand(bankroll, profit_from_true, counts)
+      assert self.__results_progress <= 100
+      assert self.__results_progress >= -100
       if self.__results_progress == 100 or self.__results_progress == -100:
         break
       someone_has_bankroll = self.__game.someone_has_bankroll()
       bankroll_is_below_goal = self.__calculate_if_bankroll_is_below_goal()
 
     ending_bankroll = round(self.__game.get_ai_players()[0].get_bankroll(), 0)
+    assert ending_bankroll >= 0
+    max_possible_win = self.__game.get_ai_players()[0].get_bet_spread().true_six * 8
+    assert ending_bankroll <= self.__bankroll_goal + max_possible_win
     total_profit = round(ending_bankroll - bankroll["starting"], 2)
     percentages = {
-      "won": self.__get_winrate(counts),
-      "lost": self.__get_lossrate(counts),
-      "drawn": self.__get_drawrate(counts)
+      "blackjack": self.__get_blackjack_rate(counts),
+      "won": self.__get_win_rate(counts),
+      "drawn": self.__get_draw_rate(counts),
+      "lost": self.__get_loss_rate(counts),
+      "surrendered": self.__get_surrender_rate(counts)
     }
-    for i in range(7):
-      profit_from_true[i] = round(profit_from_true[i], 2)
+    assert sum(percentages.values()) >= 99.99
+    assert sum(percentages.values()) <= 100.01
 
     self.__results = {
       "hands": {
@@ -111,15 +119,19 @@ class SingleSimulationRunner():
     return {
       "hands": {
         "counts": {
-          "total": f"{self.__results['hands']['counts']['total']:,}",
-          "won": f"{self.__results['hands']['counts']['won']:,}",
-          "lost": f"{self.__results['hands']['counts']['lost']:,}",
-          "drawn": f"{self.__results['hands']['counts']['drawn']:,}"
+          "total": f"{int(self.__results['hands']['counts']['total']):,}",
+          "blackjack": f"{int(self.__results['hands']['counts']['blackjack']):,}",
+          "won": f"{int(self.__results['hands']['counts']['won']):,}",
+          "drawn": f"{int(self.__results['hands']['counts']['drawn']):,}",
+          "lost": f"{int(self.__results['hands']['counts']['lost']):,}",
+          "surrendered": f"{int(self.__results['hands']['counts']['surrendered']):,}"
         },
         "percentages": {
+          "blackjack": f"{round(self.__results['hands']['percentages']['blackjack'], 2):.2f}%",
           "won": f"{round(self.__results['hands']['percentages']['won'], 2):.2f}%",
+          "drawn": f"{round(self.__results['hands']['percentages']['drawn'], 2):.2f}%",
           "lost": f"{round(self.__results['hands']['percentages']['lost'], 2):.2f}%",
-          "drawn": f"{round(self.__results['hands']['percentages']['drawn'], 2):.2f}%"
+          "surrendered": f"{round(self.__results['hands']['percentages']['surrendered'], 2):.2f}%"
         }
       },
       "bankroll": {
@@ -161,20 +173,25 @@ class SingleSimulationRunner():
     hours = total_hands_played / self.__hands_per_hour
     minutes = hours * 60
     seconds = minutes * 60
-    human_time = round(seconds, 2)
-    return human_time
+    return seconds
 
-  def __get_winrate(self, counts: dict) -> float:
+  def __get_blackjack_rate(self, counts: dict) -> float:
+    return (counts["blackjack"] / counts["total"]) * 100
+
+  def __get_win_rate(self, counts: dict) -> float:
     return (counts["won"] / counts["total"]) * 100
 
-  def __get_lossrate(self, counts: dict) -> float:
-    return (counts["lost"] / counts["total"]) * 100
-
-  def __get_drawrate(self, counts: dict) -> float:
+  def __get_draw_rate(self, counts: dict) -> float:
     return (counts["drawn"] / counts["total"]) * 100
 
-  def __get_formatted_bankroll(self, value: float) -> str:
-    return f"-${abs(value):,.2f}" if value < 0 else f"${value:,.2f}"
+  def __get_loss_rate(self, counts: dict) -> float:
+    return (counts["lost"] / counts["total"]) * 100
+
+  def __get_surrender_rate(self, counts: dict) -> float:
+    return (counts["surrendered"] / counts["total"]) * 100
+
+  def __get_formatted_bankroll(self, bankroll: float) -> str:
+    return f"-${abs(bankroll):,.2f}" if bankroll < 0 else f"${bankroll:,.2f}"
 
   def __get_time_formatted(self, seconds: float) -> str:
     if seconds > 60:
@@ -212,15 +229,20 @@ class SingleSimulationRunner():
     ai_player = self.__game.get_ai_players()[0]
     true_count = ai_player.calculate_true_count(self.__game.get_dealer().get_decks_remaining())
     self.__game.continue_until_state(GameState.CLEANUP)
+    assert self.__game.get_state() == GameState.CLEANUP
     self.__update_bankroll(bankroll)
     for hand in ai_player.get_hands():
       self.__update_profits(hand, true_count, profit_from_true, counts)
+    total_profit = ai_player.get_bankroll() - bankroll["starting"]
+    total_from_true = sum(profit_from_true)
+    assert total_profit == total_from_true
     self.__game.finish_round()
+    assert self.__game.get_state() == GameState.BETTING
     await self.__occasionally_yield_event_loop_control(counts["total"])
     self.__update_results_progress(counts["total"], time.time() - self.__start_time)
 
   async def __occasionally_yield_event_loop_control(self, total_hands_played) -> None:
-    if total_hands_played % 100 == 0:
+    if total_hands_played % int(os.getenv('BJE_YIELD_EVERY_X_HANDS')) == 0:
       await asyncio.sleep(0)
 
   def __update_bankroll(self, bankroll: dict) -> None:
@@ -232,9 +254,9 @@ class SingleSimulationRunner():
 
   def __update_profits(self, hand: Hand, true_count: int, profit_from_true: List[float], counts: dict) -> None:
     hand_result = hand.get_result()
+    assert hand_result != HandResult.UNDETERMINED
     bet = hand.get_bet()
-    initial_bet = hand.get_initial_bet()
-    BlackjackLogger.debug(f"\t\tBet history: {initial_bet}")
+    assert bet > 0
     payout = hand.get_payout()
     if true_count > 6:
       adjusted_true_count = 6
@@ -242,18 +264,19 @@ class SingleSimulationRunner():
       adjusted_true_count = 0
     else:
       adjusted_true_count = true_count
-    if hand_result == HandResult.LOSS:
-      profit_from_true[adjusted_true_count] -= bet
     profit_from_true[adjusted_true_count] += payout
     if hand_result == HandResult.BLACKJACK:
       counts["blackjack"] += 1
-      counts["won"] += 1
     elif hand_result == HandResult.WIN:
       counts["won"] += 1
     elif hand_result == HandResult.LOSS:
+      profit_from_true[adjusted_true_count] -= bet
       counts["lost"] += 1
     elif hand_result == HandResult.DRAW:
       counts["drawn"] += 1
+    elif hand_result == HandResult.SURRENDERED:
+      profit_from_true[adjusted_true_count] -= bet / 2
+      counts["surrendered"] += 1
     counts["total"] += 1
     BlackjackLogger.debug(f"\t\tHand result: {hand_result}")
     BlackjackLogger.debug(f"\t\tPayout: {payout}")

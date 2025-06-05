@@ -3,6 +3,8 @@ from pydantic import BaseModel
 
 class HandResultsCountsFormatted(BaseModel):
   total: str = ""
+  blackjack: str = ""
   won: str = ""
-  lost: str = ""
   drawn: str = ""
+  lost: str = ""
+  surrendered: str = ""

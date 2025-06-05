@@ -12,7 +12,7 @@ class Dealer(Player):
   __shoe: Shoe
 
   def __init__(self, rules: DealerRules):
-    super().__init__(PlayerInfo(bankroll=999999999.0))
+    super().__init__(PlayerInfo(bankroll=4000000000.0))
     self.__hits_soft_seventeen = rules.dealer_hits_soft_seventeen
     self.__blackjack_pays_multiplier = rules.blackjack_pays_multiplier
     self.__shoe = Shoe(rules.deck_count, rules.shoe_reset_percentage)
