@@ -1,3 +1,4 @@
+import asyncio
 from typing import List
 from uuid import UUID
 from entities.Card import Card
@@ -40,11 +41,30 @@ class Game:
         ai_player = AiPlayer(single_ai_player_info, self.__rules_engine)
         self.__ai_players.append(ai_player)
 
-  def is_unhandled_active_player_hand(self) -> bool:
-    hand = self.__calculate_active_hand()
-    if hand is None:
+  async def monitor_human_states(self) -> None:
+    while self.get_state() != GameState.NOT_STARTED:
+      if len(self.__human_players) > 0:
+        await asyncio.sleep(0.2)
+        if self.get_state() == GameState.BETTING:
+          players_still_betting = False
+          for player in self.get_human_players():
+            if player.get_hand_count() == 0:
+              players_still_betting = True
+          if not players_still_betting:
+            self.to_next_human_state()
+        else:
+          if not self.is_unhandled_human_player_hand():
+            self.to_next_human_state()
+
+  def is_unhandled_human_player_hand(self) -> bool:
+    active_hand = self.__calculate_active_hand()
+    if active_hand is None:
       return False
-    return True
+    for human_player in self.__human_players:
+      for hand in human_player.get_hands():
+        if active_hand == hand:
+          return True
+    return False
 
   def someone_has_bankroll(self) -> bool:
     for player in self.__ai_players + self.__human_players:
@@ -73,6 +93,8 @@ class Game:
     return player_id
 
   def start_game(self) -> None:
+    if len(self.__human_players) > 0:
+      asyncio.create_task(self.monitor_human_states())
     self.__to_next_state()
 
   def place_human_player_bet(self, player_id: str, bet: float) -> None:
@@ -159,11 +181,11 @@ class Game:
       next_state = self.__dealer_blackjack_check()
       self.continue_until_state(next_state)
     elif self.get_state() == GameState.LATE_SURRENDER:
-      self.set_state(GameState.HUMAN_PLAYER_DECISIONS)
+      self.continue_until_state(GameState.HUMAN_PLAYER_DECISIONS)
     elif self.get_state() == GameState.HUMAN_PLAYER_DECISIONS:
-      self.set_state(GameState.BETTING)
+      self.continue_until_state(GameState.BETTING)
     elif self.get_state() == GameState.PAYOUTS:
-      self.set_state(GameState.BETTING)
+      self.continue_until_state(GameState.BETTING)
 
   def finish_round(self) -> None:
     while self.get_state() != GameState.BETTING:
@@ -181,6 +203,12 @@ class Game:
       "state": self.__state.name,
     }
 
+  def __is_unhandled_active_player_hand(self) -> bool:
+    hand = self.__calculate_active_hand()
+    if hand is None:
+      return False
+    return True
+
   def __is_any_competing_hand(self) -> bool:
     for player in self.__ai_players + self.__human_players:
       for hand in player.get_hands():
@@ -194,7 +222,7 @@ class Game:
 
   def __calculate_active_player(self, dealer_allowed=False) -> Player | None:
     if dealer_allowed:
-      if not self.is_unhandled_active_player_hand():
+      if not self.__is_unhandled_active_player_hand():
         return self.__dealer
     for player in self.__human_players + self.__ai_players:
       if player.has_active_hand():
@@ -203,7 +231,7 @@ class Game:
 
   def __calculate_active_hand(self, dealer_hand_allowed=False) -> Hand | None:
     if dealer_hand_allowed:
-      if not self.is_unhandled_active_player_hand():
+      if not self.__is_unhandled_active_player_hand():
         return self.__dealer.get_hand(0)
     active_player = self.__calculate_active_player()
     if active_player is None:
@@ -438,7 +466,7 @@ class Game:
           hand.set_payout(hand.get_bet() / 2)
 
   def __handle_ai_decisions(self) -> None:
-    while self.is_unhandled_active_player_hand():
+    while self.__is_unhandled_active_player_hand():
       active_player = self.__calculate_active_player()
       BlackjackLogger.debug(f"\tPlayer-{active_player.get_id()}")
       if not active_player:
@@ -465,7 +493,7 @@ class Game:
           break
 
   def __execute_decision(self, decision: PlayerDecision) -> None:
-    assert self.is_unhandled_active_player_hand()
+    assert self.__is_unhandled_active_player_hand()
     match decision:
       case PlayerDecision.HIT:
         self.__hit_active_hand()
@@ -480,7 +508,7 @@ class Game:
 
   def __hit_active_hand(self, dealer_allowed=False) -> None:
     if not dealer_allowed:
-      assert self.is_unhandled_active_player_hand()
+      assert self.__is_unhandled_active_player_hand()
     active_hand = self.__calculate_active_hand(dealer_allowed)
     card = self.__dealer.draw()
     active_hand.add_card(card)
@@ -498,7 +526,7 @@ class Game:
     active_hand.set_finalized()
 
   def __double_down_active_hand(self) -> None:
-    assert self.is_unhandled_active_player_hand()
+    assert self.__is_unhandled_active_player_hand()
     active_player = self.__calculate_active_player()
     active_hand = active_player.calculate_active_hand()
     active_player.decrement_bankroll(active_hand.get_bet())
@@ -539,7 +567,7 @@ class Game:
     active_player.get_hands().remove(active_hand)
 
   def __handle_dealer_decisions(self) -> None:
-    assert not self.is_unhandled_active_player_hand()
+    assert not self.__is_unhandled_active_player_hand()
     if self.__is_any_competing_hand():
       dealer_hand = self.__dealer.get_hand(0)
       assert dealer_hand.get_card_count() == 2
