@@ -38,7 +38,7 @@ curl -s -X POST "http://localhost:8000/session/simulation/multi/create" \
           },
           "surrender_rules": {
             "early_surrender_allowed": false,
-            "late_surrender_allowed": false
+            "late_surrender_allowed": true
           }
         },
         "ai_player_info": [

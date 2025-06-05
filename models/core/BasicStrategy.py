@@ -4251,7 +4251,7 @@ class BasicStrategy():
       (0, 9, 12): False,
       (0, 9, 13): False,
       (0, 9, 14): False,
-      (0, 11, 15): True,
+      (0, 9, 15): True,
       (0, 9, 16): False,
       (0, 9, 17): False,
       (0, 9, 18): False,
