@@ -63,11 +63,11 @@ class SingleSimulationRunner():
       someone_has_bankroll = self.__game.someone_has_bankroll()
       bankroll_is_below_goal = self.__calculate_if_bankroll_is_below_goal()
 
-    ending_bankroll = round(self.__game.get_ai_players()[0].get_bankroll(), 0)
+    ending_bankroll = self.__game.get_ai_players()[0].get_bankroll()
     assert ending_bankroll >= 0
     max_possible_win = self.__game.get_ai_players()[0].get_bet_spread().true_six * 8
     assert ending_bankroll <= self.__bankroll_goal + max_possible_win
-    total_profit = round(ending_bankroll - bankroll["starting"], 2)
+    total_profit = ending_bankroll - bankroll["starting"]
     percentages = {
       "blackjack": self.__get_blackjack_rate(counts),
       "won": self.__get_win_rate(counts),
@@ -88,13 +88,13 @@ class SingleSimulationRunner():
         "ending": ending_bankroll,
         "total_profit": total_profit,
         "profit_from_true": profit_from_true,
-        "profit_per_hand": round(total_profit / counts["total"], 2),
-        "profit_per_hour": round((total_profit / counts["total"]) * self.__hands_per_hour, 2),
+        "profit_per_hand": total_profit / counts["total"],
+        "profit_per_hour": (total_profit / counts["total"]) * self.__hands_per_hour,
         "peak": bankroll["highest"]
       },
       "time": {
         "human_time": self.__get_human_time(counts["total"]),
-        "simulation_time": round(time.time() - self.__start_time, 2)
+        "simulation_time": time.time() - self.__start_time
       }
     }
 

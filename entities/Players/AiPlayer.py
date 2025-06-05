@@ -45,9 +45,16 @@ class AiPlayer(Player):
 
   def wants_to_surrender(self, dealer_face_card_value: int, decks_remaining: float) -> bool:
     assert self.get_hand_count() == 1
+    hand = self.get_hand(0)
+    if hand.is_soft():
+      return False
+    # This is a practical but imperfect check, since realistically we only surrender
+    # on 15/16 anyway, and we want to ensure we don't surrender 8/8
+    if hand.is_pair():
+      return False
     return self.__basic_strategy_engine.wants_to_surrender(
       dealer_face_card_value,
-      self.get_hand(0),
+      hand,
       self.calculate_true_count(decks_remaining)
     )
 

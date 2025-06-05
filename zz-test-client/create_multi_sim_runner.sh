@@ -6,7 +6,7 @@ curl -s -X POST "http://localhost:8000/session/simulation/multi/create" \
         "bounds": {
           "bankroll_goal": 10000,
           "human_time_limit": null,
-          "sim_time_limit": null
+          "sim_time_limit": 7200
         },
         "time": {
           "hands_per_hour": 100,
@@ -50,13 +50,13 @@ curl -s -X POST "http://localhost:8000/session/simulation/multi/create" \
             "card_counting_skill_level": 100,
             "deviations_skill_level": 100,
             "bet_spread": {
-              "true_zero": 5,
-              "true_one": 10,
-              "true_two": 20,
-              "true_three": 30,
-              "true_four": 40,
-              "true_five": 50,
-              "true_six": 60
+              "true_zero": 25,
+              "true_one": 25,
+              "true_two": 25,
+              "true_three": 25,
+              "true_four": 25,
+              "true_five": 25,
+              "true_six": 25
             }
           }
         ]

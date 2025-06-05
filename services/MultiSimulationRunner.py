@@ -102,8 +102,7 @@ class MultiSimulationRunner():
     hours = total_hands_played / self.__hands_per_hour
     minutes = hours * 60
     seconds = minutes * 60
-    human_time = round(seconds, 2)
-    return human_time
+    return seconds
 
   def __get_time_formatted(self, seconds: float) -> str:
     if seconds > 60:
@@ -205,15 +204,11 @@ class MultiSimulationRunner():
     total_runs = len(single_sim_results)
     if total_runs == 0:
       return {}
-    BlackjackLogger.debug(f"\n{json.dumps(single_sim_results, indent=2)}\n")
     single_sims_summed = self.__get_single_sims_summed(single_sim_results)
-    BlackjackLogger.debug(f"\n{json.dumps(single_sims_summed, indent=2)}\n")
     percentages = self.__get_percentages(single_sims_summed)
-    BlackjackLogger.debug(f"\n{json.dumps(percentages, indent=2)}\n")
     single_sims_averaged = self.__get_single_sims_averaged(single_sims_summed, total_runs, percentages)
-    BlackjackLogger.debug(f"\n{json.dumps(single_sims_averaged, indent=2)}\n")
+    assert sum(single_sims_averaged["bankroll"]["profit_from_true"]) == single_sims_averaged["bankroll"]["total_profit"]
     all_sims_results = self.__get_all_sims_results(single_sims_averaged, multi_sim_results)
-    BlackjackLogger.debug(f"\n{json.dumps(all_sims_results, indent=2)}\n")
     self.__results = all_sims_results
 
   def __count_sim(self, sims: dict) -> None:
