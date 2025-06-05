@@ -26,15 +26,10 @@ class SessionManagerSingleton:
   def create_game(
     self,
     rules: GameRules,
-    human_player_info: List[HumanPlayerInfo],
     ai_player_info: List[AiPlayerInfo]
   ) -> str:
     session_id = str(uuid.uuid4())
-    game = Game(
-      rules,
-      human_player_info,
-      ai_player_info
-    )
+    game = Game(rules, ai_player_info)
     self._game_sessions[session_id] = game
     return session_id
 
@@ -46,11 +41,7 @@ class SessionManagerSingleton:
     ai_player_info: List[AiPlayerInfo]
   ) -> str:
     session_id = str(uuid.uuid4())
-    game = Game(
-      rules,
-      None,
-      ai_player_info
-    )
+    game = Game(rules, ai_player_info)
     single_sim_runner = SingleSimulationRunner(game, bounds, time)
     self._single_sim_runner_sessions[session_id] = single_sim_runner
     return session_id
@@ -63,11 +54,7 @@ class SessionManagerSingleton:
     ai_player_info: List[AiPlayerInfo]
   ) -> str:
     session_id = str(uuid.uuid4())
-    game = Game(
-      rules,
-      None,
-      ai_player_info
-    )
+    game = Game(rules, ai_player_info)
     multi_sim_runner = MultiSimulationRunner(game, bounds, time)
     self._multi_sim_runner_sessions[session_id] = multi_sim_runner
     return session_id

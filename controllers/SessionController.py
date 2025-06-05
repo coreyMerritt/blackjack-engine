@@ -10,11 +10,10 @@ class SessionController:
   async def create_game(self, req: CreateGameReq) -> JSONResponse:
     session_id = session_manager.create_game(
       req.rules,
-      req.human_player_info,
       req.ai_player_info
     )
 
-    return JSONResponse(content=session_id)
+    return JSONResponse(status_code=200, content=session_id)
 
   async def create_single_sim_runner(self, req: CreateSimulationReq) -> JSONResponse:
     session_id = session_manager.create_single_sim_runner(
@@ -24,7 +23,7 @@ class SessionController:
       req.ai_player_info
     )
 
-    return JSONResponse(content=session_id)
+    return JSONResponse(status_code=200, content=session_id)
 
   async def create_multi_sim_runner(self, req: CreateSimulationReq) -> JSONResponse:
     session_id = session_manager.create_multi_sim_runner(
@@ -34,4 +33,4 @@ class SessionController:
       req.ai_player_info
     )
 
-    return JSONResponse(content=session_id)
+    return JSONResponse(status_code=200, content=session_id)

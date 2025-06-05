@@ -130,3 +130,18 @@ class Hand():
   def set_result(self, result: HandResult) -> None:
     self.__result = result
     self.set_finalized()
+
+  def to_dict(self) -> dict:
+    return {
+      "doubled_down": self.__doubled_down,
+      "finalized": self.__finalized,
+      "from_split": self.__from_split,
+      "bet": self.__bet,
+      "initial_bet": self.__initial_bet,
+      "insurance_bet": self.__insurance_bet,
+      "payout": self.__payout,
+      "result": self.__result.name,
+      "cards": [card.to_dict() for card in self.__cards],
+      "value": self.get_value(),
+      "soft": self.is_soft(),
+    }

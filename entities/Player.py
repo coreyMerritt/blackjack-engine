@@ -86,6 +86,7 @@ class Player(ABC):
 
   def to_dict(self) -> dict:
     return {
-      "hand": [c.to_dict() for hand in self.__hands for c in hand.get_cards()],
-      "bankroll": self.__bankroll
+      "id": str(self.__id),
+      "bankroll": self.__bankroll,
+      "hands": [hand.to_dict() for hand in self.__hands]
     }

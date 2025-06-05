@@ -1,4 +1,5 @@
 from typing import List
+from uuid import UUID
 from entities.Card import Card
 from entities.Dealer import Dealer
 from entities.Hand import Hand
@@ -26,7 +27,6 @@ class Game:
   def __init__(
     self,
     rules: GameRules,
-    human_player_info: List[HumanPlayerInfo] | None,
     ai_player_info: List[AiPlayerInfo] | None
   ):
     self.__rules_engine = RulesEngine(rules)
@@ -34,16 +34,17 @@ class Game:
     self.__dealer = Dealer(rules.dealer_rules)
 
     self.__human_players = []
-    if human_player_info is not None:
-      for single_human_player_info in human_player_info:
-        human_player = HumanPlayer(single_human_player_info)
-        self.__human_players.append(human_player)
-
     self.__ai_players = []
     if ai_player_info is not None:
       for single_ai_player_info in ai_player_info:
         ai_player = AiPlayer(single_ai_player_info, self.__rules_engine)
         self.__ai_players.append(ai_player)
+
+  def is_unhandled_active_player_hand(self) -> bool:
+    hand = self.__calculate_active_hand()
+    if hand is None:
+      return False
+    return True
 
   def someone_has_bankroll(self) -> bool:
     for player in self.__ai_players + self.__human_players:
@@ -57,17 +58,112 @@ class Game:
   def get_state(self) -> GameState:
     return self.__state
 
+  def get_human_players(self) -> List[HumanPlayer]:
+    return self.__human_players
+
   def get_ai_players(self) -> List[AiPlayer]:
     return self.__ai_players
 
   def get_human_and_ai_players(self) -> List[Player]:
     return self.__human_players + self.__ai_players
 
+  def register_human_player(self, human_player_info: HumanPlayerInfo) -> UUID:
+    self.__human_players.append(HumanPlayer(human_player_info))
+    player_id = self.__human_players[-1].get_id()
+    return player_id
+
+  def start_game(self) -> None:
+    self.__to_next_state()
+
+  def place_human_player_bet(self, player_id: str, bet: float) -> None:
+    for player in self.__human_players:
+      if str(player.get_id()) == str(player_id):
+        player.add_new_hand(Hand([], bet, False))
+        player.decrement_bankroll(bet)
+        return
+    raise ValueError("player_id given does not match any existing player")
+
+  def set_human_player_wants_insurance(self, player_id: str, insurance: bool) -> None:
+    for player in self.__human_players:
+      if str(player.get_id()) == str(player_id):
+        player.set_wants_insurance(insurance)
+        return
+    raise ValueError("player_id given does not match any existing player")
+
+  def set_human_player_wants_surrender(self, player_id: str, surrender: bool) -> None:
+    for player in self.__human_players:
+      if str(player.get_id()) == str(player_id):
+        player.set_wants_surrender(surrender)
+        return
+    raise ValueError("player_id given does not match any existing player")
+
+  def hit_human_player(self, player_id: str) -> None:
+    for player in self.__human_players:
+      if str(player.get_id()) == str(player_id):
+        for hand in player.get_hands():
+          if hand == self.__calculate_active_hand():
+            self.__hit_active_hand()
+            return
+    raise ValueError("The given player_id does not match the active player")
+
+  def stand_human_player(self, player_id: str) -> None:
+    for player in self.__human_players:
+      if str(player.get_id()) == str(player_id):
+        for hand in player.get_hands():
+          if hand == self.__calculate_active_hand():
+            self.__stand_active_hand()
+            return
+    raise ValueError("The given player_id does not match the active player")
+
+  def double_down_human_player(self, player_id: str) -> None:
+    for player in self.__human_players:
+      if str(player.get_id()) == str(player_id):
+        for hand in player.get_hands():
+          if hand == self.__calculate_active_hand():
+            self.__double_down_active_hand()
+            return
+    raise ValueError("The given player_id does not match the active player")
+
+  def split_human_player(self, player_id: str) -> None:
+    for player in self.__human_players:
+      if str(player.get_id()) == str(player_id):
+        for hand in player.get_hands():
+          if hand == self.__calculate_active_hand():
+            self.__split_active_hand()
+            return
+    raise ValueError("The given player_id does not match the active player")
+
   def continue_until_state(self, state: GameState) -> None:
     while True:
       if self.get_state() == state:
         return
       self.__to_next_state()
+
+  def to_next_human_state(self) -> None:
+    if self.get_state() == GameState.NOT_STARTED:
+      self.continue_until_state(GameState.BETTING)
+    elif self.get_state() == GameState.BETTING:
+      self.continue_until_state(GameState.INSURANCE)
+    elif self.get_state() == GameState.INSURANCE:
+      for player in self.__ai_players + self.__human_players:
+        if self.__rules_engine.can_early_surrender(player.get_hand(0)):
+          self.continue_until_state(GameState.EARLY_SURRENDER)
+          return
+      next_state = self.__dealer_blackjack_check()
+      if next_state == GameState.RESULTS:
+        self.continue_until_state(GameState.BETTING)
+      else:
+        self.continue_until_state(next_state)
+
+    elif self.get_state() == GameState.EARLY_SURRENDER:
+      next_state = self.__dealer_blackjack_check()
+      self.continue_until_state(next_state)
+    elif self.get_state() == GameState.LATE_SURRENDER:
+      self.set_state(GameState.HUMAN_PLAYER_DECISIONS)
+    elif self.get_state() == GameState.HUMAN_PLAYER_DECISIONS:
+      self.set_state(GameState.BETTING)
+    elif self.get_state() == GameState.PAYOUTS:
+      self.set_state(GameState.BETTING)
 
   def finish_round(self) -> None:
     while self.get_state() != GameState.BETTING:
@@ -79,17 +175,11 @@ class Game:
 
   def to_dict(self) -> dict:
     return {
-      "state": self.__state.name,
       "dealer": self.__dealer.to_dict(),
+      "ai_players": [p.to_dict() for p in self.__ai_players],
       "human_players": [p.to_dict() for p in self.__human_players],
-      "ai_players": [p.to_dict() for p in self.__ai_players]
+      "state": self.__state.name,
     }
-
-  def __is_unhandled_active_player_hand(self) -> bool:
-    hand = self.__calculate_active_hand()
-    if hand is None:
-      return False
-    return True
 
   def __is_any_competing_hand(self) -> bool:
     for player in self.__ai_players + self.__human_players:
@@ -104,7 +194,7 @@ class Game:
 
   def __calculate_active_player(self, dealer_allowed=False) -> Player | None:
     if dealer_allowed:
-      if not self.__is_unhandled_active_player_hand():
+      if not self.is_unhandled_active_player_hand():
         return self.__dealer
     for player in self.__human_players + self.__ai_players:
       if player.has_active_hand():
@@ -113,7 +203,7 @@ class Game:
 
   def __calculate_active_hand(self, dealer_hand_allowed=False) -> Hand | None:
     if dealer_hand_allowed:
-      if not self.__is_unhandled_active_player_hand():
+      if not self.is_unhandled_active_player_hand():
         return self.__dealer.get_hand(0)
     active_player = self.__calculate_active_player()
     if active_player is None:
@@ -200,7 +290,12 @@ class Game:
       self.set_state(GameState.INSURANCE)
     elif self.get_state() == GameState.INSURANCE:
       self.__handle_insurance()
-      self.set_state(GameState.EARLY_SURRENDER)
+      for player in self.__ai_players + self.__human_players:
+        if self.__rules_engine.can_early_surrender(player.get_hand(0)):
+          self.set_state(GameState.EARLY_SURRENDER)
+          return
+      self.set_state(GameState.DEALER_BLACKJACK_CHECK)
+
     elif self.get_state() == GameState.EARLY_SURRENDER:
       self.__handle_early_surrender()
       self.set_state(GameState.DEALER_BLACKJACK_CHECK)
@@ -226,7 +321,7 @@ class Game:
       self.__handle_payouts()
       self.set_state(GameState.CLEANUP)
     elif self.get_state() == GameState.CLEANUP:
-      self.__reset_hands()
+      self.__cleanup()
       self.set_state(GameState.BETTING)
 
   def __deal_cards(self) -> int:
@@ -343,7 +438,7 @@ class Game:
           hand.set_payout(hand.get_bet() / 2)
 
   def __handle_ai_decisions(self) -> None:
-    while self.__is_unhandled_active_player_hand():
+    while self.is_unhandled_active_player_hand():
       active_player = self.__calculate_active_player()
       BlackjackLogger.debug(f"\tPlayer-{active_player.get_id()}")
       if not active_player:
@@ -370,7 +465,7 @@ class Game:
           break
 
   def __execute_decision(self, decision: PlayerDecision) -> None:
-    assert self.__is_unhandled_active_player_hand()
+    assert self.is_unhandled_active_player_hand()
     match decision:
       case PlayerDecision.HIT:
         self.__hit_active_hand()
@@ -385,7 +480,7 @@ class Game:
 
   def __hit_active_hand(self, dealer_allowed=False) -> None:
     if not dealer_allowed:
-      assert self.__is_unhandled_active_player_hand()
+      assert self.is_unhandled_active_player_hand()
     active_hand = self.__calculate_active_hand(dealer_allowed)
     card = self.__dealer.draw()
     active_hand.add_card(card)
@@ -403,7 +498,7 @@ class Game:
     active_hand.set_finalized()
 
   def __double_down_active_hand(self) -> None:
-    assert self.__is_unhandled_active_player_hand()
+    assert self.is_unhandled_active_player_hand()
     active_player = self.__calculate_active_player()
     active_hand = active_player.calculate_active_hand()
     active_player.decrement_bankroll(active_hand.get_bet())
@@ -444,7 +539,7 @@ class Game:
     active_player.get_hands().remove(active_hand)
 
   def __handle_dealer_decisions(self) -> None:
-    assert not self.__is_unhandled_active_player_hand()
+    assert not self.is_unhandled_active_player_hand()
     if self.__is_any_competing_hand():
       dealer_hand = self.__dealer.get_hand(0)
       assert dealer_hand.get_card_count() == 2
@@ -506,6 +601,14 @@ class Game:
           player.increment_bankroll(payout)
         else:
           raise NotImplementedError("HandResult not implemented")
+
+  def __cleanup(self) -> None:
+    self.__reset_insurance_decisions()
+    self.__reset_hands()
+
+  def __reset_insurance_decisions(self) -> None:
+    for player in self.__human_players:
+      player.set_wants_insurance(False)
 
   def __reset_hands(self) -> None:
     for player in self.__human_players + self.__ai_players:

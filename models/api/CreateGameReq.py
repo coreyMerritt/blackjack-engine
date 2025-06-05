@@ -7,5 +7,4 @@ from models.core.player_info.HumanPlayerInfo import HumanPlayerInfo
 
 class CreateGameReq(BaseModel):
   rules: GameRules
-  human_player_info: List[HumanPlayerInfo]
   ai_player_info: List[AiPlayerInfo]
