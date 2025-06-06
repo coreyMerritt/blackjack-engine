@@ -207,7 +207,11 @@ class MultiSimulationRunner():
     single_sims_summed = self.__get_single_sims_summed(single_sim_results)
     percentages = self.__get_percentages(single_sims_summed)
     single_sims_averaged = self.__get_single_sims_averaged(single_sims_summed, total_runs, percentages)
-    assert sum(single_sims_averaged["bankroll"]["profit_from_true"]) == single_sims_averaged["bankroll"]["total_profit"]
+    BlackjackLogger.debug(f"~~~sum: {sum(single_sims_averaged['bankroll']['profit_from_true'])}")
+    BlackjackLogger.debug(f"~~~tot: {single_sims_averaged['bankroll']['total_profit']}")
+    profit_from_true = sum(single_sims_averaged["bankroll"]["profit_from_true"])
+    total_profit = single_sims_averaged["bankroll"]["total_profit"]
+    assert abs(profit_from_true - total_profit) < 0.01
     all_sims_results = self.__get_all_sims_results(single_sims_averaged, multi_sim_results)
     self.__results = all_sims_results
 

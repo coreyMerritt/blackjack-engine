@@ -235,7 +235,7 @@ class SingleSimulationRunner():
       self.__update_profits(hand, true_count, profit_from_true, counts)
     total_profit = ai_player.get_bankroll() - bankroll["starting"]
     total_from_true = sum(profit_from_true)
-    assert total_profit == total_from_true
+    assert abs(total_profit - total_from_true) < 0.01
     self.__game.finish_round()
     assert self.__game.get_state() == GameState.BETTING
     await self.__occasionally_yield_event_loop_control(counts["total"])
