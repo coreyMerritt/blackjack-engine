@@ -57,21 +57,20 @@ class BasicStrategyEngine():
     return decisions
 
   # We're proceeding on the assumption that insurance is always bad.
-  def wants_insurance(self, hands: List[Hand], dealer_upcard_face: Face) -> bool:
-    if not self.__rules_engine.can_insure(hands, dealer_upcard_face):
+  def wants_insurance(self, hands: List[Hand], dealer_facecard_face: Face) -> bool:
+    if not self.__rules_engine.can_insure(hands, dealer_facecard_face):
       return False
     accuracy_roll = random.randint(self.__basic_strategy_skill_level, 100)
     if accuracy_roll > 10:
       return False
     return True
 
-  def wants_to_surrender(self, dealer_face_card_value: int, player_hand: Hand, true_count: int) -> bool:
+  def wants_to_surrender(self, dealer_facecard_value: int, player_hand: Hand, true_count: int) -> bool:
     adjusted_true_count = self.__get_adjusted_true_count(true_count)
     adjusted_player_hand_value = self.__get_adjusted_player_hand_value(player_hand)
-    wants_surrender = BasicStrategy.surrender[
-      (adjusted_true_count, dealer_face_card_value, adjusted_player_hand_value)
+    return BasicStrategy.surrender[
+      (adjusted_true_count, dealer_facecard_value, adjusted_player_hand_value)
     ]
-    return wants_surrender
 
   def __check_for_split(
     self,

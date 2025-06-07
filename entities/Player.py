@@ -46,8 +46,8 @@ class Player(ABC):
       if hand == my_hand:
         return i
 
-  def get_id(self) -> UUID:
-    return self.__id
+  def get_id(self) -> str:
+    return str(self.__id)
 
   def get_hand(self, hand_index: int) -> Hand:
     return self.__hands[hand_index]
@@ -55,12 +55,12 @@ class Player(ABC):
   def get_hands(self) -> List[Hand]:
     return self.__hands
 
-  def calculate_active_hand(self) -> Hand | None:
+  def calculate_active_hand(self) -> Hand:
     for hand in self.__hands:
       if not hand.is_finalized():
         assert hand.get_result() == HandResult.UNDETERMINED
         return hand
-    return None
+    raise RuntimeError("Tried to calculate the active_hand of a player with no active_hand")
 
   def set_hands(self, hands: List[Hand]) -> None:
     self.__hands = hands

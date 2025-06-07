@@ -2,7 +2,7 @@ from models.enums.PlayerDecision import PlayerDecision
 from models.enums.PairSplittingDecision import PairSplittingDecision
 
 
-# All tuples in this represent (true_count, dealer_upcard_value, player_hand_value)
+# All tuples in this represent (true_count, dealer_facecard_value, player_hand_value)
 class BasicStrategy():
   hard_totals = {
     (None, 2, 4): [PlayerDecision.HIT, PlayerDecision.STAND],

@@ -1,10 +1,10 @@
 from math import ceil, floor
 from typing import List
+from entities.Card import Card
 from entities.Hand import Hand
 from entities.Player import Player
 from models.core.player_info.AiPlayerInfo import AiPlayerInfo
 from models.core.BetSpread import BetSpread
-from models.enums.Face import Face
 from models.enums.PlayerDecision import PlayerDecision
 from services.BasicStrategyEngine import BasicStrategyEngine
 from services.BlackjackLogger import BlackjackLogger
@@ -39,12 +39,16 @@ class AiPlayer(Player):
   def plays_deviations(self) -> bool:
     return self.__plays_deviations
 
-  def wants_insurance(self, dealer_upcard_face: Face) -> bool:
+  def wants_insurance(self, dealer_facecard: Card) -> bool:
     assert self.get_hand_count() == 1
-    return self.__basic_strategy_engine.wants_insurance(self.get_hands(), dealer_upcard_face)
+    if self.has_blackjack():
+      return False
+    return self.__basic_strategy_engine.wants_insurance(self.get_hands(), dealer_facecard.get_face())
 
-  def wants_to_surrender(self, dealer_face_card_value: int, decks_remaining: float) -> bool:
+  def wants_to_surrender(self, dealer_facecard: Card, decks_remaining: float) -> bool:
     assert self.get_hand_count() == 1
+    if self.has_blackjack():
+      return False
     hand = self.get_hand(0)
     if hand.is_soft():
       return False
@@ -53,7 +57,7 @@ class AiPlayer(Player):
     if hand.is_pair():
       return False
     return self.__basic_strategy_engine.wants_to_surrender(
-      dealer_face_card_value,
+      dealer_facecard.get_value(),
       hand,
       self.calculate_true_count(decks_remaining)
     )

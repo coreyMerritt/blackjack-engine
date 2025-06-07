@@ -1,4 +1,3 @@
-import json
 import time
 from typing import List
 from entities.Game import Game
@@ -7,7 +6,6 @@ from models.core.SimulationBounds import SimulationBounds
 from models.core.results.SimulationMultiResultsFormatted import SimulationMultiResultsFormatted
 from models.core.results.SimulationMultiResults import SimulationMultiResults
 from models.core.results.SimulationSingleResults import SimulationSingleResults
-from services.BlackjackLogger import BlackjackLogger
 from services.SingleSimulationRunner import SingleSimulationRunner
 
 
@@ -207,8 +205,6 @@ class MultiSimulationRunner():
     single_sims_summed = self.__get_single_sims_summed(single_sim_results)
     percentages = self.__get_percentages(single_sims_summed)
     single_sims_averaged = self.__get_single_sims_averaged(single_sims_summed, total_runs, percentages)
-    BlackjackLogger.debug(f"~~~sum: {sum(single_sims_averaged['bankroll']['profit_from_true'])}")
-    BlackjackLogger.debug(f"~~~tot: {single_sims_averaged['bankroll']['total_profit']}")
     profit_from_true = sum(single_sims_averaged["bankroll"]["profit_from_true"])
     total_profit = single_sims_averaged["bankroll"]["total_profit"]
     assert abs(profit_from_true - total_profit) < 0.01

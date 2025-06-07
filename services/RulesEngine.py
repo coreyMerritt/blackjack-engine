@@ -95,10 +95,10 @@ class RulesEngine():
       return False
     return True
 
-  def can_insure(self, hands: List[Hand], dealer_upcard_face: Face) -> bool:
+  def can_insure(self, hands: List[Hand], dealer_facecard_face: Face) -> bool:
     if len(hands) > 1:
       return False
-    if dealer_upcard_face != Face.ACE:
+    if dealer_facecard_face != Face.ACE:
       return False
     if hands[0].get_insurance_bet() > 0:
       return False

@@ -76,7 +76,12 @@ class Dealer(Player):
     assert self.__shoe.get_card_count() == shoe_full_size
 
   def to_dict(self) -> dict:
+    if self.get_hand_count() == 1:
+      hand = self.get_hand(0).to_dict()
+    else:
+      hand = {}
+
     return {
       "shoe": self.__shoe.to_dict(),
-      "hand": [c.to_dict() for hand in self.get_hands() for c in hand.get_cards()]
+      "hand": hand
     }

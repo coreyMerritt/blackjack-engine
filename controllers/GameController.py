@@ -7,13 +7,13 @@ from services.SessionManagerSingleton import SessionManagerSingleton
 
 session_manager = SessionManagerSingleton()
 
-# TODO: This controller has been pretty "left in the dust",
-# needs to be reevaluated
 class GameController:
   async def register_human_player(self, session_id: str, req: RegisterHumanPlayerReq) -> JSONResponse:
     game = session_manager.get_game(session_id)
     if not game:
       raise HTTPException(status_code=401, detail="Invalid session")
+    if not game.get_state() == GameState.NOT_STARTED:
+      raise HTTPException(status_code=409, detail="Invalid game state")
     player_id = game.register_human_player(req.human_player_info)
     return JSONResponse(status_code=200, content={"player_id": str(player_id)})
 
@@ -21,6 +21,8 @@ class GameController:
     game = session_manager.get_game(session_id)
     if not game:
       raise HTTPException(status_code=401, detail="Invalid session")
+    if not game.get_state() == GameState.NOT_STARTED:
+      raise HTTPException(status_code=409, detail="Invalid game state")
     game.start_game()
     return JSONResponse(status_code=200, content="Success")
 
@@ -30,6 +32,7 @@ class GameController:
       raise HTTPException(status_code=401, detail="Invalid session")
     if not game.get_state() == GameState.BETTING:
       raise HTTPException(status_code=409, detail="Invalid game state")
+    assert game.calculate_active_player() == game.get_player(player_id)
     game.place_human_player_bet(player_id, bet)
     return JSONResponse(status_code=200, content="Success")
 
@@ -39,12 +42,12 @@ class GameController:
       raise HTTPException(status_code=401, detail="Invalid session")
     if not game.get_state() == GameState.INSURANCE:
       raise HTTPException(status_code=409, detail="Invalid game state")
+    assert game.calculate_active_player() == game.get_player(player_id)
     game.set_human_player_wants_insurance(player_id, insurance)
     for player in game.get_human_players():
-      if player.wants_insurance is None:
+      if player.get_hand(0).is_insured() is None:
         return JSONResponse(status_code=200, content="Success")
     game.to_next_human_state()
-
     return JSONResponse(status_code=200, content="Success")
 
   async def set_surrender(self, session_id: str, player_id: str, surrender: bool) -> JSONResponse:
@@ -53,12 +56,12 @@ class GameController:
       raise HTTPException(status_code=401, detail="Invalid session")
     if not game.get_state() == GameState.LATE_SURRENDER:
       raise HTTPException(status_code=409, detail="Invalid game state")
+    assert game.calculate_active_player() == game.get_player(player_id)
     game.set_human_player_wants_surrender(player_id, surrender)
     for player in game.get_human_players():
-      if player.wants_surrender is None:
+      if player.get_hand(0).is_surrendered() is None:
         return JSONResponse(status_code=200, content="Success")
     game.to_next_human_state()
-
     return JSONResponse(status_code=200, content="Success")
 
   async def hit(self, session_id: str, player_id: str) -> JSONResponse:
@@ -67,6 +70,7 @@ class GameController:
       raise HTTPException(status_code=401, detail="Invalid session")
     if not game.get_state() == GameState.HUMAN_PLAYER_DECISIONS:
       raise HTTPException(status_code=409, detail="Invalid game state")
+    assert game.calculate_active_player() == game.get_player(player_id)
     game.hit_human_player(player_id)
     return JSONResponse(status_code=200, content={"status": "complete"})
 
@@ -76,6 +80,7 @@ class GameController:
       raise HTTPException(status_code=401, detail="Invalid session")
     if not game.get_state() == GameState.HUMAN_PLAYER_DECISIONS:
       raise HTTPException(status_code=409, detail="Invalid game state")
+    assert game.calculate_active_player() == game.get_player(player_id)
     game.stand_human_player(player_id)
     return JSONResponse(status_code=200, content={"status": "complete"})
 
@@ -85,6 +90,7 @@ class GameController:
       raise HTTPException(status_code=401, detail="Invalid session")
     if not game.get_state() == GameState.HUMAN_PLAYER_DECISIONS:
       raise HTTPException(status_code=409, detail="Invalid game state")
+    assert game.calculate_active_player() == game.get_player(player_id)
     game.double_down_human_player(player_id)
     return JSONResponse(status_code=200, content={"status": "complete"})
 
@@ -94,6 +100,7 @@ class GameController:
       raise HTTPException(status_code=401, detail="Invalid session")
     if not game.get_state() == GameState.HUMAN_PLAYER_DECISIONS:
       raise HTTPException(status_code=409, detail="Invalid game state")
+    assert game.calculate_active_player() == game.get_player(player_id)
     game.split_human_player(player_id)
     return JSONResponse(status_code=200, content={"status": "complete"})
 

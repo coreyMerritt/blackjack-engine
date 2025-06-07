@@ -84,11 +84,6 @@ def test_dealer_does_not_bust_if_soft():
 
 def test_to_dict_structure():
   dealer = Dealer(dealer_rules())
-  dealer.get_hands = MagicMock(return_value=[
-    MagicMock(get_cards=MagicMock(return_value=[
-      MagicMock(to_dict=MagicMock(return_value={"suit": "S", "face": "A", "value": 11}))
-    ]))
-  ])
   result = dealer.to_dict()
   assert "shoe" in result
   assert "hand" in result

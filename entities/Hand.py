@@ -9,6 +9,8 @@ class Hand():
   __doubled_down: bool
   __finalized: bool
   __from_split: bool
+  __insured: bool | None
+  __surrendered: bool | None
   __bet: int
   __insurance_bet: int
   __payout: int
@@ -19,6 +21,8 @@ class Hand():
     self.__doubled_down = False
     self.__finalized = False
     self.__from_split = from_split
+    self.__insured = None
+    self.__surrendered = None
     self.__bet = bet
     self.__insurance_bet = 0
     self.__payout = 0
@@ -48,7 +52,10 @@ class Hand():
     )
 
   def is_insured(self) -> bool:
-    return self.__insurance_bet > 0
+    return self.__insured
+
+  def is_surrendered(self) -> bool:
+    return self.__surrendered
 
   def get_value(self) -> int:
     value = sum(card.get_value() for card in self.__cards)
@@ -105,8 +112,14 @@ class Hand():
   def set_payout(self, amount: int) -> None:
     self.__payout = amount
 
-  def set_from_split(self, val: bool) -> None:
+  def set_from_split(self, val=True) -> None:
     self.__from_split = val
+
+  def set_insured(self, val=True) -> None:
+    self.__insured = val
+
+  def set_surrendered(self, val=True) -> None:
+    self.__surrendered = val
 
   def reset_an_ace(self) -> None:
     if self.get_value() > 21:
@@ -134,6 +147,7 @@ class Hand():
       "doubled_down": self.__doubled_down,
       "finalized": self.__finalized,
       "from_split": self.__from_split,
+      "surrendered": self.__surrendered,
       "bet": self.__bet,
       "insurance_bet": self.__insurance_bet,
       "payout": self.__payout,
