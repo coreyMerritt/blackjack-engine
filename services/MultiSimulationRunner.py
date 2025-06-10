@@ -229,7 +229,6 @@ class MultiSimulationRunner():
     self.__start_time = None
 
   def __update_results_progress(self, single_sim_results: dict, sims: dict, runs: int) -> None:
-    print(single_sim_results)
     self.__results_progress = int((sims["run"] / runs) * 100)
     if self.__sim_time_limit:
       if time.time() - self.__start_time > self.__sim_time_limit:
