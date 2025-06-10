@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 import pytest
 from entities.Game import Game
 from models.core.HumanTime import HumanTime
-from models.core.SimulationBounds import SimulationBounds
+from models.core.SingleSimBounds import SingleSimBounds
 from services.SingleSimulationRunner import SingleSimulationRunner
 
 
@@ -19,7 +19,7 @@ def mock_game():
 
 @pytest.fixture
 def mock_bounds():
-  return SimulationBounds(
+  return SingleSimBounds(
     bankroll_goal=1500,
     human_time_limit=3600,
     sim_time_limit=None

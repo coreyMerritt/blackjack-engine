@@ -2,7 +2,8 @@ import time
 from typing import List
 from entities.Game import Game
 from models.core.HumanTime import HumanTime
-from models.core.SimulationBounds import SimulationBounds
+from models.core.MultiSimBounds import MultiSimBounds
+from models.core.SingleSimBounds import SingleSimBounds
 from models.core.results.SimulationMultiResultsFormatted import SimulationMultiResultsFormatted
 from models.core.results.SimulationMultiResults import SimulationMultiResults
 from models.core.results.SimulationSingleResults import SimulationSingleResults
@@ -19,10 +20,10 @@ class MultiSimulationRunner():
   __start_time: float | None
   __results: SimulationMultiResults
 
-  def __init__(self, game: Game, bounds: SimulationBounds, human_time: HumanTime):
+  def __init__(self, multi_bounds: MultiSimBounds, game: Game, bounds: SingleSimBounds, human_time: HumanTime):
     self.__single_sim_runner = SingleSimulationRunner(game, bounds, human_time)
-    self.__human_time_limit = bounds.human_time_limit
-    self.__sim_time_limit = bounds.sim_time_limit
+    self.__human_time_limit = multi_bounds.human_time_limit
+    self.__sim_time_limit = multi_bounds.sim_time_limit
     self.__hands_per_hour = human_time.hands_per_hour
     self.__hours_per_day = human_time.hours_per_day
     self.__days_per_week = human_time.days_per_week
@@ -228,6 +229,7 @@ class MultiSimulationRunner():
     self.__start_time = None
 
   def __update_results_progress(self, single_sim_results: dict, sims: dict, runs: int) -> None:
+    print(single_sim_results)
     self.__results_progress = int((sims["run"] / runs) * 100)
     if self.__sim_time_limit:
       if time.time() - self.__start_time > self.__sim_time_limit:
@@ -236,7 +238,7 @@ class MultiSimulationRunner():
     if self.__human_time_limit:
       total_hands_played = 0
       for result in single_sim_results:
-        total_hands_played += result["total_hands_played"]
+        total_hands_played += result["hands"]["counts"]["total"]
       human_time = self.__get_human_time(total_hands_played)
       if human_time > self.__human_time_limit:
         self.__results_progress = 100

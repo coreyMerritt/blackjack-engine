@@ -7,7 +7,7 @@ from typing import List
 from entities.Game import Game
 from entities.Hand import Hand
 from models.core.HumanTime import HumanTime
-from models.core.SimulationBounds import SimulationBounds
+from models.core.SingleSimBounds import SingleSimBounds
 from models.core.results.SimulationSingleResultsFormatted import SimulationSingleResultsFormatted
 from models.core.results.SimulationSingleResults import SimulationSingleResults
 from models.enums.GameState import GameState
@@ -28,7 +28,7 @@ class SingleSimulationRunner():
   __game_starting_point: Game
   __results: SimulationSingleResults
 
-  def __init__(self, game: Game, bounds: SimulationBounds, human_time: HumanTime):
+  def __init__(self, game: Game, bounds: SingleSimBounds, human_time: HumanTime):
     if bounds.bankroll_goal is None:
       self.__bankroll_goal = inf
     else:
@@ -53,6 +53,7 @@ class SingleSimulationRunner():
     profit_from_true = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
     someone_has_bankroll = self.__game.someone_has_bankroll()
     bankroll_is_below_goal = self.__calculate_if_bankroll_is_below_goal()
+    assert self.get_bankroll_goal() > self.__game.get_ai_players()[0].get_bankroll()
 
     while(someone_has_bankroll and bankroll_is_below_goal):
       await self.__play_a_hand(bankroll, profit_from_true, counts)

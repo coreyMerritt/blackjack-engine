@@ -2,7 +2,8 @@ from typing import List
 import uuid
 from entities.Game import Game
 from models.core.HumanTime import HumanTime
-from models.core.SimulationBounds import SimulationBounds
+from models.core.MultiSimBounds import MultiSimBounds
+from models.core.SingleSimBounds import SingleSimBounds
 from models.core.player_info.AiPlayerInfo import AiPlayerInfo
 from models.core.rules.GameRules import GameRules
 from models.core.player_info.HumanPlayerInfo import HumanPlayerInfo
@@ -35,7 +36,7 @@ class SessionManagerSingleton:
 
   def create_single_sim_runner(
     self,
-    bounds: SimulationBounds,
+    bounds: SingleSimBounds,
     time: HumanTime,
     rules: GameRules,
     ai_player_info: List[AiPlayerInfo]
@@ -48,14 +49,15 @@ class SessionManagerSingleton:
 
   def create_multi_sim_runner(
     self,
-    bounds: SimulationBounds,
+    multi_bounds: MultiSimBounds,
+    bounds: SingleSimBounds,
     time: HumanTime,
     rules: GameRules,
     ai_player_info: List[AiPlayerInfo]
   ) -> str:
     session_id = str(uuid.uuid4())
     game = Game(rules, ai_player_info)
-    multi_sim_runner = MultiSimulationRunner(game, bounds, time)
+    multi_sim_runner = MultiSimulationRunner(multi_bounds, game, bounds, time)
     self._multi_sim_runner_sessions[session_id] = multi_sim_runner
     return session_id
 

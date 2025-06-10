@@ -6,7 +6,7 @@ import pytest_asyncio
 from fastapi.responses import JSONResponse
 from controllers.SessionController import SessionController
 from models.api.CreateGameReq import CreateGameReq
-from models.api.CreateSimulationReq import CreateSimulationReq
+from models.api.CreateSingleSimReq import CreateSingleSimReq
 from models.core.rules.GameRules import GameRules
 from models.core.rules.BettingRules import BettingRules
 from models.core.rules.DealerRules import DealerRules
@@ -17,7 +17,7 @@ from models.core.player_info.HumanPlayerInfo import HumanPlayerInfo
 from models.core.player_info.AiPlayerInfo import AiPlayerInfo
 from models.core.BetSpread import BetSpread
 from models.core.HumanTime import HumanTime
-from models.core.SimulationBounds import SimulationBounds
+from models.core.SingleSimBounds import SingleSimBounds
 
 
 @pytest_asyncio.fixture
@@ -80,8 +80,8 @@ def create_game_req(valid_game_rules, valid_ai_info, valid_human_info):
 
 @pytest.fixture
 def create_sim_req(valid_game_rules, valid_ai_info):
-  return CreateSimulationReq(
-    bounds=SimulationBounds(bankroll_goal=2000, human_time_limit=300, sim_time_limit=60),
+  return CreateSingleSimReq(
+    bounds=SingleSimBounds(bankroll_goal=2000, human_time_limit=300, sim_time_limit=60),
     time=HumanTime(hands_per_hour=300, hours_per_day=8, days_per_week=5),
     rules=valid_game_rules,
     ai_player_info=[valid_ai_info]
