@@ -282,17 +282,6 @@ class SingleSimulationRunner():
     BlackjackLogger.debug(f"\t\tPayout: {payout}")
 
   def __update_results_progress(self, total_hands_played: int, time_elapsed_seconds: float) -> None:
-    if self.__bankroll_goal != inf:
-      bankroll_after_round = self.__game.get_ai_players()[0].get_bankroll()
-      if bankroll_after_round == 0:
-        self.__results_progress = -100
-        return
-      else:
-        winning_progress = int(((bankroll_after_round / self.__bankroll_goal) * 200) - 100)
-        winning_progress = max(-100, min(100, winning_progress))
-        self.__results_progress = winning_progress
-        return
-
     if self.__human_time_limit is not None:
       human_seconds = self.__get_human_time(total_hands_played)
       human_time_progress = int(human_seconds / self.__human_time_limit) * 100
@@ -303,6 +292,17 @@ class SingleSimulationRunner():
       sim_time_progress = int(time_elapsed_seconds / self.__sim_time_limit)
       self.__results_progress = min(sim_time_progress, 100)
       return
+
+    if self.__bankroll_goal != inf:
+      bankroll_after_round = self.__game.get_ai_players()[0].get_bankroll()
+      if bankroll_after_round == 0:
+        self.__results_progress = -100
+        return
+      else:
+        winning_progress = int(((bankroll_after_round / self.__bankroll_goal) * 200) - 100)
+        winning_progress = max(-100, min(100, winning_progress))
+        self.__results_progress = winning_progress
+        return
 
     self.__results_progress = 0
     return
