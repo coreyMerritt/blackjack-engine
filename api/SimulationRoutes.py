@@ -14,6 +14,10 @@ async def run(session_id: str) -> JSONResponse:
 async def multi_run(session_id: str, run_count: int) -> JSONResponse:
   return await controller.multi_run(session_id, run_count)
 
+@router.post("/session/{session_id}/simulation/run/{run_count}/benchmark")
+async def benchmark(session_id: str, run_count: int) -> JSONResponse:
+  return await controller.benchmark(session_id, run_count)
+
 @router.get("/session/{session_id}/simulation/results/get_single")
 async def get_single_results(session_id: str) -> JSONResponse:
   return await controller.get_single_results(session_id)

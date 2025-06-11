@@ -1,10 +1,11 @@
 import logging
 
 
-logging.basicConfig(level=logging.DEBUG, force=True)
+logging.basicConfig(level=logging.INFO, force=True)
 logger = logging.getLogger(__name__)
 
 class BlackjackLogger:
   @staticmethod
   def debug(msg) -> None:
-    logger.debug("\t%s", msg)
+    if logger.level == logging.DEBUG:
+      logger.debug("\t%s", msg)

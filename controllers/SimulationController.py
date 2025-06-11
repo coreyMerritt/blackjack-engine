@@ -47,6 +47,14 @@ class SimulationController:
     asyncio.create_task(multi_sim_runner.run(run_count))
     return JSONResponse(status_code=200, content={"status": "started"})
 
+  async def benchmark(self, session_id: str, run_count: int) -> JSONResponse:
+    multi_sim_runner = session_manager.get_multi_sim_runner(session_id)
+    if not multi_sim_runner:
+      raise HTTPException(status_code=401, detail="Invalid session")
+
+    asyncio.create_task(multi_sim_runner.run_with_benchmarking(run_count))
+    return JSONResponse(status_code=200, content={"status": "started"})
+
   async def get_multi_results_progress(self, session_id: str) -> JSONResponse:
     multi_sim_runner = session_manager.get_multi_sim_runner(session_id)
     if not multi_sim_runner:

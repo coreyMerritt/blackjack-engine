@@ -6,7 +6,6 @@ from models.core.MultiSimBounds import MultiSimBounds
 from models.core.SingleSimBounds import SingleSimBounds
 from models.core.player_info.AiPlayerInfo import AiPlayerInfo
 from models.core.rules.GameRules import GameRules
-from models.core.player_info.HumanPlayerInfo import HumanPlayerInfo
 from services.MultiSimulationRunner import MultiSimulationRunner
 from services.SingleSimulationRunner import SingleSimulationRunner
 

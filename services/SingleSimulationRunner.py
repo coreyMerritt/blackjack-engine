@@ -1,6 +1,5 @@
 import asyncio
-from cmath import inf
-from copy import deepcopy
+from math import inf
 import os
 import time
 from typing import List
@@ -13,9 +12,11 @@ from models.core.results.SimulationSingleResults import SimulationSingleResults
 from models.enums.GameState import GameState
 from models.enums.HandResult import HandResult
 from services.BlackjackLogger import BlackjackLogger
+import services.MathHelper as MathHelper
 
 
 class SingleSimulationRunner():
+  __yield_every_x_hands: int
   __bankroll_goal: int
   __human_time_limit: int
   __sim_time_limit: int
@@ -25,10 +26,10 @@ class SingleSimulationRunner():
   __results_progress: int
   __start_time: float | None
   __game: Game
-  __game_starting_point: Game
   __results: SimulationSingleResults
 
   def __init__(self, game: Game, bounds: SingleSimBounds, human_time: HumanTime):
+    self.__yield_every_x_hands = int(os.getenv('BJE_YIELD_EVERY_X_HANDS'))
     if bounds.bankroll_goal is None:
       self.__bankroll_goal = inf
     else:
@@ -40,7 +41,6 @@ class SingleSimulationRunner():
     self.__days_per_week = human_time.days_per_week
     self.__results_progress = 0
     self.__game = game
-    self.__game_starting_point = deepcopy(game)
     self.__results = None
 
   async def run(self, called_from_multi=False) -> None:
@@ -162,7 +162,7 @@ class SingleSimulationRunner():
     self.__results = results
 
   def reset_game(self) -> None:
-    self.__game = deepcopy(self.__game_starting_point)
+    self.__game.reset_game()
 
   def __calculate_if_bankroll_is_below_goal(self) -> bool:
     if self.__bankroll_goal:
@@ -171,25 +171,22 @@ class SingleSimulationRunner():
       return True
 
   def __get_human_time(self, total_hands_played: int) -> float:
-    hours = total_hands_played / self.__hands_per_hour
-    minutes = hours * 60
-    seconds = minutes * 60
-    return seconds
+    return MathHelper.get_human_time(total_hands_played, self.__hands_per_hour)
 
   def __get_blackjack_rate(self, counts: dict) -> float:
-    return (counts["blackjack"] / counts["total"]) * 100
+    return MathHelper.get_percentage(counts["blackjack"], counts["total"])
 
   def __get_win_rate(self, counts: dict) -> float:
-    return (counts["won"] / counts["total"]) * 100
+    return MathHelper.get_percentage(counts["won"], counts["total"])
 
   def __get_draw_rate(self, counts: dict) -> float:
-    return (counts["drawn"] / counts["total"]) * 100
+    return MathHelper.get_percentage(counts["drawn"], counts["total"])
 
   def __get_loss_rate(self, counts: dict) -> float:
-    return (counts["lost"] / counts["total"]) * 100
+    return MathHelper.get_percentage(counts["lost"], counts["total"])
 
   def __get_surrender_rate(self, counts: dict) -> float:
-    return (counts["surrendered"] / counts["total"]) * 100
+    return MathHelper.get_percentage(counts["surrendered"], counts["total"])
 
   def __get_formatted_bankroll(self, bankroll: float) -> str:
     return f"-${abs(bankroll):,.2f}" if bankroll < 0 else f"${bankroll:,.2f}"
@@ -222,7 +219,7 @@ class SingleSimulationRunner():
       return f"{seconds:,.2f} secs"
 
   def __full_reset(self) -> None:
-    self.__game = deepcopy(self.__game_starting_point)
+    self.__game.reset_game()
     self.__results_progress = 0
     self.__results = None
 
@@ -243,7 +240,7 @@ class SingleSimulationRunner():
     self.__update_results_progress(counts["total"], time.time() - self.__start_time)
 
   async def __occasionally_yield_event_loop_control(self, total_hands_played) -> None:
-    if total_hands_played % int(os.getenv('BJE_YIELD_EVERY_X_HANDS')) == 0:
+    if total_hands_played % self.__yield_every_x_hands == 0:
       await asyncio.sleep(0)
 
   def __update_bankroll(self, bankroll: dict) -> None:
@@ -285,7 +282,7 @@ class SingleSimulationRunner():
   def __update_results_progress(self, total_hands_played: int, time_elapsed_seconds: float) -> None:
     if self.__human_time_limit is not None:
       human_seconds = self.__get_human_time(total_hands_played)
-      human_time_progress = int(human_seconds / self.__human_time_limit) * 100
+      human_time_progress = int(MathHelper.get_percentage(human_seconds, self.__human_time_limit))
       self.__results_progress = min(human_time_progress, 100)
       return
 

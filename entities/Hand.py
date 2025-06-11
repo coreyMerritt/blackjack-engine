@@ -4,7 +4,6 @@ from entities.Card import Card
 from models.enums.Face import Face
 from models.enums.HandResult import HandResult
 
-
 class Hand():
   __doubled_down: bool
   __finalized: bool
@@ -58,14 +57,15 @@ class Hand():
     return self.__surrendered
 
   def get_value(self) -> int:
-    value = sum(card.get_value() for card in self.__cards)
-    if value > 21 and self.is_soft():
-      for card in self.__cards:
+    card_values = [card.get_value() for card in self.__cards]
+    total = sum(card_values)
+    if total > 21 and self.is_soft():
+      for i, card in enumerate(self.__cards):
         if card.calculate_if_value_can_reset():
           card.set_value(1)
+          total = total - card_values[i] + 1
           break
-      value = sum(card.get_value() for card in self.__cards)
-    return value
+    return total
 
   def get_bet(self) -> int:
     return self.__bet

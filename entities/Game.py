@@ -156,6 +156,11 @@ class Game:
     player_id = self.__human_players[-1].get_id()
     return player_id
 
+  def reset_game(self) -> None:
+    self.set_state(GameState.NOT_STARTED)
+    for player in self.__human_players + self.__ai_players + [self.__dealer]:
+      player.reset_bankroll()
+
   def start_game(self) -> None:
     if len(self.__human_players) > 0:
       asyncio.create_task(self.monitor_human_states())

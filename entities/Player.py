@@ -9,14 +9,16 @@ from services.BlackjackLogger import BlackjackLogger
 
 
 class Player(ABC):
+  __starting_bankroll: float
   __bankroll: float
   __id: UUID
   __hands: List[Hand]
 
   def __init__(self, player_info: PlayerInfo):
-    self.__hands = []
+    self.__starting_bankroll = float(player_info.bankroll)
     self.__bankroll = float(player_info.bankroll)
     self.__id = uuid4()
+    self.__hands = []
 
   def has_active_hand(self) -> bool:
     for hand in self.__hands:
@@ -83,6 +85,9 @@ class Player(ABC):
       if not silent:
         BlackjackLogger.debug(f"\t\tAdjusting bankroll from: {self.__bankroll} -> {self.__bankroll - amount}")
       self.__bankroll -= amount
+
+  def reset_bankroll(self) -> None:
+    self.__bankroll = self.__starting_bankroll
 
   def to_dict(self) -> dict:
     return {

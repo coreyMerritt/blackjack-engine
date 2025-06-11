@@ -1,5 +1,9 @@
+import asyncio
 import time
 from typing import List
+import cProfile
+import pstats
+import io
 from entities.Game import Game
 from models.core.HumanTime import HumanTime
 from models.core.MultiSimBounds import MultiSimBounds
@@ -8,6 +12,7 @@ from models.core.results.SimulationMultiResultsFormatted import SimulationMultiR
 from models.core.results.SimulationMultiResults import SimulationMultiResults
 from models.core.results.SimulationSingleResults import SimulationSingleResults
 from services.SingleSimulationRunner import SingleSimulationRunner
+import services.MathHelper as MathHelper
 
 
 class MultiSimulationRunner():
@@ -47,8 +52,8 @@ class MultiSimulationRunner():
         break
 
     end_time = time.time()
-    success_rate = (sims["won"] / sims["run"]) * 100
-    risk_of_ruin = (sims["lost"] / sims["run"]) * 100
+    success_rate = MathHelper.get_percentage(sims["won"], sims["run"])
+    risk_of_ruin = MathHelper.get_percentage(sims["lost"], sims["run"])
     time_taken = end_time - self.__start_time
     multi_sim_results = {
       "sims_run": sims["run"],
@@ -60,6 +65,21 @@ class MultiSimulationRunner():
       "time_taken": time_taken
     }
     self.__set_results(single_sim_results, multi_sim_results)
+
+  def run_single_sim(self, game, bounds, human_time):
+    sim = SingleSimulationRunner(game, bounds, human_time)
+    sim.reset_game()
+    asyncio.run(sim.run(True))
+
+  async def run_with_benchmarking(self, runs: int) -> None:
+    pr = cProfile.Profile()
+    pr.enable()
+    await self.run(runs)
+    pr.disable()
+    s = io.StringIO()
+    ps = pstats.Stats(pr, stream=s).sort_stats("cumulative")
+    ps.print_stats(30)
+    print(s.getvalue())
 
   def get_results(self) -> SimulationMultiResults | None:
     if not self.__results:
@@ -98,10 +118,7 @@ class MultiSimulationRunner():
     }
 
   def __get_human_time(self, total_hands_played: int) -> float:
-    hours = total_hands_played / self.__hands_per_hour
-    minutes = hours * 60
-    seconds = minutes * 60
-    return seconds
+    return MathHelper.get_human_time(total_hands_played, self.__hands_per_hour)
 
   def __get_time_formatted(self, seconds: float) -> str:
     if seconds > 60:
@@ -153,12 +170,13 @@ class MultiSimulationRunner():
 
   def __get_percentages(self, single_sims_summed: dict) -> dict:
     s = single_sims_summed
+    counts = s["hands"]["counts"]
     percentages = { "blackjack": 0.0, "won": 0.0, "lost": 0.0, "drawn": 0.0, "surrendered": 0.0 }
-    percentages["blackjack"] = (s["hands"]["counts"]["blackjack"] / s["hands"]["counts"]["total"]) * 100
-    percentages["won"] = (s["hands"]["counts"]["won"] / s["hands"]["counts"]["total"]) * 100
-    percentages["drawn"] = (s["hands"]["counts"]["drawn"] / s["hands"]["counts"]["total"]) * 100
-    percentages["lost"] = (s["hands"]["counts"]["lost"] / s["hands"]["counts"]["total"]) * 100
-    percentages["surrendered"] = (s["hands"]["counts"]["surrendered"] / s["hands"]["counts"]["total"]) * 100
+    percentages["blackjack"] = MathHelper.get_percentage(counts["blackjack"], counts["total"])
+    percentages["won"] = MathHelper.get_percentage(counts["won"], counts["total"])
+    percentages["drawn"] = MathHelper.get_percentage(counts["drawn"], counts["total"])
+    percentages["lost"] = MathHelper.get_percentage(counts["lost"], counts["total"])
+    percentages["surrendered"] = MathHelper.get_percentage(counts["surrendered"], counts["total"])
     return percentages
 
   def __get_single_sims_averaged(self, single_sims_summed: dict, total_runs: int, percentages: dict) -> dict:
@@ -229,7 +247,7 @@ class MultiSimulationRunner():
     self.__start_time = None
 
   def __update_results_progress(self, single_sim_results: dict, sims: dict, runs: int) -> None:
-    self.__results_progress = int((sims["run"] / runs) * 100)
+    self.__results_progress = int(MathHelper.get_percentage(sims["run"], runs))
     if self.__sim_time_limit:
       if time.time() - self.__start_time > self.__sim_time_limit:
         self.__results_progress = 100
