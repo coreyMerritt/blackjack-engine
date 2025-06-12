@@ -66,11 +66,6 @@ class MultiSimulationRunner():
     }
     self.__set_results(single_sim_results, multi_sim_results)
 
-  def run_single_sim(self, game, bounds, human_time):
-    sim = SingleSimulationRunner(game, bounds, human_time)
-    sim.reset_game()
-    asyncio.run(sim.run(True))
-
   async def run_with_benchmarking(self, runs: int) -> None:
     pr = cProfile.Profile()
     pr.enable()
@@ -247,10 +242,10 @@ class MultiSimulationRunner():
     self.__start_time = None
 
   def __update_results_progress(self, single_sim_results: dict, sims: dict, runs: int) -> None:
-    self.__results_progress = int(MathHelper.get_percentage(sims["run"], runs))
     if self.__sim_time_limit:
       if time.time() - self.__start_time > self.__sim_time_limit:
         self.__results_progress = 100
+        return
 
     if self.__human_time_limit:
       total_hands_played = 0
@@ -259,3 +254,7 @@ class MultiSimulationRunner():
       human_time = self.__get_human_time(total_hands_played)
       if human_time > self.__human_time_limit:
         self.__results_progress = 100
+        return
+
+    self.__results_progress = int(MathHelper.get_percentage(sims["run"], runs))
+    return

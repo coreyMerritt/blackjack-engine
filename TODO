@@ -1,0 +1,3 @@
+- Fix how the progress is updated in multi sims, its awful right now.
+- Add a "bankroll_failure_value" instead of just assuming complete bankruptcy is the failure value.
+

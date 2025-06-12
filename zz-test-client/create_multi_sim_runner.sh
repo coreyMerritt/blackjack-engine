@@ -11,18 +11,18 @@ curl -s -X POST "http://$host:8000/session/simulation/multi/create" \
   -d '{
         "multi": {
           "human_time_limit": null,
-          "sim_time_limit": null
+          "sim_time_limit": 20
         },
         "single": {
           "bounds": {
             "bankroll_goal": 20000,
-            "human_time_limit": 7200,
-            "sim_time_limit": 0
+            "human_time_limit": null,
+            "sim_time_limit": null
           },
           "time": {
             "hands_per_hour": 100,
-            "hours_per_day": 24,
-            "days_per_week": 7
+            "hours_per_day": 10,
+            "days_per_week": 3
           },
           "rules": {
             "betting_rules": {
@@ -61,13 +61,13 @@ curl -s -X POST "http://$host:8000/session/simulation/multi/create" \
               "card_counting_skill_level": 100,
               "deviations_skill_level": 100,
               "bet_spread": {
-                "true_zero": 10,
-                "true_one": 20,
-                "true_two": 40,
-                "true_three": 60,
-                "true_four": 80,
-                "true_five": 100,
-                "true_six": 120
+                "true_zero": 5,
+                "true_one": 10,
+                "true_two": 20,
+                "true_three": 30,
+                "true_four": 40,
+                "true_five": 50,
+                "true_six": 200
               }
             }
           ]
