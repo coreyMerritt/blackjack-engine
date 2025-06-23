@@ -63,8 +63,15 @@ class MultiSimulationRunner():
         break
 
     end_time = time.time()
-    metadata.success_rate = MathHelper.get_percentage(metadata.sims_won, metadata.sims_run)
-    metadata.risk_of_ruin = MathHelper.get_percentage(metadata.sims_lost, metadata.sims_run)
+    metadata.success_rate = MathHelper.get_percentage(
+      metadata.sims_won,
+      (metadata.sims_run - metadata.sims_unfinished)
+    )
+    metadata.risk_of_ruin = MathHelper.get_percentage(
+      metadata.sims_lost,
+      (metadata.sims_run - metadata.sims_unfinished)
+    )
+    assert metadata.success_rate + metadata.risk_of_ruin == 100.0
     metadata.time_taken = end_time - self.__start_time
     self.__set_results(single_sim_results, metadata)
 

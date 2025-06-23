@@ -7,10 +7,10 @@ from models.api.CreateSingleSimReq import CreateSingleSimReq
 router = APIRouter()
 controller = ExistingDataController()
 
-@router.post("/data/single_sim/get")
+@router.get("/data/single_sim/get")
 async def get_single_sim_data(req: CreateSingleSimReq) -> JSONResponse:
   return await controller.get_sim_data(req)
 
-@router.post("/data/single_sim/get_formatted")
+@router.get("/data/single_sim/get_formatted")
 async def get_single_sim_data_formatted(req: CreateSingleSimReq) -> JSONResponse:
   return await controller.get_sim_data_formatted(req)

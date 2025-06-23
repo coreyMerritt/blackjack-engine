@@ -1,18 +1,18 @@
 {
   "bounds": {
     "bankroll_goal": 20000,
-    "human_time_limit": 7200,
+    "human_time_limit": 5631120,
     "sim_time_limit": null
   },
   "time": {
     "hands_per_hour": 100,
-    "hours_per_day": 24,
-    "days_per_week": 7
+    "hours_per_day": 10,
+    "days_per_week": 3
   },
   "rules": {
     "betting_rules": {
-      "min_bet": 10,
-      "max_bet": 10000
+      "min_bet": 5,
+      "max_bet": 5000
     },
    "dealer_rules": {
       "dealer_hits_soft_seventeen": true,
@@ -46,13 +46,13 @@
       "card_counting_skill_level": 100,
       "deviations_skill_level": 100,
       "bet_spread": {
-        "true_zero": 10,
-        "true_one": 20,
-        "true_two": 40,
-        "true_three": 60,
-        "true_four": 80,
-        "true_five": 100,
-        "true_six": 120
+        "true_zero": 5,
+        "true_one": 5,
+        "true_two": 5,
+        "true_three": 50,
+        "true_four": 50,
+        "true_five": 50,
+        "true_six": 100
       }
     }
   ]

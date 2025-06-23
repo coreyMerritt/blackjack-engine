@@ -163,8 +163,8 @@ class SimulationDataTransformer():
       elif result.won is None:
         sims_unfinished += 1
       time_taken += result.time.simulation_time
-    success_rate = MathHelper.get_percentage(sims_won, sims_run)
-    risk_of_ruin = MathHelper.get_percentage(sims_lost, sims_run)
+    success_rate = MathHelper.get_percentage(sims_won, (sims_run - sims_unfinished))
+    risk_of_ruin = MathHelper.get_percentage(sims_lost, (sims_run - sims_unfinished))
     metadata = SimulationMultiResultsMetadata.model_construct(
       sims_run=sims_run,
       sims_won=sims_won,
