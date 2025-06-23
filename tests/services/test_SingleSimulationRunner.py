@@ -21,6 +21,7 @@ def mock_game():
 def mock_bounds():
   return SingleSimBounds(
     bankroll_goal=1500,
+    bankroll_fail=0,
     human_time_limit=3600,
     sim_time_limit=None
   )

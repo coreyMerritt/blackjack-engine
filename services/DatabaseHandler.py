@@ -119,7 +119,7 @@ class DatabaseHandler():
   def get_all_sim_results(
     self,
     request: CreateSingleSimReq
-  ) -> SimulationMultiResults:
+  ) -> SimulationMultiResults | None:
     bounds_data = request.bounds.model_dump()
     time_data = request.time.model_dump()
     rules = request.rules

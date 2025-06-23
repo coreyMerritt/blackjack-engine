@@ -149,7 +149,7 @@ class SimulationDataTransformer():
       time=r_time
     )
 
-  def get_multi_sim_results(self, single_sim_results: List[SimulationSingleResults]) -> SimulationMultiResults:
+  def get_multi_sim_results(self, single_sim_results: List[SimulationSingleResults]) -> SimulationMultiResults | None:
     sims_run = len(single_sim_results)
     sims_won = 0
     sims_lost = 0
@@ -165,8 +165,11 @@ class SimulationDataTransformer():
         sims_unfinished += 1
       simulation_time += result.time.simulation_time
       human_time += result.time.human_time
-    success_rate = MathHelper.get_percentage(sims_won, (sims_run - sims_unfinished))
-    failure_rate = MathHelper.get_percentage(sims_lost, (sims_run - sims_unfinished))
+    sims_finished = sims_run - sims_unfinished
+    if sims_finished <= 0:
+      return None
+    success_rate = MathHelper.get_percentage(sims_won, sims_finished)
+    failure_rate = MathHelper.get_percentage(sims_lost, sims_finished)
     metadata = SimulationMultiResultsMetadata.model_construct(
       sims_run=sims_run,
       sims_won=sims_won,

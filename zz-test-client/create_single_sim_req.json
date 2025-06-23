@@ -12,8 +12,8 @@
   },
   "rules": {
     "betting_rules": {
-      "min_bet": 5,
-      "max_bet": 5000
+      "min_bet": 0,
+      "max_bet": 999999
     },
    "dealer_rules": {
       "dealer_hits_soft_seventeen": true,
@@ -47,13 +47,13 @@
       "card_counting_skill_level": 100,
       "deviations_skill_level": 100,
       "bet_spread": {
-        "true_zero": 5,
-        "true_one": 5,
-        "true_two": 50,
-        "true_three": 50,
-        "true_four": 100,
-        "true_five": 100,
-        "true_six": 150
+        "true_zero": 1,
+        "true_one": 10,
+        "true_two": 20,
+        "true_three": 30,
+        "true_four": 40,
+        "true_five": 50,
+        "true_six": 60
       }
     }
   ]
