@@ -1,4 +1,4 @@
-from sqlalchemy import Engine, create_engine, select, and_, func
+from sqlalchemy import Engine, create_engine, select, and_
 from sqlalchemy.orm import Session, sessionmaker
 from models.core.results.SimulationMultiResults import SimulationMultiResults
 from models.db.Base import Base
