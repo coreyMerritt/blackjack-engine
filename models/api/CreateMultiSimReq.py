@@ -1,5 +1,3 @@
-from typing import List
-
 from pydantic import BaseModel
 from models.api.CreateSingleSimReq import CreateSingleSimReq
 from models.core.MultiSimBounds import MultiSimBounds

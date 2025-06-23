@@ -1,13 +1,10 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
-from models.core.results.SimulationSingleResults import SimulationSingleResults
+from models.core.results.SimulationMultiResultsMetadataFormatted import SimulationMultiResultsMetadataFormatted
+from models.core.results.SimulationSingleResultsFormatted import SimulationSingleResultsFormatted
 
 
 class SimulationMultiResultsFormatted(BaseModel):
-  sims_run: int = 0
-  sims_won: int = 0
-  sims_lost: int = 0
-  success_rate: str = ""
-  risk_of_ruin: str = ""
-  time_taken: str = ""
-  averages: SimulationSingleResults
+  metadata: SimulationMultiResultsMetadataFormatted = Field(default_factory=SimulationMultiResultsMetadataFormatted)
+  sum: SimulationSingleResultsFormatted = Field(default_factory=SimulationSingleResultsFormatted)
+  average: SimulationSingleResultsFormatted = Field(default_factory=SimulationSingleResultsFormatted)

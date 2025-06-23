@@ -3,9 +3,10 @@
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI
-from api import GameRoutes, SessionRoutes, SimulationRoutes
+from api import ExistingDataRoutes, GameRoutes, SessionRoutes, SimulationRoutes
 
 app = FastAPI()
+app.include_router(ExistingDataRoutes.router)
 app.include_router(GameRoutes.router)
 app.include_router(SessionRoutes.router)
 app.include_router(SimulationRoutes.router)
