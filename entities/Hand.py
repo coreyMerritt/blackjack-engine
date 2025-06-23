@@ -10,13 +10,13 @@ class Hand():
   __from_split: bool
   __insured: bool | None
   __surrendered: bool | None
-  __bet: int
-  __insurance_bet: int
-  __payout: int
+  __bet: float
+  __insurance_bet: float
+  __payout: float
   __result: HandResult
   __cards: List[Card]
 
-  def __init__(self, cards: List[Card], bet: int, from_split: bool):
+  def __init__(self, cards: List[Card], bet: float, from_split: bool):
     self.__doubled_down = False
     self.__finalized = False
     self.__from_split = from_split
@@ -50,10 +50,10 @@ class Hand():
       and self.__cards[0].get_value() == self.__cards[1].get_value()
     )
 
-  def is_insured(self) -> bool:
+  def is_insured(self) -> bool | None:
     return self.__insured
 
-  def is_surrendered(self) -> bool:
+  def is_surrendered(self) -> bool | None:
     return self.__surrendered
 
   def get_value(self) -> int:
@@ -67,13 +67,13 @@ class Hand():
           break
     return total
 
-  def get_bet(self) -> int:
+  def get_bet(self) -> float:
     return self.__bet
 
-  def get_insurance_bet(self) -> int:
+  def get_insurance_bet(self) -> float:
     return self.__insurance_bet
 
-  def get_card(self, card_index: int) -> int:
+  def get_card(self, card_index: int) -> Card:
     return self.__cards[card_index]
 
   def get_card_count(self) -> int:
@@ -82,7 +82,7 @@ class Hand():
   def get_card_value(self, card_index: int) -> int:
     return self.__cards[card_index].get_value()
 
-  def get_payout(self) -> int:
+  def get_payout(self) -> float:
     return self.__payout
 
   def pop_card(self) -> Card:
@@ -109,7 +109,7 @@ class Hand():
       self.__doubled_down = True
       self.__bet *= 2
 
-  def set_payout(self, amount: int) -> None:
+  def set_payout(self, amount: float) -> None:
     self.__payout = amount
 
   def set_from_split(self, val=True) -> None:
@@ -129,13 +129,13 @@ class Hand():
             card.set_value(1)
             break
 
-  def set_bet(self, bet: int) -> None:
+  def set_bet(self, bet: float) -> None:
     self.__bet = bet
 
   def set_finalized(self, value=True) -> None:
     self.__finalized = value
 
-  def set_insurance_bet(self, bet: int) -> None:
+  def set_insurance_bet(self, bet: float) -> None:
     self.__insurance_bet = bet
 
   def set_result(self, result: HandResult) -> None:

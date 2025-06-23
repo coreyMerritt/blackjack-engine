@@ -29,7 +29,7 @@ class BasicStrategyEngine():
     player_hands: List[Hand],
     active_player_hand: Hand,
     dealer_face_card_value: int,
-    true_count: int
+    true_count: int | None
   ) -> List[PlayerDecision]:
     assert isinstance(dealer_face_card_value, int)
     decisions = []
@@ -65,7 +65,7 @@ class BasicStrategyEngine():
       return False
     return True
 
-  def wants_to_surrender(self, dealer_facecard_value: int, player_hand: Hand, true_count: int) -> bool:
+  def wants_to_surrender(self, dealer_facecard_value: int, player_hand: Hand, true_count: int | None) -> bool:
     adjusted_true_count = self.__get_adjusted_true_count(true_count)
     adjusted_player_hand_value = self.__get_adjusted_player_hand_value(player_hand)
     return BasicStrategy.surrender[
@@ -77,7 +77,7 @@ class BasicStrategyEngine():
     player_hands: List[Hand],
     active_player_hand: Hand,
     dealer_face_card_value: int,
-    true_count: int
+    true_count: int | None
   ) -> bool:
     splitting_is_allowed = self.__rules_engine.can_split(active_player_hand, len(player_hands))
     if splitting_is_allowed:
@@ -110,7 +110,7 @@ class BasicStrategyEngine():
       21
     )
 
-  def __get_adjusted_true_count(self, true_count: int) -> int:
+  def __get_adjusted_true_count(self, true_count: int | None) -> int | None:
     if true_count is None:
       return None
     return self.__get_some_adjusted_value(

@@ -1,6 +1,5 @@
 import asyncio
 from typing import List
-from uuid import UUID
 from entities.Card import Card
 from entities.Dealer import Dealer
 from entities.Hand import Hand
@@ -148,10 +147,10 @@ class Game:
   def get_ai_players(self) -> List[AiPlayer]:
     return self.__ai_players
 
-  def get_human_and_ai_players(self) -> List[Player]:
+  def get_human_and_ai_players(self) -> List[HumanPlayer | AiPlayer]:
     return self.__human_players + self.__ai_players
 
-  def register_human_player(self, human_player_info: HumanPlayerInfo) -> UUID:
+  def register_human_player(self, human_player_info: HumanPlayerInfo) -> str:
     self.__human_players.append(HumanPlayer(human_player_info))
     player_id = self.__human_players[-1].get_id()
     return player_id
@@ -438,7 +437,7 @@ class Game:
       self.__cleanup()
       self.set_state(GameState.BETTING)
 
-  def __deal_cards(self) -> int:
+  def __deal_cards(self) -> None:
     if self.__rules_engine.shoe_must_be_shuffled(self.__dealer.get_shoe()):
       BlackjackLogger.debug("\tShuffling shoe...")
       self.__dealer.load_shoe()
@@ -517,14 +516,14 @@ class Game:
   def __handle_ai_players_early_surrender(self) -> None:
     for ai_player in self.__ai_players:
       hand = ai_player.get_hand(0)
-      if ai_player.get_hand_count() > 1:
-        return False
-      if self.__rules_engine.can_early_surrender(hand):
-        if ai_player.wants_to_surrender(self.__dealer.get_facecard().get_value(), self.__dealer.get_decks_remaining()):
+      if ai_player.get_hand_count() != 1:
+        return
+      if self.__rules_engine.can_late_surrender(hand):
+        if ai_player.wants_to_surrender(self.__dealer.get_facecard(), self.__dealer.get_decks_remaining()):
           assert self.calculate_active_player() == ai_player
           self.__surrender_player_hand(ai_player)
-        else:
-          ai_player.get_hand(0).set_surrendered(False)
+          return
+      ai_player.get_hand(0).set_surrendered(False)
 
   def __dealer_blackjack_check(self) -> GameState:
     if self.__dealer.has_blackjack():
@@ -546,15 +545,16 @@ class Game:
 
   def __handle_ai_players_late_surrender(self) -> None:
     for ai_player in self.__ai_players:
-      hand = ai_player.get_hand(0)
-      if ai_player.get_hand_count() != 1:
-        return
-      if self.__rules_engine.can_late_surrender(hand):
-        if ai_player.wants_to_surrender(self.__dealer.get_facecard(), self.__dealer.get_decks_remaining()):
-          assert self.calculate_active_player() == ai_player
-          self.__surrender_player_hand(ai_player)
+      if not ai_player.get_hand(0).is_surrendered():
+        hand = ai_player.get_hand(0)
+        if ai_player.get_hand_count() != 1:
           return
-      ai_player.get_hand(0).set_surrendered(False)
+        if self.__rules_engine.can_late_surrender(hand):
+          if ai_player.wants_to_surrender(self.__dealer.get_facecard(), self.__dealer.get_decks_remaining()):
+            assert self.calculate_active_player() == ai_player
+            self.__surrender_player_hand(ai_player)
+            return
+        ai_player.get_hand(0).set_surrendered(False)
 
   def __handle_ai_decisions(self) -> None:
     for ai_player in self.__ai_players:

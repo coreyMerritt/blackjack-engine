@@ -2,5 +2,5 @@ from pydantic import BaseModel
 
 
 class BettingRules(BaseModel):
-  min_bet: int
-  max_bet: int
+  min_bet: float
+  max_bet: float

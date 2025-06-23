@@ -3,7 +3,6 @@
 
 from unittest.mock import MagicMock
 import pytest
-from services.MultiSimulationRunner import MultiSimulationRunner
 from models.core.HumanTime import HumanTime
 from models.core.SingleSimBounds import SingleSimBounds
 from entities.Game import Game
@@ -17,6 +16,7 @@ def mock_game():
 def mock_bounds():
   return SingleSimBounds(
     bankroll_goal=1000,
+    bankroll_fail=50,
     human_time_limit=3600,
     sim_time_limit=60
   )
@@ -28,34 +28,6 @@ def mock_human_time():
     hours_per_day=5,
     days_per_week=7
   )
-
-@pytest.fixture
-def runner(monkeypatch, mock_game, mock_bounds, mock_human_time):
-  mock_runner = MagicMock()
-  mock_runner.get_bankroll.return_value = 1200
-  mock_runner.get_bankroll_goal.return_value = 1000
-  mock_runner.get_results.return_value = {
-    "hands": {
-      "counts": {"total": 10, "won": 5, "lost": 3, "drawn": 2, "blackjack": 1},
-      "percentages": {"won": 50.0, "lost": 30.0, "drawn": 20.0}
-    },
-    "bankroll": {
-      "starting": 1000,
-      "ending": 1200,
-      "total_profit": 200,
-      "profit_from_true": [10, 20, 30, 40, 50, 60, 70],
-      "profit_per_hand": 20,
-      "profit_per_hour": 100,
-      "peak": 1250
-    },
-    "time": {
-      "human_time": 60,
-      "simulation_time": 1.0
-    },
-    "total_hands_played": 10
-  }
-  monkeypatch.setattr("services.MultiSimulationRunner.SingleSimulationRunner", lambda *a, **kw: mock_runner)
-  return MultiSimulationRunner(mock_game, mock_bounds, mock_human_time)
 
 def test_initial_state(runner):
   assert runner.get_results() is None
@@ -75,8 +47,9 @@ def test_set_results(runner):
     "sims_lost": 1,
     "sims_unfinished": 0,
     "success_rate": 66.67,
-    "risk_of_ruin": 33.33,
-    "time_taken": 3.2
+    "failure_rate": 33.33,
+    "simulation_time": 3.2,
+    "human_tume": 2.4
   }
   runner._MultiSimulationRunner__set_results(sim_data, meta)
   results = runner.get_results()
@@ -97,8 +70,9 @@ def test_get_results_formatted(runner):
     "sims_lost": 1,
     "sims_unfinished": 0,
     "success_rate": 50.0,
-    "risk_of_ruin": 50.0,
-    "time_taken": 10
+    "failure_rate": 50.0,
+    "simulation_time": 10.0,
+    "human_time": 8.7
   }
   runner._MultiSimulationRunner__set_results(sim_data, meta)
   formatted = runner.get_results_formatted()

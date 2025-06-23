@@ -154,7 +154,8 @@ class SimulationDataTransformer():
     sims_won = 0
     sims_lost = 0
     sims_unfinished = 0
-    time_taken = 0.0
+    simulation_time = 0.0
+    human_time = 0.0
     for result in single_sim_results:
       if result.won:
         sims_won += 1
@@ -162,17 +163,19 @@ class SimulationDataTransformer():
         sims_lost += 1
       elif result.won is None:
         sims_unfinished += 1
-      time_taken += result.time.simulation_time
+      simulation_time += result.time.simulation_time
+      human_time += result.time.human_time
     success_rate = MathHelper.get_percentage(sims_won, (sims_run - sims_unfinished))
-    risk_of_ruin = MathHelper.get_percentage(sims_lost, (sims_run - sims_unfinished))
+    failure_rate = MathHelper.get_percentage(sims_lost, (sims_run - sims_unfinished))
     metadata = SimulationMultiResultsMetadata.model_construct(
       sims_run=sims_run,
       sims_won=sims_won,
       sims_lost=sims_lost,
       sims_unfinished=sims_unfinished,
       success_rate=success_rate,
-      risk_of_ruin=risk_of_ruin,
-      time_taken=time_taken
+      failure_rate=failure_rate,
+      simulation_time=simulation_time,
+      human_time=human_time
     )
 
     single_sims_summed = self.get_single_sims_summed(single_sim_results)
@@ -197,11 +200,16 @@ class SimulationDataTransformer():
       sims_lost = f"{multi_sim_results.metadata.sims_lost:,}",
       sims_unfinished = f"{multi_sim_results.metadata.sims_unfinished:,}",
       success_rate = f"{round(multi_sim_results.metadata.success_rate, 2):.2f}%",
-      risk_of_ruin = f"{round(multi_sim_results.metadata.risk_of_ruin, 2):.2f}%",
-      time_taken = f"{self.__get_formatted_time(
-        multi_sim_results.metadata.time_taken,
+      failure_rate = f"{round(multi_sim_results.metadata.failure_rate, 2):.2f}%",
+      simulation_time = f"{self.__get_formatted_time(
+        multi_sim_results.metadata.simulation_time,
         24,
         7
+      )}",
+      human_time = f"{self.__get_formatted_time(
+        multi_sim_results.metadata.human_time,
+        hours_per_day,
+        days_per_week
       )}"
     )
     formatted_single_sim_sum = self.format_single_sim_results(

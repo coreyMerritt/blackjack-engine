@@ -55,13 +55,13 @@ class RulesEngine():
       case _:
         raise ValueError(f"PlayerDecision not implemented: {decision.value}")
 
-  def get_min_bet(self) -> int:
+  def get_min_bet(self) -> float:
     return self.__betting_rules.min_bet
 
-  def get_max_bet(self) -> int:
+  def get_max_bet(self) -> float:
     return self.__betting_rules.max_bet
 
-  def bet_is_legal(self, bet: int) -> bool:
+  def bet_is_legal(self, bet: float) -> bool:
     if bet >= self.__betting_rules.min_bet and bet <= self.__betting_rules.max_bet:
       return True
     return False

@@ -6,5 +6,6 @@ class SingleSimBoundsORM(Base):
 
   id = Column(Integer, primary_key=True, autoincrement=True)
   bankroll_goal = Column(Integer, nullable=True)
+  bankroll_fail = Column(Integer, nullable=True)
   human_time_limit = Column(Integer, nullable=True)
   sim_time_limit = Column(Integer, nullable=True)

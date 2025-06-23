@@ -93,7 +93,7 @@ class AiPlayer(Player):
     BlackjackLogger.debug(f"\t\tWants: {[d.name for d in decisions]}")
     return decisions
 
-  def get_insurance_bet(self) -> int:
+  def get_insurance_bet(self) -> float:
     return self.get_hands()[0].get_insurance_bet()
 
   def set_running_count(self, running_count: int) -> None:
@@ -102,7 +102,7 @@ class AiPlayer(Player):
   def reset_running_count(self) -> None:
     self.__running_count = 0
 
-  def calculate_bet(self, rules_engine: RulesEngine, decks_remaining: int) -> None:
+  def calculate_bet(self, rules_engine: RulesEngine, decks_remaining: int) -> float:
     true_count = self.calculate_true_count(decks_remaining)
     min_bet = rules_engine.get_min_bet()
     max_bet = rules_engine.get_max_bet()

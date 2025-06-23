@@ -4,7 +4,7 @@ from models.enums.PairSplittingDecision import PairSplittingDecision
 
 # All tuples in this represent (true_count, dealer_facecard_value, player_hand_value)
 class BasicStrategy():
-  hard_totals = {
+  hard_totals: dict[tuple[int | None, int, int], list[PlayerDecision]] = {
     (None, 2, 4): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 2, 5): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 2, 6): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -1724,7 +1724,7 @@ class BasicStrategy():
     (6, 11, 21): [PlayerDecision.STAND]
   }
 
-  soft_totals = {
+  soft_totals: dict[tuple[int | None, int, int], list[PlayerDecision]] = {
     (None, 2, 12): [PlayerDecision.SPLIT, PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 2, 13): [PlayerDecision.HIT, PlayerDecision.STAND],
     (None, 2, 14): [PlayerDecision.HIT, PlayerDecision.STAND],
@@ -2724,7 +2724,7 @@ class BasicStrategy():
     (6, 11, 21): [PlayerDecision.STAND]
   }
 
-  pair_splitting = {
+  pair_splitting: dict[tuple[int | None, int, int], PairSplittingDecision] = {
     (None, 2, 2): PairSplittingDecision.IF_DOUBLE_AFTER_SPLITTING_ALLOWED,
     (None, 2, 3): PairSplittingDecision.IF_DOUBLE_AFTER_SPLITTING_ALLOWED,
     (None, 2, 4): PairSplittingDecision.NO,
@@ -3724,7 +3724,7 @@ class BasicStrategy():
     (6, 11, 11): PairSplittingDecision.YES
   }
 
-  surrender = {
+  surrender: dict[tuple[int | None, int, int], bool] = {
       (None, 2, 4): False,
       (None, 2, 5): False,
       (None, 2, 6): False,

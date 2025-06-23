@@ -25,6 +25,7 @@ class SingleSimulationRunner():
   __original_req: CreateSingleSimReq
   __yield_every_x_hands: int
   __bankroll_goal: float
+  __bankroll_fail: float
   __human_time_limit: int | None
   __sim_time_limit: int | None
   __hands_per_hour: int
@@ -43,6 +44,10 @@ class SingleSimulationRunner():
       self.__bankroll_goal = inf
     else:
       self.__bankroll_goal = bounds.bankroll_goal
+    if bounds.bankroll_fail is None:
+      self.__bankroll_fail = 0
+    else:
+      self.__bankroll_fail = bounds.bankroll_fail
     self.__human_time_limit = bounds.human_time_limit
     self.__sim_time_limit = bounds.sim_time_limit
     self.__hands_per_hour = human_time.hands_per_hour
@@ -65,9 +70,11 @@ class SingleSimulationRunner():
     counts = HandResultsCounts.model_validate({})
     someone_has_bankroll = self.__game.someone_has_bankroll()
     bankroll_is_below_goal = self.__calculate_if_bankroll_is_below_goal()
-    assert self.get_bankroll_goal() > self.__game.get_ai_players()[0].get_bankroll()
+    bankroll_is_above_fail = self.__calculate_if_bankroll_is_above_fail()
+    assert self.get_bankroll_goal() > bankroll.starting
+    assert self.get_bankroll_fail() < bankroll.starting
 
-    while(someone_has_bankroll and bankroll_is_below_goal):
+    while(someone_has_bankroll and bankroll_is_below_goal and bankroll_is_above_fail):
       await self.__play_a_hand(bankroll, counts)
       assert self.__results_progress <= 100
       assert self.__results_progress >= -100
@@ -75,6 +82,7 @@ class SingleSimulationRunner():
         break
       someone_has_bankroll = self.__game.someone_has_bankroll()
       bankroll_is_below_goal = self.__calculate_if_bankroll_is_below_goal()
+      bankroll_is_above_fail = self.__calculate_if_bankroll_is_above_fail()
 
     bankroll.ending = self.__game.get_ai_players()[0].get_bankroll()
     assert bankroll.ending >= 0
@@ -119,6 +127,9 @@ class SingleSimulationRunner():
   def get_bankroll_goal(self) -> float:
     return self.__bankroll_goal
 
+  def get_bankroll_fail(self) -> float:
+    return self.__bankroll_fail
+
   def get_bankroll(self) -> float:
     return self.__game.get_ai_players()[0].get_bankroll()
 
@@ -142,6 +153,10 @@ class SingleSimulationRunner():
     else:
       return True
 
+  def __calculate_if_bankroll_is_above_fail(self) -> bool:
+    bankroll = self.__game.get_ai_players()[0].get_bankroll()
+    return bankroll > self.__bankroll_fail
+
   def __get_human_time(self, total_hands_played: int) -> float:
     return MathHelper.get_human_time(total_hands_played, self.__hands_per_hour)
 
@@ -161,7 +176,7 @@ class SingleSimulationRunner():
     return MathHelper.get_percentage(counts.surrendered, counts.total)
 
   def __get_game_result(self, ending_bankroll: float) -> bool | None:
-    if ending_bankroll <= 0:
+    if ending_bankroll <= self.__bankroll_fail:
       return False
     elif ending_bankroll >= self.__bankroll_goal:
       return True
@@ -236,27 +251,64 @@ class SingleSimulationRunner():
     BlackjackLogger.debug(f"\t\tPayout: {payout}")
 
   def __update_results_progress(self, total_hands_played: int, time_elapsed_seconds: float) -> None:
-    if self.__human_time_limit is not None:
-      human_seconds = self.__get_human_time(total_hands_played)
-      human_time_progress = int(MathHelper.get_percentage(human_seconds, self.__human_time_limit))
-      self.__results_progress = min(human_time_progress, 100)
-      return
+    # if self.__human_time_limit is not None:
+    #   human_seconds = self.__get_human_time(total_hands_played)
+    #   human_time_progress = int(MathHelper.get_percentage(human_seconds, self.__human_time_limit))
+    #   self.__results_progress = min(human_time_progress, 100)
+    #   return
 
-    if self.__sim_time_limit is not None:
-      sim_time_progress = int(time_elapsed_seconds / self.__sim_time_limit)
-      self.__results_progress = min(sim_time_progress, 100)
-      return
+    # if self.__sim_time_limit is not None:
+    #   sim_time_progress = int(time_elapsed_seconds / self.__sim_time_limit)
+    #   self.__results_progress = min(sim_time_progress, 100)
+    #   return
 
+    # if self.__bankroll_goal != inf:
+    #   bankroll_after_round = self.__game.get_ai_players()[0].get_bankroll()
+    #   if bankroll_after_round <= self.__bankroll_fail:
+    #     self.__results_progress = -100
+    #     return
+    #   else:
+    #     winning_progress = int(((bankroll_after_round / self.__bankroll_goal) * 200) - 100)
+    #     winning_progress = max(-100, min(100, winning_progress))
+    #     self.__results_progress = winning_progress
+    #     return
+
+    # self.__results_progress = 0
+    # return
+    if self.__start_time is None:
+      raise RuntimeError("start_time is None.")
+
+    previous_progress = self.__results_progress
+
+    sim_time_percentage_done = 0
+    if self.__sim_time_limit:
+      sim_time_percentage_done = MathHelper.get_percentage(time_elapsed_seconds, self.__sim_time_limit)
+      if sim_time_percentage_done > 100:
+        sim_time_percentage_done = 100
+
+    human_time_percentage_done = 0
+    if self.__human_time_limit:
+      human_time = self.__get_human_time(total_hands_played)
+      human_time_percentage_done = MathHelper.get_percentage(human_time, self.__human_time_limit)
+      if human_time_percentage_done > 100:
+        human_time_percentage_done = 100
+
+    bankroll_fail_progress = 0
+    bankroll_success_progress = 0
     if self.__bankroll_goal != inf:
       bankroll_after_round = self.__game.get_ai_players()[0].get_bankroll()
-      if bankroll_after_round == 0:
-        self.__results_progress = -100
-        return
-      else:
-        winning_progress = int(((bankroll_after_round / self.__bankroll_goal) * 200) - 100)
-        winning_progress = max(-100, min(100, winning_progress))
-        self.__results_progress = winning_progress
-        return
+      bankroll_fail_progress = MathHelper.get_percentage(self.__bankroll_fail, bankroll_after_round)
+      bankroll_fail_progress = max(0, bankroll_fail_progress)
+      bankroll_success_progress = MathHelper.get_percentage(bankroll_after_round, self.__bankroll_goal)
+      bankroll_success_progress = max(0, bankroll_success_progress)
 
-    self.__results_progress = 0
+    highest_progress = max(
+      sim_time_percentage_done,
+      human_time_percentage_done,
+      bankroll_fail_progress,
+      bankroll_success_progress,
+      previous_progress
+    )
+    highest_progress = min(highest_progress, 100)
+    self.__results_progress = int(highest_progress)
     return

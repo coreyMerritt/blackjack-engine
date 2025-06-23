@@ -1,4 +1,4 @@
-from sqlalchemy import Engine, create_engine, select
+from sqlalchemy import Engine, create_engine, select, and_, func
 from sqlalchemy.orm import Session, sessionmaker
 from models.core.results.SimulationMultiResults import SimulationMultiResults
 from models.db.Base import Base
@@ -128,8 +128,9 @@ class DatabaseHandler():
     double = rules.double_down_rules.model_dump()
     splitting = rules.splitting_rules.model_dump()
     surrender = rules.surrender_rules.model_dump()
+    ai_info_dicts = [ai.model_dump() for ai in request.ai_player_info]
 
-    subq = (
+    query = (
       self.__session.query(CreateSingleSimReqORM.id)
       .join(CreateSingleSimReqORM.bounds).filter_by(**bounds_data)
       .join(CreateSingleSimReqORM.time).filter_by(**time_data)
@@ -139,16 +140,25 @@ class DatabaseHandler():
       .join(GameRulesORM.double_down_rules).filter_by(**double)
       .join(GameRulesORM.splitting_rules).filter_by(**splitting)
       .join(GameRulesORM.surrender_rules).filter_by(**surrender)
-      .subquery()
     )
+
+    for ai_dict in ai_info_dicts:
+      bet_spread_dict = ai_dict.pop("bet_spread", {})
+      query = query.filter(
+        CreateSingleSimReqORM.ai_player_info.any(
+          and_(
+            *(getattr(AiPlayerInfoORM, k) == v for k, v in ai_dict.items()),
+            AiPlayerInfoORM.bet_spread.has(**bet_spread_dict)
+          )
+        )
+      )
+
+    subq = query.subquery()
 
     sim_results = (
       self.__session.query(SimulationSingleResultsORM)
       .filter(SimulationSingleResultsORM.request_id.in_(select(subq.c.id)))
       .all()
     )
-    single_sims_list = []
-    for result in sim_results:
-      single_sims_list.append(self.__simulation_data_transformer.orm_to_pydantic(result))
-    multi_sim_data = self.__simulation_data_transformer.get_multi_sim_results(single_sims_list)
-    return multi_sim_data
+    sims = [self.__simulation_data_transformer.orm_to_pydantic(res) for res in sim_results]
+    return self.__simulation_data_transformer.get_multi_sim_results(sims)

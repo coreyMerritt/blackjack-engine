@@ -67,12 +67,15 @@ class MultiSimulationRunner():
       metadata.sims_won,
       (metadata.sims_run - metadata.sims_unfinished)
     )
-    metadata.risk_of_ruin = MathHelper.get_percentage(
+    metadata.failure_rate = MathHelper.get_percentage(
       metadata.sims_lost,
       (metadata.sims_run - metadata.sims_unfinished)
     )
-    assert metadata.success_rate + metadata.risk_of_ruin == 100.0
-    metadata.time_taken = end_time - self.__start_time
+    assert metadata.success_rate + metadata.failure_rate == 100.0
+    time_taken = end_time - self.__start_time
+    single_sim_results_summed = self.__simulation_data_transformer.get_single_sims_summed(single_sim_results)
+    metadata.simulation_time = time_taken
+    metadata.human_time = self.__get_human_time(single_sim_results_summed.hands.counts.total)
     self.__set_results(single_sim_results, metadata)
 
   async def run_with_benchmarking(self, runs: int) -> None:
@@ -139,10 +142,11 @@ class MultiSimulationRunner():
   def __count_sim(self, metadata: SimulationMultiResultsMetadata) -> None:
     ending_bankroll = self.__single_sim_runner.get_bankroll()
     bankroll_goal = self.__single_sim_runner.get_bankroll_goal()
+    bankroll_fail = self.__single_sim_runner.get_bankroll_fail()
     metadata.sims_run += 1
     if ending_bankroll >= bankroll_goal:
       metadata.sims_won += 1
-    elif ending_bankroll <= 0:
+    elif ending_bankroll <= bankroll_fail:
       metadata.sims_lost += 1
     else:
       metadata.sims_unfinished += 1

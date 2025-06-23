@@ -7,5 +7,6 @@ class SimulationMultiResultsMetadata(BaseModel):
   sims_lost: int = 0
   sims_unfinished: int = 0
   success_rate: float = 0
-  risk_of_ruin: float = 0
-  time_taken: float = 0
+  failure_rate: float = 0
+  simulation_time: float = 0
+  human_time: float = 0
