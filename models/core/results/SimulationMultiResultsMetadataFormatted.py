@@ -8,5 +8,6 @@ class SimulationMultiResultsMetadataFormatted(BaseModel):
   sims_unfinished: int = 0
   success_rate: str = ""
   failure_rate: str = ""
+  total_hands: int = 0
   simulation_time: str = ""
   human_time: str = ""

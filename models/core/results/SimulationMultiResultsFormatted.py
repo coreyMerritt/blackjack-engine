@@ -6,5 +6,4 @@ from models.core.results.SimulationSingleResultsFormatted import SimulationSingl
 
 class SimulationMultiResultsFormatted(BaseModel):
   metadata: SimulationMultiResultsMetadataFormatted = Field(default_factory=SimulationMultiResultsMetadataFormatted)
-  sum: SimulationSingleResultsFormatted = Field(default_factory=SimulationSingleResultsFormatted)
   average: SimulationSingleResultsFormatted = Field(default_factory=SimulationSingleResultsFormatted)

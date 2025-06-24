@@ -11,5 +11,6 @@ class SimulationMultiResultsMetadataORM(Base):
   sims_unfinished = Column(Integer, default=0)
   success_rate = Column(Float, default=0)
   failure_rate = Column(Float, default=0)
+  total_hands = Column(Integer, default=0)
   simulation_time = Column(Float, default=0)
   human_time = Column(Float, default=0)

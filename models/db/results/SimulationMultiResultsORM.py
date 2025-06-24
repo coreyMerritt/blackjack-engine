@@ -7,9 +7,7 @@ class SimulationMultiResultsORM(Base):
 
   id = Column(Integer, primary_key=True, autoincrement=True)
   metadata_id = Column(Integer, ForeignKey("simulation_multi_results_metadata.id"))
-  sum_id = Column(Integer, ForeignKey("simulation_single_results.id"))
   average_id = Column(Integer, ForeignKey("simulation_single_results.id"))
 
   metadata = relationship("SimulationMultiResultsMetadataORM", uselist=False)
-  sum = relationship("SimulationSingleResultsORM", uselist=False)
   average = relationship("SimulationSingleResultsORM", uselist=False)

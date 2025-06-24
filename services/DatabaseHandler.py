@@ -1,3 +1,4 @@
+import os
 from sqlalchemy import Engine, create_engine, select, and_
 from sqlalchemy.orm import Session, sessionmaker
 from models.core.results.SimulationMultiResults import SimulationMultiResults
@@ -31,8 +32,16 @@ class DatabaseHandler():
   __session: Session
   __simulation_data_transformer: SimulationDataTransformer
 
-  def __init__(self, db_url: str = "sqlite:///simulations.db"):
-    _ = PlayerInfoORM  # noqa: F401
+  def __init__(self):
+    _ = PlayerInfoORM  # noqa: F401]
+    user = os.getenv("BJE_MYSQL_USER")
+    password = os.getenv("BJE_MYSQL_PASS")
+    host = os.getenv("BJE_MYSQL_HOST")
+    port = os.getenv("BJE_MYSQL_PORT")
+    dbname = os.getenv("BJE_MYSQL_DBNAME")
+    if user is None or password is None or host is None or port is None or dbname is None:
+      raise RuntimeError("BJE_MYSQL_USER, BJE_MYSQL_PASS, BJE_MYSQL_HOST, and BJE_MYSQL_PORT are not in env.")
+    db_url: str = f"mysql+pymysql://{user}:{password}@{host}:{port}/{dbname}"
     self.__engine = create_engine(db_url, echo=False)
     self.__session_local = sessionmaker(bind=self.__engine)
     self.__session: Session = self.__session_local()
@@ -114,7 +123,10 @@ class DatabaseHandler():
       request=request_orm
     )
     self.__session.add(sim_orm)
-    self.__session.commit()
+    try:
+      self.__session.commit()
+    except Exception:
+      self.__session.rollback()
 
   def get_all_sim_results(
     self,

@@ -58,9 +58,8 @@ class SingleSimulationRunner():
     self.__results = None
     self.__database_handler = DatabaseHandler()
 
-  async def run(self, called_from_multi=False) -> None:
-    if not called_from_multi:
-      self.__full_reset()
+  async def run(self) -> None:
+    self.__full_reset()
     self.__start_time = time.time()
     br = self.__game.get_ai_players()[0].get_bankroll()
     bankroll = BankrollResults.model_construct(
@@ -105,7 +104,7 @@ class SingleSimulationRunner():
       percentages=percentages
     )
     bankroll.profit_per_hand = bankroll.total_profit / counts.total
-    bankroll.profit_per_hour = (bankroll.total_profit / counts.total) * self.__hands_per_hour
+    bankroll.profit_per_hour = bankroll.profit_per_hand * self.__hands_per_hour
     r_time = TimeResults.model_construct(
       human_time=self.__get_human_time(counts.total),
       simulation_time= time.time() - self.__start_time

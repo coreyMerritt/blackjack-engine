@@ -156,6 +156,7 @@ class SimulationDataTransformer():
     sims_unfinished = 0
     simulation_time = 0.0
     human_time = 0.0
+    total_hands = 0
     for result in single_sim_results:
       if result.won:
         sims_won += 1
@@ -163,6 +164,7 @@ class SimulationDataTransformer():
         sims_lost += 1
       elif result.won is None:
         sims_unfinished += 1
+      total_hands += result.hands.counts.total
       simulation_time += result.time.simulation_time
       human_time += result.time.human_time
     sims_finished = sims_run - sims_unfinished
@@ -177,6 +179,7 @@ class SimulationDataTransformer():
       sims_unfinished=sims_unfinished,
       success_rate=success_rate,
       failure_rate=failure_rate,
+      total_hands=total_hands,
       simulation_time=simulation_time,
       human_time=human_time
     )
@@ -186,7 +189,6 @@ class SimulationDataTransformer():
 
     multi_sim_result = SimulationMultiResults.model_construct(
       metadata=metadata,
-      sum=single_sims_summed,
       average=single_sims_averaged
     )
     return multi_sim_result
@@ -197,6 +199,16 @@ class SimulationDataTransformer():
     hours_per_day: int,
     days_per_week: int
   ) -> SimulationMultiResultsFormatted:
+    sim_time = self.__get_formatted_time(
+      multi_sim_results.metadata.simulation_time,
+      24,
+      7
+    )
+    human_time = self.__get_formatted_time(
+      multi_sim_results.metadata.human_time,
+      hours_per_day,
+      days_per_week
+    )
     formatted_metadata = SimulationMultiResultsMetadataFormatted.model_construct(
       sims_run = f"{multi_sim_results.metadata.sims_run:,}",
       sims_won = f"{multi_sim_results.metadata.sims_won:,}",
@@ -204,21 +216,9 @@ class SimulationDataTransformer():
       sims_unfinished = f"{multi_sim_results.metadata.sims_unfinished:,}",
       success_rate = f"{round(multi_sim_results.metadata.success_rate, 2):.2f}%",
       failure_rate = f"{round(multi_sim_results.metadata.failure_rate, 2):.2f}%",
-      simulation_time = f"{self.__get_formatted_time(
-        multi_sim_results.metadata.simulation_time,
-        24,
-        7
-      )}",
-      human_time = f"{self.__get_formatted_time(
-        multi_sim_results.metadata.human_time,
-        hours_per_day,
-        days_per_week
-      )}"
-    )
-    formatted_single_sim_sum = self.format_single_sim_results(
-      multi_sim_results.sum,
-      hours_per_day,
-      days_per_week
+      total_hands = f"{multi_sim_results.metadata.total_hands:,}",
+      simulation_time = f"{sim_time}",
+      human_time = f"{human_time}"
     )
     formatted_single_sim_average = self.format_single_sim_results(
       multi_sim_results.average,
@@ -227,7 +227,6 @@ class SimulationDataTransformer():
     )
     multi_sim_info_formatted = SimulationMultiResultsFormatted.model_construct(
       metadata=formatted_metadata,
-      sum=formatted_single_sim_sum,
       average=formatted_single_sim_average
     )
     return multi_sim_info_formatted

@@ -53,9 +53,9 @@ class MultiSimulationRunner():
     metadata = SimulationMultiResultsMetadata.model_validate({})
     self.__start_time = time.time()
 
-    for _ in range(0, runs):
+    for i in range(0, runs):
       self.__single_sim_runner.reset_game()
-      await self.__single_sim_runner.run(True)
+      await self.__single_sim_runner.run()
       single_sim_results.append(self.__single_sim_runner.get_results())
       self.__count_sim(metadata)
       self.__update_results_progress(single_sim_results, metadata, runs)
@@ -74,6 +74,7 @@ class MultiSimulationRunner():
     assert metadata.success_rate + metadata.failure_rate == 100.0
     time_taken = end_time - self.__start_time
     single_sim_results_summed = self.__simulation_data_transformer.get_single_sims_summed(single_sim_results)
+    metadata.total_hands = single_sim_results_summed.hands.counts.total
     metadata.simulation_time = time_taken
     metadata.human_time = self.__get_human_time(single_sim_results_summed.hands.counts.total)
     self.__set_results(single_sim_results, metadata)
@@ -119,7 +120,6 @@ class MultiSimulationRunner():
     single_sims_averaged = self.__simulation_data_transformer.get_single_sims_averaged(single_sims_summed, total_runs)
     multi_sim_results = SimulationMultiResults.model_construct(
       metadata=metadata,
-      sum=single_sims_summed,
       average=single_sims_averaged
     )
     return multi_sim_results
