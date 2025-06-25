@@ -15,8 +15,6 @@ else
   port="$2"
 fi
 
-
-curl -X POST "http://$host:$port/session/game/create" \
+curl -s -X POST "http://$host:$port/session/simulation/single/create" \
   -H "Content-Type: application/json" \
-  -d "$(cat ./create-single-sim-req.json)"
-
+  -d "$(cat ./create-single-sim-req.json)" | jq

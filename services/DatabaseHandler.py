@@ -1,5 +1,7 @@
 import os
-from sqlalchemy import Engine, create_engine, select, and_
+from urllib.parse import quote_plus
+from sqlalchemy import create_engine, select, and_
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session, sessionmaker
 from models.core.results.SimulationMultiResults import SimulationMultiResults
 from models.db.Base import Base
@@ -35,13 +37,16 @@ class DatabaseHandler():
   def __init__(self):
     _ = PlayerInfoORM  # noqa: F401]
     user = os.getenv("BJE_MYSQL_USER")
-    password = os.getenv("BJE_MYSQL_PASS")
+
+    password = quote_plus(os.getenv("BJE_MYSQL_PASS", ""))
     host = os.getenv("BJE_MYSQL_HOST")
     port = os.getenv("BJE_MYSQL_PORT")
-    dbname = os.getenv("BJE_MYSQL_DBNAME")
-    if user is None or password is None or host is None or port is None or dbname is None:
-      raise RuntimeError("BJE_MYSQL_USER, BJE_MYSQL_PASS, BJE_MYSQL_HOST, and BJE_MYSQL_PORT are not in env.")
-    db_url: str = f"mysql+pymysql://{user}:{password}@{host}:{port}/{dbname}"
+    db_name = os.getenv("BJE_MYSQL_DB_NAME")
+    if user is None or password is None or host is None or port is None or db_name is None:
+      raise RuntimeError(
+        "BJE_MYSQL_USER, BJE_MYSQL_PASS, BJE_MYSQL_HOST, BJE_MYSQL_PORT, or BJE_MYSQL_DB_NAME are not in env."
+      )
+    db_url = f"mysql+pymysql://{user}:{password}@{host}:{port}/{db_name}"
     self.__engine = create_engine(db_url, echo=False)
     self.__session_local = sessionmaker(bind=self.__engine)
     self.__session: Session = self.__session_local()

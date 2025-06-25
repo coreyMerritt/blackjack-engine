@@ -1,0 +1,38 @@
+version: '3.9'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - blackjack-engine-backend
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  blackjack-engine:
+    image: ghcr.io/coreymerritt/blackjack-engine:1.0.0
+    container_name: blackjack-engine
+    ports:
+      - "1080:8000"
+    env_file:
+      - .env
+    networks:
+      - blackjack-engine-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+volumes:
+  mysql-data:
+
+networks:
+  blackjack-engine-backend:
+    driver: bridge

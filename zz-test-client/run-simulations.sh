@@ -21,9 +21,9 @@ else
   port="$3"
 fi
 
-session_id="$(./create_multi_sim_runner.sh $host $port | tr -d '"')"
+session_id="$(./create-multi-sim-runner.sh $host $port | tr -d '"')"
 
-curl -s --no-keepalive -X POST "http://$host:$port/session/$session_id/simulation/run/$count/benchmark" \
+curl -s --no-keepalive -X POST "http://$host:$port/session/$session_id/simulation/run/$count" \
   -H "Content-Type: application/json" | jq
 
 sstatus=0
