@@ -19,6 +19,6 @@ fi
 curl -s -X POST "http://$host:$port/session/simulation/multi/create" \
   -H "Content-Type: application/json" \
   -d "{
-        \"multi\": $(cat ./create-multi-sim-req.json),
-        \"single\": $(cat ./create-single-sim-req.json)
+        \"multi\": $(cat ./multi.json),
+        \"single\": $(cat ./single.json)
       }" | jq

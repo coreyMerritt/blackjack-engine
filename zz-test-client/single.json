@@ -1,8 +1,8 @@
 {
   "bounds": {
-    "bankroll_goal": 20000,
-    "bankroll_fail": 5000,
-    "human_time_limit": 5631120,
+    "bankroll_goal": 400000,
+    "bankroll_fail": 100000,
+    "human_time_limit": null,
     "sim_time_limit": null
   },
   "time": {
@@ -42,18 +42,18 @@
     {
       "counts_cards": true,
       "plays_deviations": false,
-      "bankroll": 10000,
+      "bankroll": 200000,
       "basic_strategy_skill_level": 100,
       "card_counting_skill_level": 100,
       "deviations_skill_level": 100,
       "bet_spread": {
-        "true_zero": 1,
-        "true_one": 10,
-        "true_two": 20,
-        "true_three": 30,
-        "true_four": 40,
-        "true_five": 50,
-        "true_six": 60
+        "true_zero": 25,
+        "true_one": 50,
+        "true_two": 200,
+        "true_three": 300,
+        "true_four": 400,
+        "true_five": 500,
+        "true_six": 500
       }
     }
   ]

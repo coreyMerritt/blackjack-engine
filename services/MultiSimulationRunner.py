@@ -53,7 +53,7 @@ class MultiSimulationRunner():
     metadata = SimulationMultiResultsMetadata.model_validate({})
     self.__start_time = time.time()
 
-    for i in range(0, runs):
+    for _ in range(0, runs):
       self.__single_sim_runner.reset_game()
       await self.__single_sim_runner.run()
       single_sim_results.append(self.__single_sim_runner.get_results())

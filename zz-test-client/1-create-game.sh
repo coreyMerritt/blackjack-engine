@@ -18,5 +18,5 @@ fi
 
 curl -X POST "http://$host:$port/session/game/create" \
   -H "Content-Type: application/json" \
-  -d "$(cat ./create-single-sim-req.json)"
+  -d "$(cat ./single.json)"
 

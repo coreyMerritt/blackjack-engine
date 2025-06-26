@@ -17,4 +17,4 @@ fi
 
 curl -s -X GET "http://$host:$port/data/single_sim/get_formatted" \
   -H "Content-Type: application/json" \
-  -d "$(cat ./create-single-sim-req.json)" | jq
+  -d "$(cat ./single.json)" | jq

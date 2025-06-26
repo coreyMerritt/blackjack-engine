@@ -17,4 +17,4 @@ fi
 
 curl -s -X POST "http://$host:$port/session/simulation/single/create" \
   -H "Content-Type: application/json" \
-  -d "$(cat ./create-single-sim-req.json)" | jq
+  -d "$(cat ./single.json)" | jq
