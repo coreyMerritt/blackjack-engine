@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, Float
 from models.db.Base import Base
 
-class SimulationMultiResultsMetadataORM(Base):
+class SimMultiResultsMetadataORM(Base):
   __tablename__ = "simulation_multi_results_metadata"
 
   id = Column(Integer, primary_key=True, autoincrement=True)

@@ -5,7 +5,7 @@ import pytest
 from entities.Game import Game
 from models.core.HumanTime import HumanTime
 from models.core.SingleSimBounds import SingleSimBounds
-from services.SingleSimulationRunner import SingleSimulationRunner
+from services.SingleSimRunner import SingleSimRunner
 
 
 @pytest.fixture
@@ -36,7 +36,7 @@ def mock_human_time():
 
 @pytest.fixture
 def runner(mock_game, mock_bounds, mock_human_time):
-  return SingleSimulationRunner(mock_game, mock_bounds, mock_human_time)
+  return SingleSimRunner(mock_game, mock_bounds, mock_human_time)
 
 def test_initial_bankroll_goal(runner):
   assert runner.get_bankroll_goal() == 1500

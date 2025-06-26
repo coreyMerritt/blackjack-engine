@@ -6,25 +6,25 @@ from models.core.results.HandResultsCounts import HandResultsCounts
 from models.core.results.HandResultsCountsFormatted import HandResultsCountsFormatted
 from models.core.results.HandResultsPercentagesFormatted import HandResultsPercentagesFormatted
 from models.core.results.HandResultsPercentages import HandResultsPercentages
-from models.core.results.SimulationMultiResults import SimulationMultiResults
-from models.core.results.SimulationMultiResultsFormatted import SimulationMultiResultsFormatted
-from models.core.results.SimulationMultiResultsMetadata import SimulationMultiResultsMetadata
-from models.core.results.SimulationMultiResultsMetadataFormatted import SimulationMultiResultsMetadataFormatted
-from models.core.results.SimulationSingleResults import SimulationSingleResults
+from models.core.results.SimMultiResults import SimMultiResults
+from models.core.results.SimMultiResultsFormatted import SimMultiResultsFormatted
+from models.core.results.SimMultiResultsMetadata import SimMultiResultsMetadata
+from models.core.results.SimMultiResultsMetadataFormatted import SimMultiResultsMetadataFormatted
+from models.core.results.SimSingleResults import SimSingleResults
 from models.core.results.BankrollResults import BankrollResults
 from models.core.results.BankrollResultsFormatted import BankrollResultsFormatted
 from models.core.results.HandResults import HandResults
 from models.core.results.HandResultsFormatted import HandResultsFormatted
-from models.core.results.SimulationSingleResultsFormatted import SimulationSingleResultsFormatted
+from models.core.results.SimSingleResultsFormatted import SimSingleResultsFormatted
 from models.core.results.TimeResults import TimeResults
 from models.core.results.TimeResultsFormatted import TimeResultsFormatted
-from models.db.results.SimulationSingleResultsORM import SimulationSingleResultsORM
+from models.db.results.SimSingleResultsORM import SimSingleResultsORM
 from services import MathHelper
 
 
-class SimulationDataTransformer():
-  def get_single_sims_summed(self, single_sim_results: List[SimulationSingleResults]) -> SimulationSingleResults:
-    single_sims_summed = SimulationSingleResults.model_validate({})
+class SimDataTransformer():
+  def get_single_sims_summed(self, single_sim_results: List[SimSingleResults]) -> SimSingleResults:
+    single_sims_summed = SimSingleResults.model_validate({})
     for r in single_sim_results:
       single_sims_summed.hands.counts.total += int(r.hands.counts.total)
       single_sims_summed.hands.counts.blackjack += int(r.hands.counts.blackjack)
@@ -47,9 +47,9 @@ class SimulationDataTransformer():
 
   def get_single_sims_averaged(
     self,
-    single_sims_summed: SimulationSingleResults,
+    single_sims_summed: SimSingleResults,
     total_runs: int
-  ) -> SimulationSingleResults:
+  ) -> SimSingleResults:
     average_counts = HandResultsCounts.model_construct(
       total = single_sims_summed.hands.counts.total / total_runs,
       blackjack = single_sims_summed.hands.counts.blackjack / total_runs,
@@ -90,7 +90,7 @@ class SimulationDataTransformer():
       human_time = single_sims_summed.time.human_time / total_runs,
       simulation_time = single_sims_summed.time.simulation_time / total_runs
     )
-    single_sims_averaged = SimulationSingleResults.model_construct(
+    single_sims_averaged = SimSingleResults.model_construct(
       hands = average_hands,
       bankroll = average_bankroll,
       time = average_time
@@ -99,10 +99,10 @@ class SimulationDataTransformer():
 
   def format_single_sim_results(
     self,
-    results: SimulationSingleResults,
+    results: SimSingleResults,
     hours_per_day: int,
     days_per_week: int
-  ) -> SimulationSingleResultsFormatted:
+  ) -> SimSingleResultsFormatted:
     counts = HandResultsCountsFormatted.model_construct(
       total=f"{int(results.hands.counts.total):,}",
       blackjack=f"{int(results.hands.counts.blackjack):,}",
@@ -143,13 +143,14 @@ class SimulationDataTransformer():
       human_time=self.__get_formatted_time(results.time.human_time, hours_per_day, days_per_week),
       simulation_time=self.__get_formatted_time(results.time.simulation_time, 24, 7)
     )
-    return SimulationSingleResultsFormatted.model_construct(
+    return SimSingleResultsFormatted.model_construct(
+      won=results.won,
       hands=r_hands,
       bankroll=r_bankroll,
       time=r_time
     )
 
-  def get_multi_sim_results(self, single_sim_results: List[SimulationSingleResults]) -> SimulationMultiResults | None:
+  def get_multi_sim_results(self, single_sim_results: List[SimSingleResults]) -> SimMultiResults | None:
     sims_run = len(single_sim_results)
     sims_won = 0
     sims_lost = 0
@@ -172,7 +173,7 @@ class SimulationDataTransformer():
       return None
     success_rate = MathHelper.get_percentage(sims_won, sims_finished)
     failure_rate = MathHelper.get_percentage(sims_lost, sims_finished)
-    metadata = SimulationMultiResultsMetadata.model_construct(
+    metadata = SimMultiResultsMetadata.model_construct(
       sims_run=sims_run,
       sims_won=sims_won,
       sims_lost=sims_lost,
@@ -187,7 +188,7 @@ class SimulationDataTransformer():
     single_sims_summed = self.get_single_sims_summed(single_sim_results)
     single_sims_averaged = self.get_single_sims_averaged(single_sims_summed, sims_run)
 
-    multi_sim_result = SimulationMultiResults.model_construct(
+    multi_sim_result = SimMultiResults.model_construct(
       metadata=metadata,
       average=single_sims_averaged
     )
@@ -195,10 +196,10 @@ class SimulationDataTransformer():
 
   def format_multi_sim_results(
     self,
-    multi_sim_results: SimulationMultiResults,
+    multi_sim_results: SimMultiResults,
     hours_per_day: int,
     days_per_week: int
-  ) -> SimulationMultiResultsFormatted:
+  ) -> SimMultiResultsFormatted:
     sim_time = self.__get_formatted_time(
       multi_sim_results.metadata.simulation_time,
       24,
@@ -209,7 +210,7 @@ class SimulationDataTransformer():
       hours_per_day,
       days_per_week
     )
-    formatted_metadata = SimulationMultiResultsMetadataFormatted.model_construct(
+    formatted_metadata = SimMultiResultsMetadataFormatted.model_construct(
       sims_run = f"{multi_sim_results.metadata.sims_run:,}",
       sims_won = f"{multi_sim_results.metadata.sims_won:,}",
       sims_lost = f"{multi_sim_results.metadata.sims_lost:,}",
@@ -225,7 +226,7 @@ class SimulationDataTransformer():
       hours_per_day,
       days_per_week
     )
-    multi_sim_info_formatted = SimulationMultiResultsFormatted.model_construct(
+    multi_sim_info_formatted = SimMultiResultsFormatted.model_construct(
       metadata=formatted_metadata,
       average=formatted_single_sim_average
     )
@@ -235,8 +236,8 @@ class SimulationDataTransformer():
   def get_single_sim_req(self, multi_sim_req: CreateMultiSimReq) -> CreateSingleSimReq:
     return multi_sim_req.single
 
-  def orm_to_pydantic(self, sim_orm: SimulationSingleResultsORM) -> SimulationSingleResults:
-    return SimulationSingleResults(
+  def orm_to_pydantic(self, sim_orm: SimSingleResultsORM) -> SimSingleResults:
+    return SimSingleResults(
       won=bool(sim_orm.won) if sim_orm.won is not None else None,
       hands=HandResults(
         counts=HandResultsCounts.model_validate(sim_orm.hands.counts, from_attributes=True),

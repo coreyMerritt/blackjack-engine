@@ -1,0 +1,54 @@
+{
+  "metadata": {
+    "sims_run": "100",
+    "sims_won": "90",
+    "sims_lost": "10",
+    "sims_unfinished": "0",
+    "success_rate": "90.00%",
+    "failure_rate": "10.00%",
+    "total_hands": "13,973,770",
+    "simulation_time": "3.48 mins",
+    "human_time": "89.33 years"
+  },
+  "average": {
+    "won": null,
+    "hands": {
+      "counts": {
+        "total": "139,737",
+        "blackjack": "6,678",
+        "won": "54,123",
+        "drawn": "11,862",
+        "lost": "67,072",
+        "surrendered": "0"
+      },
+      "percentages": {
+        "blackjack": "4.78%",
+        "won": "38.73%",
+        "drawn": "8.49%",
+        "lost": "48.00%",
+        "surrendered": "0.00%"
+      }
+    },
+    "bankroll": {
+      "starting": "$200,000.00",
+      "ending": "$370,391.88",
+      "total_profit": "$170,391.88",
+      "profit_from_true": [
+        "-$19,173.50",
+        "-$452.62",
+        "$7,691.00",
+        "$20,454.00",
+        "$19,798.00",
+        "$19,695.00",
+        "$122,380.00"
+      ],
+      "profit_per_hand": "$1.25",
+      "profit_per_hour": "$124.95",
+      "peak": "$383,172.12"
+    },
+    "time": {
+      "human_time": "10.72 months",
+      "simulation_time": "38.68 secs"
+    }
+  }
+}

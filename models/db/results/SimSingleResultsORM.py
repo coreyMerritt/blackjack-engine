@@ -2,7 +2,7 @@ from sqlalchemy import Boolean, Column, Integer, ForeignKey
 from sqlalchemy.orm import relationship
 from models.db.Base import Base
 
-class SimulationSingleResultsORM(Base):
+class SimSingleResultsORM(Base):
   __tablename__ = "simulation_single_results"
 
   id = Column(Integer, primary_key=True, autoincrement=True)

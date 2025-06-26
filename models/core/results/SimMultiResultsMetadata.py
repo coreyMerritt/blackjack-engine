@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 
 
-class SimulationMultiResultsMetadata(BaseModel):
+class SimMultiResultsMetadata(BaseModel):
   sims_run: int = 0
   sims_won: int = 0
   sims_lost: int = 0

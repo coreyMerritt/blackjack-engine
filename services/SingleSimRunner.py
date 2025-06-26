@@ -12,7 +12,7 @@ from models.core.results.BankrollResults import BankrollResults
 from models.core.results.HandResults import HandResults
 from models.core.results.HandResultsCounts import HandResultsCounts
 from models.core.results.HandResultsPercentages import HandResultsPercentages
-from models.core.results.SimulationSingleResults import SimulationSingleResults
+from models.core.results.SimSingleResults import SimSingleResults
 from models.core.results.TimeResults import TimeResults
 from models.enums.GameState import GameState
 from models.enums.HandResult import HandResult
@@ -21,7 +21,7 @@ from services.DatabaseHandler import DatabaseHandler
 import services.MathHelper as MathHelper
 
 
-class SingleSimulationRunner():
+class SingleSimRunner():
   __original_req: CreateSingleSimReq
   __yield_every_x_hands: int
   __bankroll_goal: float
@@ -34,8 +34,7 @@ class SingleSimulationRunner():
   __results_progress: int
   __start_time: float | None
   __game: Game
-  __results: SimulationSingleResults | None
-  __database_handler: DatabaseHandler
+  __results: SimSingleResults | None
 
   def __init__(self, game: Game, bounds: SingleSimBounds, human_time: HumanTime, original_req: CreateSingleSimReq):
     self.__original_req = original_req
@@ -56,7 +55,6 @@ class SingleSimulationRunner():
     self.__results_progress = 0
     self.__game = game
     self.__results = None
-    self.__database_handler = DatabaseHandler()
 
   async def run(self) -> None:
     self.__full_reset()
@@ -109,13 +107,76 @@ class SingleSimulationRunner():
       human_time=self.__get_human_time(counts.total),
       simulation_time= time.time() - self.__start_time
     )
-    self.__results = SimulationSingleResults.model_construct(
+    self.__results = SimSingleResults.model_construct(
       won=won,
       hands=r_hands,
       bankroll=bankroll,
       time=r_time
     )
-    self.__database_handler.store_simulation_single_result(self.__results, self.__original_req)
+
+    database_handler = DatabaseHandler()
+    database_handler.store_simulation_single_result(self.__results, self.__original_req)
+
+  def run_sync(self) -> None:
+    self.__full_reset()
+    self.__start_time = time.time()
+    br = self.__game.get_ai_players()[0].get_bankroll()
+    bankroll = BankrollResults.model_construct(
+      starting=br,
+      highest=br
+    )
+    counts = HandResultsCounts.model_validate({})
+    someone_has_bankroll = self.__game.someone_has_bankroll()
+    bankroll_is_below_goal = self.__calculate_if_bankroll_is_below_goal()
+    bankroll_is_above_fail = self.__calculate_if_bankroll_is_above_fail()
+    assert self.get_bankroll_goal() > bankroll.starting
+    assert self.get_bankroll_fail() < bankroll.starting
+
+    while(someone_has_bankroll and bankroll_is_below_goal and bankroll_is_above_fail):
+      self.__play_a_hand_sync(bankroll, counts)
+      assert self.__results_progress <= 100
+      assert self.__results_progress >= -100
+      if self.__results_progress == 100 or self.__results_progress == -100:
+        break
+      someone_has_bankroll = self.__game.someone_has_bankroll()
+      bankroll_is_below_goal = self.__calculate_if_bankroll_is_below_goal()
+      bankroll_is_above_fail = self.__calculate_if_bankroll_is_above_fail()
+
+    bankroll.ending = self.__game.get_ai_players()[0].get_bankroll()
+    assert bankroll.ending >= 0
+    max_possible_win = self.__game.get_ai_players()[0].get_bet_spread().true_six * 8
+    assert bankroll.ending <= self.__bankroll_goal + max_possible_win
+    bankroll.total_profit = bankroll.ending - bankroll.starting
+    percentages = HandResultsPercentages.model_construct(
+      blackjack=self.__get_blackjack_rate(counts),
+      won=self.__get_win_rate(counts),
+      drawn=self.__get_draw_rate(counts),
+      lost=self.__get_loss_rate(counts),
+      surrendered=self.__get_surrender_rate(counts)
+    )
+    assert sum(percentages.model_dump().values()) >= 99.99
+    assert sum(percentages.model_dump().values()) <= 100.01
+
+    won = self.__get_game_result(bankroll.ending)
+    r_hands = HandResults.model_construct(
+      counts=counts,
+      percentages=percentages
+    )
+    bankroll.profit_per_hand = bankroll.total_profit / counts.total
+    bankroll.profit_per_hour = bankroll.profit_per_hand * self.__hands_per_hour
+    r_time = TimeResults.model_construct(
+      human_time=self.__get_human_time(counts.total),
+      simulation_time= time.time() - self.__start_time
+    )
+    self.__results = SimSingleResults.model_construct(
+      won=won,
+      hands=r_hands,
+      bankroll=bankroll,
+      time=r_time
+    )
+
+  def get_original_req(self) -> CreateSingleSimReq:
+    return self.__original_req
 
   def get_hours_per_day(self) -> int:
     return self.__hours_per_day
@@ -135,12 +196,12 @@ class SingleSimulationRunner():
   def get_results_progress(self) -> int:
     return self.__results_progress
 
-  def get_results(self) -> SimulationSingleResults | None:
+  def get_results(self) -> SimSingleResults | None:
     if self.__results is None:
       return None
     return self.__results
 
-  def set_results(self, results: SimulationSingleResults) -> None:
+  def set_results(self, results: SimSingleResults) -> None:
     self.__results = results
 
   def reset_game(self) -> None:
@@ -205,6 +266,24 @@ class SingleSimulationRunner():
     await self.__occasionally_yield_event_loop_control(counts.total)
     self.__update_results_progress(counts.total, time.time() - self.__start_time)
 
+  def __play_a_hand_sync(self, bankroll: BankrollResults, counts: HandResultsCounts) -> None:
+    if self.__start_time is None:
+      raise RuntimeError("Start time wasn't logged.")
+    ai_player = self.__game.get_ai_players()[0]
+    true_count = ai_player.calculate_true_count(self.__game.get_dealer().get_decks_remaining())
+    self.__game.continue_until_state(GameState.CLEANUP)
+    assert self.__game.get_state() == GameState.CLEANUP
+    self.__update_bankroll(bankroll)
+    for hand in ai_player.get_hands():
+      self.__update_profits(hand, true_count, bankroll.profit_from_true, counts)
+    total_profit = ai_player.get_bankroll() - bankroll.starting
+    total_from_true = sum(bankroll.profit_from_true)
+    assert abs(total_profit - total_from_true) < 0.01
+    self.__game.finish_round()
+    assert self.__game.get_state() == GameState.BETTING
+    # await self.__occasionally_yield_event_loop_control(counts.total)
+    self.__update_results_progress(counts.total, time.time() - self.__start_time)
+
   async def __occasionally_yield_event_loop_control(self, total_hands_played) -> None:
     if total_hands_played % self.__yield_every_x_hands == 0:
       await asyncio.sleep(0)
@@ -250,30 +329,6 @@ class SingleSimulationRunner():
     BlackjackLogger.debug(f"\t\tPayout: {payout}")
 
   def __update_results_progress(self, total_hands_played: int, time_elapsed_seconds: float) -> None:
-    # if self.__human_time_limit is not None:
-    #   human_seconds = self.__get_human_time(total_hands_played)
-    #   human_time_progress = int(MathHelper.get_percentage(human_seconds, self.__human_time_limit))
-    #   self.__results_progress = min(human_time_progress, 100)
-    #   return
-
-    # if self.__sim_time_limit is not None:
-    #   sim_time_progress = int(time_elapsed_seconds / self.__sim_time_limit)
-    #   self.__results_progress = min(sim_time_progress, 100)
-    #   return
-
-    # if self.__bankroll_goal != inf:
-    #   bankroll_after_round = self.__game.get_ai_players()[0].get_bankroll()
-    #   if bankroll_after_round <= self.__bankroll_fail:
-    #     self.__results_progress = -100
-    #     return
-    #   else:
-    #     winning_progress = int(((bankroll_after_round / self.__bankroll_goal) * 200) - 100)
-    #     winning_progress = max(-100, min(100, winning_progress))
-    #     self.__results_progress = winning_progress
-    #     return
-
-    # self.__results_progress = 0
-    # return
     if self.__start_time is None:
       raise RuntimeError("start_time is None.")
 

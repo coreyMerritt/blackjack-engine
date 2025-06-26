@@ -1,10 +1,10 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from controllers.SimulationController import SimulationController
+from controllers.SimController import SimController
 
 
 router = APIRouter()
-controller = SimulationController()
+controller = SimController()
 
 @router.post("/session/{session_id}/simulation/run")
 async def run(session_id: str) -> JSONResponse:

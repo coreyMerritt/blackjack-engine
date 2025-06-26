@@ -1,16 +1,16 @@
 from fastapi.responses import JSONResponse
 from models.api.CreateSingleSimReq import CreateSingleSimReq
 from services.DatabaseHandler import DatabaseHandler
-from services.SimulationDataTransformer import SimulationDataTransformer
+from services.SimDataTransformer import SimDataTransformer
 
 
 class ExistingDataController():
   __database_handler: DatabaseHandler
-  __simulation_data_transformer: SimulationDataTransformer
+  __simulation_data_transformer: SimDataTransformer
 
   def __init__(self):
     self.__database_handler = DatabaseHandler()
-    self.__simulation_data_transformer = SimulationDataTransformer()
+    self.__simulation_data_transformer = SimDataTransformer()
 
   async def get_sim_data(self, req: CreateSingleSimReq):
     results = self.__database_handler.get_all_sim_results(req)

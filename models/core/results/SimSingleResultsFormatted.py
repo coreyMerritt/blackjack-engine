@@ -6,7 +6,7 @@ from models.core.results.HandResultsFormatted import HandResultsFormatted
 from models.core.results.BankrollResultsFormatted import BankrollResultsFormatted
 
 
-class SimulationSingleResultsFormatted(BaseModel):
+class SimSingleResultsFormatted(BaseModel):
   won: Optional[bool] = None
   hands: HandResultsFormatted = Field(default_factory=HandResultsFormatted)
   bankroll: BankrollResultsFormatted = Field(default_factory=BankrollResultsFormatted)

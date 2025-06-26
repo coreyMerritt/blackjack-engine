@@ -1,22 +1,26 @@
 services:
-  mysql:
-    image: mysql:8.0
-    container_name: mysql
+  postgres:
+    image: postgres:15
+    container_name: postgres
     restart: unless-stopped
     env_file:
       - .env
     volumes:
-      - mysql-data:/var/lib/mysql
+      - postgres-data:/var/lib/postgresql/data
     networks:
       - blackjack-engine-backend
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
       interval: 5s
       timeout: 3s
       retries: 10
 
   blackjack-engine:
-    image: ghcr.io/coreymerritt/blackjack-engine:1.0.0
+    # image: ghcr.io/coreymerritt/blackjack-engine:1.0.0
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: blackjack-engine:local
     container_name: blackjack-engine
     ports:
       - "1080:8000"
@@ -25,11 +29,11 @@ services:
     networks:
       - blackjack-engine-backend
     depends_on:
-      mysql:
+      postgres:
         condition: service_healthy
 
 volumes:
-  mysql-data:
+  postgres-data:
 
 networks:
   blackjack-engine-backend:

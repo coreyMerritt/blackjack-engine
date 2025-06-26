@@ -1,9 +1,0 @@
-from pydantic import BaseModel, Field
-
-from models.core.results.SimulationMultiResultsMetadataFormatted import SimulationMultiResultsMetadataFormatted
-from models.core.results.SimulationSingleResultsFormatted import SimulationSingleResultsFormatted
-
-
-class SimulationMultiResultsFormatted(BaseModel):
-  metadata: SimulationMultiResultsMetadataFormatted = Field(default_factory=SimulationMultiResultsMetadataFormatted)
-  average: SimulationSingleResultsFormatted = Field(default_factory=SimulationSingleResultsFormatted)

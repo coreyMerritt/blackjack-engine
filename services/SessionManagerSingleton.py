@@ -8,8 +8,8 @@ from models.core.MultiSimBounds import MultiSimBounds
 from models.core.SingleSimBounds import SingleSimBounds
 from models.core.player_info.AiPlayerInfo import AiPlayerInfo
 from models.core.rules.GameRules import GameRules
-from services.MultiSimulationRunner import MultiSimulationRunner
-from services.SingleSimulationRunner import SingleSimulationRunner
+from services.MultiSimRunner import MultiSimRunner
+from services.SingleSimRunner import SingleSimRunner
 
 class SessionManagerSingleton:
   _game_sessions: dict[str, Game]
@@ -45,7 +45,7 @@ class SessionManagerSingleton:
   ) -> str:
     session_id = str(uuid.uuid4())
     game = Game(rules, ai_player_info)
-    single_sim_runner = SingleSimulationRunner(game, bounds, time, req)
+    single_sim_runner = SingleSimRunner(game, bounds, time, req)
     self._single_sim_runner_sessions[session_id] = single_sim_runner
     return session_id
 
@@ -60,7 +60,7 @@ class SessionManagerSingleton:
   ) -> str:
     session_id = str(uuid.uuid4())
     game = Game(rules, ai_player_info)
-    multi_sim_runner = MultiSimulationRunner(multi_bounds, game, bounds, time, original_req)
+    multi_sim_runner = MultiSimRunner(multi_bounds, game, bounds, time, original_req)
     self._multi_sim_runner_sessions[session_id] = multi_sim_runner
     return session_id
 
@@ -70,13 +70,13 @@ class SessionManagerSingleton:
       raise RuntimeError("Tried to retrieve a nonexistant Game session.")
     return game
 
-  def get_single_sim_runner(self, session_id: str) -> SingleSimulationRunner:
+  def get_single_sim_runner(self, session_id: str) -> SingleSimRunner:
     single_sim_runner = self._single_sim_runner_sessions.get(session_id)
     if single_sim_runner is None:
       raise RuntimeError("Tried to retrieve a nonexistant SingleSimRunner session.")
     return single_sim_runner
 
-  def get_multi_sim_runner(self, session_id: str) -> MultiSimulationRunner:
+  def get_multi_sim_runner(self, session_id: str) -> MultiSimRunner:
     multi_sim_runner = self._multi_sim_runner_sessions.get(session_id)
     if multi_sim_runner is None:
       raise RuntimeError("Tried to retrieve a nonexistant MultiSimRunner session.")

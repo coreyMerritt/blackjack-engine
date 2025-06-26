@@ -6,7 +6,7 @@ from models.core.results.BankrollResults import BankrollResults
 from models.core.results.TimeResults import TimeResults
 
 
-class SimulationSingleResults(BaseModel):
+class SimSingleResults(BaseModel):
   won: Optional[bool] = None
   hands: HandResults = Field(default_factory=HandResults)
   bankroll: BankrollResults = Field(default_factory=BankrollResults)

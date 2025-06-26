@@ -34,13 +34,13 @@ def test_initial_state(runner):
   assert runner.get_results_progress() == 0
 
 def test_get_human_time_calculation(runner):
-  assert runner._MultiSimulationRunner__get_human_time(100) == 3600.0
+  assert runner._MultiSimRunner__get_human_time(100) == 3600.0
 
 def test_get_time_formatted_seconds(runner):
-  assert runner._MultiSimulationRunner__get_time_formatted(45) == "45.00 secs"
+  assert runner._MultiSimRunner__get_time_formatted(45) == "45.00 secs"
 
 def test_set_results(runner):
-  sim_data = [runner._MultiSimulationRunner__single_sim_runner.get_results()] * 3
+  sim_data = [runner._MultiSimRunner__single_sim_runner.get_results()] * 3
   meta = {
     "sims_run": 3,
     "sims_won": 2,
@@ -51,19 +51,19 @@ def test_set_results(runner):
     "simulation_time": 3.2,
     "human_tume": 2.4
   }
-  runner._MultiSimulationRunner__set_results(sim_data, meta)
+  runner._MultiSimRunner__set_results(sim_data, meta)
   results = runner.get_results()
   assert results["sims_run"] == 3
   assert results["single_sim_averages"]["bankroll"]["total_profit"] == 200.0
 
 def test_count_sim_won(runner):
   sims = {"run": 0, "won": 0, "lost": 0, "unfinished": 0}
-  runner._MultiSimulationRunner__count_sim(sims)
+  runner._MultiSimRunner__count_sim(sims)
   assert sims["won"] == 1
   assert sims["run"] == 1
 
 def test_get_results_formatted(runner):
-  sim_data = [runner._MultiSimulationRunner__single_sim_runner.get_results()] * 2
+  sim_data = [runner._MultiSimRunner__single_sim_runner.get_results()] * 2
   meta = {
     "sims_run": 2,
     "sims_won": 1,
@@ -74,7 +74,7 @@ def test_get_results_formatted(runner):
     "simulation_time": 10.0,
     "human_time": 8.7
   }
-  runner._MultiSimulationRunner__set_results(sim_data, meta)
+  runner._MultiSimRunner__set_results(sim_data, meta)
   formatted = runner.get_results_formatted()
   assert formatted["multi_sim_info"]["sims_run"] == "2"
   assert formatted["multi_sim_info"]["success_rate"] == "50.00%"

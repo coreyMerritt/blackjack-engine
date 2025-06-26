@@ -5,12 +5,12 @@ import pytest
 import pytest_asyncio
 from fastapi import HTTPException
 from services.SessionManagerSingleton import SessionManagerSingleton
-from controllers.SimulationController import SimulationController
+from controllers.SimController import SimController
 
 
 @pytest_asyncio.fixture
 async def controller():
-  return SimulationController()
+  return SimController()
 
 @pytest.fixture
 def session_id():

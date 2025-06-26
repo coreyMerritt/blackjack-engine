@@ -22,8 +22,8 @@ btStartTest "Can start a Game"
 btStartTest "Can place a Bet"
   bash 4-place-bet.sh $session_id $player_id 100 $host
 
-btStartTest "Can run a Simulation"
+btStartTest "Can run a Sim"
   bash run-simulation.sh $host
 
-btStartTest "Can run a Multi-Simulation"
+btStartTest "Can run a Multi-Sim"
   bash run-simulations.sh 2 $host
