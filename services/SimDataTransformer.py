@@ -27,7 +27,16 @@ from services import MathHelper
 class SimDataTransformer():
   def get_single_sims_summed(self, single_sim_results: List[SimSingleResults]) -> SimSingleResults:
     single_sims_summed = SimSingleResults.model_validate({})
+    won = 0
+    lost = 0
+    unfinished = 0
     for r in single_sim_results:
+      if r.won:
+        won += 1
+      elif r.won == False:
+        lost += 1
+      elif r.won == None:
+        unfinished += 1
       single_sims_summed.hands.counts.total += int(r.hands.counts.total)
       single_sims_summed.hands.counts.blackjack += int(r.hands.counts.blackjack)
       single_sims_summed.hands.counts.won += int(r.hands.counts.won)
@@ -46,6 +55,12 @@ class SimDataTransformer():
       single_sims_summed.time.human_time += float(r.time.human_time)
       single_sims_summed.time.simulation_time += float(r.time.simulation_time)
     single_sims_summed.hands.percentages = self.__get_hand_results_percentages(single_sims_summed.hands.counts)
+    if won > lost:
+      single_sims_summed.won = True
+    elif lost < won:
+      single_sims_summed.won = False
+    else:
+      single_sims_summed.won = None
     return single_sims_summed
 
   def get_single_sims_averaged(
@@ -98,6 +113,7 @@ class SimDataTransformer():
       simulation_time = single_sims_summed.time.simulation_time / total_runs
     )
     single_sims_averaged = SimSingleResults.model_construct(
+      won = single_sims_summed.won,
       hands = average_hands,
       bankroll = average_bankroll,
       time = average_time
