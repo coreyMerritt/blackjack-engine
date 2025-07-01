@@ -15,6 +15,7 @@ from models.db.results.BankrollResultsORM import BankrollResultsORM
 from models.db.results.HandResultsCountsORM import HandResultsCountsORM
 from models.db.results.HandResultsORM import HandResultsORM
 from models.db.results.HandResultsPercentagesORM import HandResultsPercentagesORM
+from models.db.results.ProfitResultsORM import ProfitResultsORM
 from models.db.results.SimSingleResultsORM import SimSingleResultsORM
 from models.db.results.TimeResultsORM import TimeResultsORM
 from models.db.core.SingleSimBoundsORM import SingleSimBoundsORM
@@ -48,6 +49,7 @@ class DatabaseHandler():
       GameRulesORM,
       AiPlayerInfoORM,
       CreateSingleSimReqORM,
+      ProfitResultsORM,
       BankrollResultsORM,
       HandResultsCountsORM,
       HandResultsPercentagesORM,
@@ -94,7 +96,14 @@ class DatabaseHandler():
       counts_orm = HandResultsCountsORM(**sim_result.hands.counts.model_dump())
       percentages_orm = HandResultsPercentagesORM(**sim_result.hands.percentages.model_dump())
       hands_orm = HandResultsORM(counts=counts_orm, percentages=percentages_orm)
-      bankroll_orm = BankrollResultsORM(**sim_result.bankroll.model_dump())
+      profit_orm = ProfitResultsORM(**sim_result.bankroll.profit.model_dump())
+      bankroll_orm = BankrollResultsORM(
+          starting=sim_result.bankroll.starting,
+          ending=sim_result.bankroll.ending,
+          highest=sim_result.bankroll.highest,
+          lowest=sim_result.bankroll.lowest,
+          profit=profit_orm
+      )
       time_orm_result = TimeResultsORM(**sim_result.time.model_dump())
 
       session.add_all([counts_orm, percentages_orm, hands_orm, bankroll_orm, time_orm_result])
