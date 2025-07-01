@@ -50,17 +50,30 @@ def test_results_progress_default(runner):
 def test_set_and_get_results(runner):
   dummy_results = {
     "hands": {
-      "counts": {"total": 1, "won": 1, "lost": 0, "drawn": 0, "blackjack": 0},
-      "percentages": {"won": 100.0, "lost": 0.0, "drawn": 0.0}
+      "counts": {
+        "total": 1,
+        "won": 1,
+        "lost": 0,
+        "drawn": 0,
+        "blackjack": 0
+      },
+      "percentages": {
+        "won": 100.0,
+        "lost": 0.0,
+        "drawn": 0.0
+      }
     },
     "bankroll": {
       "starting": 1000,
       "ending": 1100,
-      "total_profit": 100,
-      "profit_from_true": [0.0] * 7,
-      "profit_per_hand": 100,
-      "profit_per_hour": 10000,
-      "peak": 1100
+      "highest": 1100,
+      "lowest": 50,
+      "profit": {
+        "total": 100,
+        "from_true": [0.0] * 7,
+        "per_hand": 100,
+        "per_hour": 10000
+      }
     },
     "time": {
       "human_time": 60,
@@ -71,7 +84,7 @@ def test_set_and_get_results(runner):
   assert runner.get_results() == dummy_results
   formatted = runner.get_results_formatted()
   assert formatted["hands"]["counts"]["won"] == "1"
-  assert formatted["bankroll"]["total_profit"] == "$100.00"
+  assert formatted["bankroll"]["profit"]["total"] == "$100.00"
   assert formatted["time"]["human_time"].endswith("secs") or "mins" in formatted["time"]["human_time"]
 
 def test_reset_game(runner):

@@ -62,7 +62,8 @@ class SingleSimRunner():
     br = self.__game.get_ai_players()[0].get_bankroll()
     bankroll = BankrollResults.model_construct(
       starting=br,
-      highest=br
+      highest=br,
+      lowest=br
     )
     counts = HandResultsCounts.model_validate({})
     someone_has_bankroll = self.__game.someone_has_bankroll()
@@ -85,7 +86,7 @@ class SingleSimRunner():
     assert bankroll.ending >= 0
     max_possible_win = self.__game.get_ai_players()[0].get_bet_spread().true_six * 8
     assert bankroll.ending <= self.__bankroll_goal + max_possible_win
-    bankroll.total_profit = bankroll.ending - bankroll.starting
+    bankroll.profit.total = bankroll.ending - bankroll.starting
     percentages = HandResultsPercentages.model_construct(
       blackjack=self.__get_blackjack_rate(counts),
       won=self.__get_win_rate(counts),
@@ -101,8 +102,8 @@ class SingleSimRunner():
       counts=counts,
       percentages=percentages
     )
-    bankroll.profit_per_hand = bankroll.total_profit / counts.total
-    bankroll.profit_per_hour = bankroll.profit_per_hand * self.__hands_per_hour
+    bankroll.profit.per_hand = bankroll.profit.total / counts.total
+    bankroll.profit.per_hour = bankroll.profit.per_hand * self.__hands_per_hour
     r_time = TimeResults.model_construct(
       human_time=self.__get_human_time(counts.total),
       simulation_time= time.time() - self.__start_time
@@ -123,7 +124,8 @@ class SingleSimRunner():
     br = self.__game.get_ai_players()[0].get_bankroll()
     bankroll = BankrollResults.model_construct(
       starting=br,
-      highest=br
+      highest=br,
+      lowest=br
     )
     counts = HandResultsCounts.model_validate({})
     someone_has_bankroll = self.__game.someone_has_bankroll()
@@ -146,7 +148,7 @@ class SingleSimRunner():
     assert bankroll.ending >= 0
     max_possible_win = self.__game.get_ai_players()[0].get_bet_spread().true_six * 8
     assert bankroll.ending <= self.__bankroll_goal + max_possible_win
-    bankroll.total_profit = bankroll.ending - bankroll.starting
+    bankroll.profit.total = bankroll.ending - bankroll.starting
     percentages = HandResultsPercentages.model_construct(
       blackjack=self.__get_blackjack_rate(counts),
       won=self.__get_win_rate(counts),
@@ -162,8 +164,8 @@ class SingleSimRunner():
       counts=counts,
       percentages=percentages
     )
-    bankroll.profit_per_hand = bankroll.total_profit / counts.total
-    bankroll.profit_per_hour = bankroll.profit_per_hand * self.__hands_per_hour
+    bankroll.profit.per_hand = bankroll.profit.total / counts.total
+    bankroll.profit.per_hour = bankroll.profit.per_hand * self.__hands_per_hour
     r_time = TimeResults.model_construct(
       human_time=self.__get_human_time(counts.total),
       simulation_time= time.time() - self.__start_time
@@ -257,10 +259,10 @@ class SingleSimRunner():
     assert self.__game.get_state() == GameState.CLEANUP
     self.__update_bankroll(bankroll)
     for hand in ai_player.get_hands():
-      self.__update_profits(hand, true_count, bankroll.profit_from_true, counts)
-    total_profit = ai_player.get_bankroll() - bankroll.starting
-    total_from_true = sum(bankroll.profit_from_true)
-    assert abs(total_profit - total_from_true) < 0.01
+      self.__update_profits(hand, true_count, bankroll.profit.from_true, counts)
+    current_profit = ai_player.get_bankroll() - bankroll.starting
+    total_from_true = sum(bankroll.profit.from_true)
+    assert abs(current_profit - total_from_true) < 0.01
     self.__game.finish_round()
     assert self.__game.get_state() == GameState.BETTING
     await self.__occasionally_yield_event_loop_control(counts.total)
@@ -275,10 +277,10 @@ class SingleSimRunner():
     assert self.__game.get_state() == GameState.CLEANUP
     self.__update_bankroll(bankroll)
     for hand in ai_player.get_hands():
-      self.__update_profits(hand, true_count, bankroll.profit_from_true, counts)
-    total_profit = ai_player.get_bankroll() - bankroll.starting
-    total_from_true = sum(bankroll.profit_from_true)
-    assert abs(total_profit - total_from_true) < 0.01
+      self.__update_profits(hand, true_count, bankroll.profit.from_true, counts)
+    current_profit = ai_player.get_bankroll() - bankroll.starting
+    total_from_true = sum(bankroll.profit.from_true)
+    assert abs(current_profit - total_from_true) < 0.01
     self.__game.finish_round()
     assert self.__game.get_state() == GameState.BETTING
     # await self.__occasionally_yield_event_loop_control(counts.total)
@@ -290,8 +292,10 @@ class SingleSimRunner():
 
   def __update_bankroll(self, bankroll: BankrollResults) -> None:
     current_player_bankroll = self.__game.get_ai_players()[0].get_bankroll()
-    if bankroll.peak < current_player_bankroll:
-      bankroll.peak = current_player_bankroll
+    if bankroll.highest < current_player_bankroll:
+      bankroll.highest = current_player_bankroll
+    if bankroll.lowest > current_player_bankroll:
+      bankroll.lowest = current_player_bankroll
 
   def __update_profits(
     self,

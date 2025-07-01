@@ -1,12 +1,10 @@
-from typing import List
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from models.core.results.ProfitResultsFormatted import ProfitResultsFormatted
 
 
 class BankrollResultsFormatted(BaseModel):
   starting: str = ""
   ending: str = ""
-  total_profit: str = ""
-  profit_from_true: List[str] = ["", "", "", "", "", "", ""]
-  profit_per_hand: str = ""
-  profit_per_hour: str = ""
-  peak: str = ""
+  highest: str = ""
+  lowest: str = ""
+  profit: ProfitResultsFormatted = Field(default_factory=ProfitResultsFormatted)

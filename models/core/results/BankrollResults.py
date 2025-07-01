@@ -1,12 +1,10 @@
-from typing import List
 from pydantic import BaseModel, Field
+from models.core.results.ProfitResults import ProfitResults
 
 
 class BankrollResults(BaseModel):
-  starting: float = 0
-  ending: float = 0
-  total_profit: float = 0
-  profit_from_true: List[float] = Field(default_factory=lambda: [0.0] * 7)
-  profit_per_hand: float = 0
-  profit_per_hour: float = 0
-  peak: float = 0
+  starting: float = 0.0
+  ending: float = 0.0
+  highest: float = 0.0
+  lowest: float = 0.0
+  profit: ProfitResults = Field(default_factory=ProfitResults)

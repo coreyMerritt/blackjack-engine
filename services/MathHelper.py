@@ -10,4 +10,6 @@ def get_human_time(total_hands_played: int, hands_per_hour: int) -> float:
 
 @njit
 def get_percentage(value: float, total: float) -> float:
-  return (value / total) * 100
+  if total == 0:
+    return 100.0
+  return (value / total) * 100.0

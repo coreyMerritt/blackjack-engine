@@ -95,7 +95,6 @@ class MultiSimRunner():
       metadata.sims_lost,
       (metadata.sims_run - metadata.sims_unfinished)
     )
-    print(metadata.success_rate + metadata.failure_rate)
     assert metadata.success_rate + metadata.failure_rate == 100.0
     single_sim_results_summed = self.__simulation_data_transformer.get_single_sims_summed(results)
     metadata.total_hands = single_sim_results_summed.hands.counts.total
@@ -142,7 +141,6 @@ class MultiSimRunner():
       metadata.sims_lost,
       (metadata.sims_run - metadata.sims_unfinished)
     )
-    print(metadata.success_rate + metadata.failure_rate)
     assert metadata.success_rate + metadata.failure_rate == 100.0
     time_taken = end_time - self.__start_time
     single_sim_results_summed = self.__simulation_data_transformer.get_single_sims_summed(single_sim_results)
@@ -205,9 +203,9 @@ class MultiSimRunner():
       return
     single_sims_summed = self.__simulation_data_transformer.get_single_sims_summed(single_sim_results)
     single_sims_averaged = self.__simulation_data_transformer.get_single_sims_averaged(single_sims_summed, total_runs)
-    profit_from_true = float(sum(single_sims_averaged.bankroll.profit_from_true))
-    total_profit = getattr(single_sims_averaged.bankroll, "total_profit")
-    assert abs(profit_from_true - total_profit) < 0.01
+    profit_from_true = float(sum(single_sims_averaged.bankroll.profit.from_true))
+    profit = single_sims_averaged.bankroll.profit.total
+    assert abs(profit_from_true - profit) < 0.01
     multi_sim_results = self.__create_multi_sim_results(metadata, single_sim_results)
     self.__results = multi_sim_results
 

@@ -54,7 +54,7 @@ def test_set_results(runner):
   runner._MultiSimRunner__set_results(sim_data, meta)
   results = runner.get_results()
   assert results["sims_run"] == 3
-  assert results["single_sim_averages"]["bankroll"]["total_profit"] == 200.0
+  assert results["single_sim_averages"]["bankroll"]["profit"]["total"] == 200.0
 
 def test_count_sim_won(runner):
   sims = {"run": 0, "won": 0, "lost": 0, "unfinished": 0}

@@ -11,6 +11,8 @@ from models.core.results.SimMultiResultsFormatted import SimMultiResultsFormatte
 from models.core.results.SimMultiResultsMetadata import SimMultiResultsMetadata
 from models.core.results.SimMultiResultsMetadataFormatted import SimMultiResultsMetadataFormatted
 from models.core.results.SimSingleResults import SimSingleResults
+from models.core.results.ProfitResults import ProfitResults
+from models.core.results.ProfitResultsFormatted import ProfitResultsFormatted
 from models.core.results.BankrollResults import BankrollResults
 from models.core.results.BankrollResultsFormatted import BankrollResultsFormatted
 from models.core.results.HandResults import HandResults
@@ -34,12 +36,13 @@ class SimDataTransformer():
       single_sims_summed.hands.counts.surrendered += int(r.hands.counts.surrendered)
       single_sims_summed.bankroll.starting += float(r.bankroll.starting)
       single_sims_summed.bankroll.ending += float(r.bankroll.ending)
-      single_sims_summed.bankroll.total_profit += float(r.bankroll.total_profit)
+      single_sims_summed.bankroll.highest += float(r.bankroll.highest)
+      single_sims_summed.bankroll.lowest += float(r.bankroll.lowest)
+      single_sims_summed.bankroll.profit.total += float(r.bankroll.profit.total)
       for i in range(7):
-        single_sims_summed.bankroll.profit_from_true[i] += float(r.bankroll.profit_from_true[i])
-      single_sims_summed.bankroll.profit_per_hand += float(r.bankroll.profit_per_hand)
-      single_sims_summed.bankroll.profit_per_hour += float(r.bankroll.profit_per_hour)
-      single_sims_summed.bankroll.peak += float(r.bankroll.peak)
+        single_sims_summed.bankroll.profit.from_true[i] += float(r.bankroll.profit.from_true[i])
+      single_sims_summed.bankroll.profit.per_hand += float(r.bankroll.profit.per_hand)
+      single_sims_summed.bankroll.profit.per_hour += float(r.bankroll.profit.per_hour)
       single_sims_summed.time.human_time += float(r.time.human_time)
       single_sims_summed.time.simulation_time += float(r.time.simulation_time)
     single_sims_summed.hands.percentages = self.__get_hand_results_percentages(single_sims_summed.hands.counts)
@@ -69,22 +72,26 @@ class SimDataTransformer():
       counts = average_counts,
       percentages = average_percentages
     )
+    average_profit = ProfitResults.model_construct(
+      total = single_sims_summed.bankroll.profit.total / total_runs,
+      from_true = [
+        single_sims_summed.bankroll.profit.from_true[0] / total_runs,
+        single_sims_summed.bankroll.profit.from_true[1] / total_runs,
+        single_sims_summed.bankroll.profit.from_true[2] / total_runs,
+        single_sims_summed.bankroll.profit.from_true[3] / total_runs,
+        single_sims_summed.bankroll.profit.from_true[4] / total_runs,
+        single_sims_summed.bankroll.profit.from_true[5] / total_runs,
+        single_sims_summed.bankroll.profit.from_true[6] / total_runs
+      ],
+      per_hand = single_sims_summed.bankroll.profit.per_hand / total_runs,
+      per_hour = single_sims_summed.bankroll.profit.per_hour / total_runs
+    )
     average_bankroll = BankrollResults.model_construct(
       starting = single_sims_summed.bankroll.starting / total_runs,
       ending = single_sims_summed.bankroll.ending / total_runs,
-      total_profit = single_sims_summed.bankroll.total_profit / total_runs,
-      profit_from_true = [
-        single_sims_summed.bankroll.profit_from_true[0] / total_runs,
-        single_sims_summed.bankroll.profit_from_true[1] / total_runs,
-        single_sims_summed.bankroll.profit_from_true[2] / total_runs,
-        single_sims_summed.bankroll.profit_from_true[3] / total_runs,
-        single_sims_summed.bankroll.profit_from_true[4] / total_runs,
-        single_sims_summed.bankroll.profit_from_true[5] / total_runs,
-        single_sims_summed.bankroll.profit_from_true[6] / total_runs
-      ],
-      profit_per_hand = single_sims_summed.bankroll.profit_per_hand / total_runs,
-      profit_per_hour = single_sims_summed.bankroll.profit_per_hour / total_runs,
-      peak = single_sims_summed.bankroll.peak / total_runs
+      highest = single_sims_summed.bankroll.highest / total_runs,
+      lowest = single_sims_summed.bankroll.lowest / total_runs,
+      profit = average_profit
     )
     average_time = TimeResults.model_construct(
       human_time = single_sims_summed.time.human_time / total_runs,
@@ -118,6 +125,20 @@ class SimDataTransformer():
       lost=f"{round(results.hands.percentages.lost, 2):.2f}%",
       surrendered=f"{round(results.hands.percentages.surrendered, 2):.2f}%"
     )
+    profit = ProfitResultsFormatted.model_construct(
+      total=self.__get_formatted_bankroll(results.bankroll.profit.total),
+      from_true=[
+        self.__get_formatted_bankroll(results.bankroll.profit.from_true[0]),
+        self.__get_formatted_bankroll(results.bankroll.profit.from_true[1]),
+        self.__get_formatted_bankroll(results.bankroll.profit.from_true[2]),
+        self.__get_formatted_bankroll(results.bankroll.profit.from_true[3]),
+        self.__get_formatted_bankroll(results.bankroll.profit.from_true[4]),
+        self.__get_formatted_bankroll(results.bankroll.profit.from_true[5]),
+        self.__get_formatted_bankroll(results.bankroll.profit.from_true[6])
+      ],
+      per_hand=self.__get_formatted_bankroll(results.bankroll.profit.per_hand),
+      per_hour=self.__get_formatted_bankroll(results.bankroll.profit.per_hour)
+    )
     r_hands = HandResultsFormatted.model_construct(
       counts=counts,
       percentages=percentages
@@ -125,19 +146,9 @@ class SimDataTransformer():
     r_bankroll = BankrollResultsFormatted.model_construct(
       starting=self.__get_formatted_bankroll(results.bankroll.starting),
       ending=self.__get_formatted_bankroll(results.bankroll.ending),
-      total_profit=self.__get_formatted_bankroll(results.bankroll.total_profit),
-      profit_from_true=[
-        self.__get_formatted_bankroll(results.bankroll.profit_from_true[0]),
-        self.__get_formatted_bankroll(results.bankroll.profit_from_true[1]),
-        self.__get_formatted_bankroll(results.bankroll.profit_from_true[2]),
-        self.__get_formatted_bankroll(results.bankroll.profit_from_true[3]),
-        self.__get_formatted_bankroll(results.bankroll.profit_from_true[4]),
-        self.__get_formatted_bankroll(results.bankroll.profit_from_true[5]),
-        self.__get_formatted_bankroll(results.bankroll.profit_from_true[6])
-      ],
-      profit_per_hand=self.__get_formatted_bankroll(results.bankroll.profit_per_hand),
-      profit_per_hour=self.__get_formatted_bankroll(results.bankroll.profit_per_hour),
-      peak=self.__get_formatted_bankroll(results.bankroll.peak)
+      highest=self.__get_formatted_bankroll(results.bankroll.highest),
+      lowest=self.__get_formatted_bankroll(results.bankroll.lowest),
+      profit=profit
     )
     r_time = TimeResultsFormatted.model_construct(
       human_time=self.__get_formatted_time(results.time.human_time, hours_per_day, days_per_week),

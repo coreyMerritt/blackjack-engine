@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Float, Integer, JSON
+from sqlalchemy import Column, Float, Integer, ForeignKey
+from sqlalchemy.orm import relationship
 from models.db.Base import Base
 
 class BankrollResultsORM(Base):
@@ -7,8 +8,7 @@ class BankrollResultsORM(Base):
   id = Column(Integer, primary_key=True, autoincrement=True)
   starting = Column(Float, default=0)
   ending = Column(Float, default=0)
-  total_profit = Column(Float, default=0)
-  profit_from_true = Column(JSON, default=lambda: [0.0] * 7)
-  profit_per_hand = Column(Float, default=0)
-  profit_per_hour = Column(Float, default=0)
-  peak = Column(Float, default=0)
+  highest = Column(Float, default=0)
+  lowest = Column(Float, default=0)
+  profit_id = Column(Integer, ForeignKey("profit_results.id"))
+  profit = relationship("ProfitResultsORM", uselist=False)
