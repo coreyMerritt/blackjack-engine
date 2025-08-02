@@ -56,7 +56,7 @@ Use shell scripts in the [`zz-test-client/`](./zz-test-client) directory to trig
 Example:
 
 ```bash
-./zz-test-client/run-simulations.sh localhost 1080
+./zz-test-client/run-simulation.sh localhost 1080
 ```
 
 ## Configuration
