@@ -16,10 +16,10 @@ services:
       retries: 10
 
   blackjack-engine:
-    # image: ghcr.io/coreymerritt/blackjack-engine:1.0.0
     build:
       context: .
       dockerfile: Dockerfile
+    # image: ghcr.io/coreymerritt/blackjack-engine:1.0.0
     image: blackjack-engine:local
     container_name: blackjack-engine
     ports:
