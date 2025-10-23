@@ -1,0 +1,23 @@
+Metadata-Version: 2.4
+Name: blackjack-engine
+Version: 0.1.0
+Requires-Python: >=3.11
+License-File: LICENSE.md
+Requires-Dist: cryptography==3.4.8
+Requires-Dist: fastapi==0.115.13
+Requires-Dist: numba==0.61.2
+Requires-Dist: psycopg[binary]>=3.1
+Requires-Dist: pydantic==2.11.7
+Requires-Dist: PyMySQL==1.0.2
+Requires-Dist: pytest==8.4.0
+Requires-Dist: pytest_asyncio==1.0.0
+Requires-Dist: python-dotenv==1.1.1
+Requires-Dist: SQLAlchemy==2.0.41
+Requires-Dist: uvicorn==0.15.0
+Provides-Extra: dev
+Requires-Dist: isort; extra == "dev"
+Requires-Dist: mypy; extra == "dev"
+Requires-Dist: pylint; extra == "dev"
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: ruff; extra == "dev"
+Dynamic: license-file
