@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 import os
+
 from dotenv import load_dotenv
 from fastapi import FastAPI
+
 from api import ExistingDataRoutes, GameRoutes, SessionRoutes, SimRoutes
 
 app = FastAPI()

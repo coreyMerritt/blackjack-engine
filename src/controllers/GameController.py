@@ -1,5 +1,6 @@
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
+
 from models.api.RegisterHumanPlayerReq import RegisterHumanPlayerReq
 from models.enums.GameState import GameState
 from services.SessionManagerSingleton import SessionManagerSingleton

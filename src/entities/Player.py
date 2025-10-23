@@ -1,6 +1,7 @@
 from abc import ABC
 from typing import List
 from uuid import UUID, uuid4
+
 from entities.Card import Card
 from entities.Hand import Hand
 from models.core.player_info.PlayerInfo import PlayerInfo
@@ -43,7 +44,7 @@ class Player(ABC):
   def get_hand_count(self) -> int:
     return len(self.__hands)
 
-  def get_hand_index(self, hand: Hand) -> int:
+  def get_hand_index(self, hand: Hand) -> int | None:
     for i, my_hand in enumerate(self.__hands):
       if hand == my_hand:
         return i

@@ -1,6 +1,8 @@
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
+
 from models.db.Base import Base
+
 
 class GameRulesORM(Base):
   __tablename__ = "game_rules"

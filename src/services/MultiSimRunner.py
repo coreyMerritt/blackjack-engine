@@ -1,25 +1,26 @@
-import os
-import time
 import asyncio
-from typing import List
 import cProfile
-import pstats
 import io
+import os
+import pstats
+import time
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from typing import List
+
+import services.MathHelper as MathHelper
 from entities.Game import Game
 from models.api.CreateMultiSimReq import CreateMultiSimReq
 from models.api.CreateSingleSimReq import CreateSingleSimReq
 from models.core.HumanTime import HumanTime
 from models.core.MultiSimBounds import MultiSimBounds
-from models.core.SingleSimBounds import SingleSimBounds
 from models.core.results.SimMultiResults import SimMultiResults
 from models.core.results.SimMultiResultsFormatted import SimMultiResultsFormatted
 from models.core.results.SimMultiResultsMetadata import SimMultiResultsMetadata
 from models.core.results.SimSingleResults import SimSingleResults
+from models.core.SingleSimBounds import SingleSimBounds
 from services.DatabaseHandler import DatabaseHandler
 from services.SimDataTransformer import SimDataTransformer
 from services.SingleSimRunner import SingleSimRunner
-import services.MathHelper as MathHelper
 
 
 class MultiSimRunner():
@@ -115,7 +116,9 @@ class MultiSimRunner():
     game = Game(req.rules, req.ai_player_info)
     runner = SingleSimRunner(game, req.bounds, req.time, req)
     runner.run_sync()
-    return runner.get_results()
+    results = runner.get_results()
+    assert results
+    return results
 
   async def run_with_one_core(self, runs: int) -> None:
     self.__full_reset()

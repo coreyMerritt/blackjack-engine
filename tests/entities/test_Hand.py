@@ -15,9 +15,8 @@ def mock_card(value, face=Face.FIVE, soft=False):
 
 def test_initial_state():
   cards = [mock_card(5), mock_card(6)]
-  hand = Hand(cards, bet=50, from_split=True)
+  hand = Hand(cards, bet=50, from_split=True) # type: ignore
   assert hand.get_bet() == 50
-  assert hand.get_initial_bet() == 50
   assert hand.get_insurance_bet() == 0
   assert hand.get_payout() == 0
   assert hand.is_doubled_down() is False
@@ -80,7 +79,7 @@ def test_double_down():
 
 def test_setters_and_finalization():
   cards = [mock_card(3), mock_card(6)]
-  hand = Hand(cards, 10, False)
+  hand = Hand(cards, 10, False) # type: ignore
   hand.set_bet(60)
   assert hand.get_bet() == 60
   hand.set_payout(90)

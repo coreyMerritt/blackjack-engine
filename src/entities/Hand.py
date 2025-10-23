@@ -4,6 +4,7 @@ from entities.Card import Card
 from models.enums.Face import Face
 from models.enums.HandResult import HandResult
 
+
 class Hand():
   __doubled_down: bool
   __finalized: bool

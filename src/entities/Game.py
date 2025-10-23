@@ -1,5 +1,6 @@
 import asyncio
 from typing import List
+
 from entities.Card import Card
 from entities.Dealer import Dealer
 from entities.Hand import Hand
@@ -7,8 +8,8 @@ from entities.Player import Player
 from entities.Players.AiPlayer import AiPlayer
 from entities.Players.HumanPlayer import HumanPlayer
 from models.core.player_info.AiPlayerInfo import AiPlayerInfo
-from models.core.rules.GameRules import GameRules
 from models.core.player_info.HumanPlayerInfo import HumanPlayerInfo
+from models.core.rules.GameRules import GameRules
 from models.enums.Face import Face
 from models.enums.GameState import GameState
 from models.enums.HandResult import HandResult

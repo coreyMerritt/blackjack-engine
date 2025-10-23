@@ -1,6 +1,7 @@
 from models.core.BetSpread import BetSpread
 from models.core.player_info.PlayerInfo import PlayerInfo
 
+
 class AiPlayerInfo(PlayerInfo):
   counts_cards: bool
   plays_deviations: bool

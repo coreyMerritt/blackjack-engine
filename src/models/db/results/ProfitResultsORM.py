@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Float, Integer, JSON
+from sqlalchemy import JSON, Column, Float, Integer
+
 from models.db.Base import Base
+
 
 class ProfitResultsORM(Base):
   __tablename__ = "profit_results"

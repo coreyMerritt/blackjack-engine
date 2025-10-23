@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Boolean, Integer
+from sqlalchemy import Boolean, Column, Integer
+
 from models.db.Base import Base
+
 
 class SplittingRulesORM(Base):
   __tablename__ = "splitting_rules"

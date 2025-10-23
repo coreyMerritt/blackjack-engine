@@ -1,10 +1,9 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from controllers.SessionController import SessionController
-from controllers.SessionController import CreateGameReq
+
+from controllers.SessionController import CreateGameReq, SessionController
 from models.api.CreateMultiSimReq import CreateMultiSimReq
 from models.api.CreateSingleSimReq import CreateSingleSimReq
-
 
 router = APIRouter()
 controller = SessionController()

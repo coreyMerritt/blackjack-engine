@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Integer
+
 from models.db.Base import Base
+
 
 class SingleSimBoundsORM(Base):
   __tablename__ = "single_sim_bounds"

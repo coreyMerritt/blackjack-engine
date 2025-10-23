@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Integer, Float
+from sqlalchemy import Column, Float, Integer
+
 from models.db.Base import Base
+
 
 class SimMultiResultsMetadataORM(Base):
   __tablename__ = "simulation_multi_results_metadata"

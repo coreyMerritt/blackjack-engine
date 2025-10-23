@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
+
 from controllers.GameController import GameController
 from models.api.RegisterHumanPlayerReq import RegisterHumanPlayerReq
-
 
 router = APIRouter()
 controller = GameController()

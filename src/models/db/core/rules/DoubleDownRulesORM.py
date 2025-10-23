@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Boolean, Integer
+from sqlalchemy import Boolean, Column, Integer
+
 from models.db.Base import Base
+
 
 class DoubleDownRulesORM(Base):
   __tablename__ = "double_down_rules"

@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
-from controllers.SimController import SimController
 
+from controllers.SimController import SimController
 
 router = APIRouter()
 controller = SimController()

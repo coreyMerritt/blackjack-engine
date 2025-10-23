@@ -1,9 +1,10 @@
 from typing import Optional
+
 from pydantic import BaseModel, Field
 
-from models.core.results.TimeResultsFormatted import TimeResultsFormatted
-from models.core.results.HandResultsFormatted import HandResultsFormatted
 from models.core.results.BankrollResultsFormatted import BankrollResultsFormatted
+from models.core.results.HandResultsFormatted import HandResultsFormatted
+from models.core.results.TimeResultsFormatted import TimeResultsFormatted
 
 
 class SimSingleResultsFormatted(BaseModel):

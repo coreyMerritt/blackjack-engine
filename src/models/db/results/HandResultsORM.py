@@ -1,6 +1,8 @@
-from sqlalchemy import Column, Integer, ForeignKey
+from sqlalchemy import Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
+
 from models.db.Base import Base
+
 
 class HandResultsORM(Base):
   __tablename__ = "hand_results"

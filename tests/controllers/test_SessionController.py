@@ -71,17 +71,16 @@ def valid_human_info():
   return [HumanPlayerInfo(bankroll=1000)]
 
 @pytest.fixture
-def create_game_req(valid_game_rules, valid_ai_info, valid_human_info):
+def create_game_req(valid_game_rules, valid_ai_info):
   return CreateGameReq(
     rules=valid_game_rules,
-    human_player_info=valid_human_info,  # now a list
     ai_player_info=[valid_ai_info]
   )
 
 @pytest.fixture
 def create_sim_req(valid_game_rules, valid_ai_info):
   return CreateSingleSimReq(
-    bounds=SingleSimBounds(bankroll_goal=2000, human_time_limit=300, sim_time_limit=60),
+    bounds=SingleSimBounds(bankroll_goal=2000, bankroll_fail=0, human_time_limit=300, sim_time_limit=60),
     time=HumanTime(hands_per_hour=300, hours_per_day=8, days_per_week=5),
     rules=valid_game_rules,
     ai_player_info=[valid_ai_info]

@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
+
 from controllers.ExistingDataController import ExistingDataController
 from models.api.CreateSingleSimReq import CreateSingleSimReq
-
 
 router = APIRouter()
 controller = ExistingDataController()

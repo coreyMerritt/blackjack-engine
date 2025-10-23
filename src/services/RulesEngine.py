@@ -1,4 +1,5 @@
 from typing import List
+
 from entities.Hand import Hand
 from entities.Player import Player
 from entities.Shoe import Shoe

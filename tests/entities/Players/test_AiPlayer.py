@@ -2,7 +2,11 @@
 
 from unittest.mock import MagicMock
 import pytest
+from entities.Card import Card
+from entities.Hand import Hand
 from entities.Players.AiPlayer import AiPlayer
+from models.enums.Face import Face
+from models.enums.Suit import Suit
 from models.enums.PlayerDecision import PlayerDecision
 
 
@@ -35,9 +39,9 @@ def test_update_running_count():
   ai_player_info.bet_spread = MagicMock()
   rules_engine = MagicMock()
   player = AiPlayer(ai_player_info, rules_engine)
-  player._AiPlayer__card_counting_engine = MagicMock()
-  player._AiPlayer__card_counting_engine.get_count_adjustment.return_value = 1
-  player._AiPlayer__running_count = 0
+  player._AiPlayer__card_counting_engine = MagicMock() # type: ignore
+  player._AiPlayer__card_counting_engine.get_count_adjustment.return_value = 1 # type: ignore
+  player._AiPlayer__running_count = 0 # type: ignore
   player.update_running_count(10)
   assert player.get_running_count() == 1
 
@@ -87,9 +91,19 @@ def test_get_decisions():
   ai_player_info.bet_spread = MagicMock()
   rules_engine = MagicMock()
   player = AiPlayer(ai_player_info, rules_engine)
-  player._AiPlayer__basic_strategy_engine = MagicMock()
-  player._AiPlayer__basic_strategy_engine.get_play.return_value = [PlayerDecision.HIT]
+  player._AiPlayer__basic_strategy_engine = MagicMock() # type: ignore
+  player._AiPlayer__basic_strategy_engine.get_play.return_value = [PlayerDecision.HIT] # type: ignore
   player.get_hands = MagicMock(return_value=["hand1"])
   player.calculate_true_count = MagicMock(return_value=2)
-  decisions = player.get_decisions("hand1", dealer_facecard_value=10, decks_remaining=2)
+  decisions = player.get_decisions(
+    Hand([
+        Card(Suit.CLUBS, Face.FIVE),
+        Card(Suit.CLUBS, Face.THREE)
+      ],
+      from_split=False,
+      bet=1000
+    ),
+    dealer_facecard_value=10,
+    decks_remaining=2
+  )
   assert decisions == [PlayerDecision.HIT]

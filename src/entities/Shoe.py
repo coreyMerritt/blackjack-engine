@@ -1,6 +1,8 @@
 from random import shuffle
 from typing import List
+
 from entities.Card import Card
+
 
 class Shoe:
   __deck_count: int
@@ -21,7 +23,7 @@ class Shoe:
     return self.__deck_count
 
   def get_decks_remaining(self) -> int:
-    return (self.get_card_count() / self.__full_size) * self.__deck_count
+    return round((self.get_card_count() / self.__full_size) * self.__deck_count)
 
   def get_full_size(self) -> int:
     return self.__full_size

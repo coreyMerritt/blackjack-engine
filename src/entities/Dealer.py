@@ -1,6 +1,6 @@
+from entities.Card import Card, Face, Suit
 from entities.Player import Player
 from entities.Shoe import Shoe
-from entities.Card import Card, Face, Suit
 from models.core.player_info.PlayerInfo import PlayerInfo
 from models.core.rules.DealerRules import DealerRules
 from models.enums.PlayerDecision import PlayerDecision

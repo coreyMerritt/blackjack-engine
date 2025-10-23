@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Float, Integer
+
 from models.db.Base import Base
+
 
 class BetSpreadORM(Base):
   __tablename__ = "bet_spread"

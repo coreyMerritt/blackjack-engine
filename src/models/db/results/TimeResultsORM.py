@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Float, Integer
+
 from models.db.Base import Base
+
 
 class TimeResultsORM(Base):
   __tablename__ = "time_results"

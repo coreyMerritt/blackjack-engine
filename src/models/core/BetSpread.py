@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 
+
 class BetSpread(BaseModel):
   true_zero: float
   true_one: float

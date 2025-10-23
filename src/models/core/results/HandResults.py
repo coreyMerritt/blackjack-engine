@@ -1,7 +1,7 @@
 from pydantic import BaseModel, Field
 
-from models.core.results.HandResultsPercentages import HandResultsPercentages
 from models.core.results.HandResultsCounts import HandResultsCounts
+from models.core.results.HandResultsPercentages import HandResultsPercentages
 
 
 class HandResults(BaseModel):

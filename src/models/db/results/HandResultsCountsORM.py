@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Integer
+
 from models.db.Base import Base
+
 
 class HandResultsCountsORM(Base):
   __tablename__ = "hand_results_counts"

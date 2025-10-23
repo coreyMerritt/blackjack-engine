@@ -1,5 +1,7 @@
-from sqlalchemy import Column, Boolean, Integer, Float
+from sqlalchemy import Boolean, Column, Float, Integer
+
 from models.db.Base import Base
+
 
 class DealerRulesORM(Base):
   __tablename__ = "dealer_rules"

@@ -1,6 +1,8 @@
-from sqlalchemy import Column, Float, Integer, ForeignKey
+from sqlalchemy import Column, Float, ForeignKey, Integer
 from sqlalchemy.orm import relationship
+
 from models.db.Base import Base
+
 
 class BankrollResultsORM(Base):
   __tablename__ = "bankroll_results"

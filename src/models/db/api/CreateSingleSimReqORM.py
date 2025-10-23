@@ -1,7 +1,9 @@
-from sqlalchemy import Column, Integer, ForeignKey, String
+from sqlalchemy import Column, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
+
 from models.db.Base import Base
+
 
 class CreateSingleSimReqORM(Base):
   __tablename__ = "create_single_sim_req"

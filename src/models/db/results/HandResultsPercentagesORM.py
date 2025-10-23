@@ -1,5 +1,7 @@
 from sqlalchemy import Column, Float, Integer
+
 from models.db.Base import Base
+
 
 class HandResultsPercentagesORM(Base):
   __tablename__ = "hand_results_percentages"

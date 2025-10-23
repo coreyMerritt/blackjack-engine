@@ -1,6 +1,8 @@
-from sqlalchemy import Boolean, Column, Integer, ForeignKey
+from sqlalchemy import Boolean, Column, ForeignKey, Integer
 from sqlalchemy.orm import relationship
+
 from models.db.Base import Base
+
 
 class SimSingleResultsORM(Base):
   __tablename__ = "simulation_single_results"
