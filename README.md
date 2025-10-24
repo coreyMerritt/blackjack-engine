@@ -26,7 +26,10 @@ A modular and extensible backend engine for simulating and managing Blackjack ga
 ```bash
 git clone https://github.com/coreyMerritt/blackjack-engine.git
 cd blackjack-engine
-./install-deps.sh
+python3 -m venv .venv
+source ./.venv/bin/activate
+pip install .
+bash ./start-with-uvicorn.sh
 ```
 
 ### Running the App
