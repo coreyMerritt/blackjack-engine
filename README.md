@@ -5,13 +5,13 @@ A modular and extensible backend engine for simulating and managing Blackjack ga
 
 ## Features
 
-- 📊 **Simulation Engine**: This is the most well-supported and well-tested feature. Blackjack Engine can simulation hundreds of thousands of years of Blackjack per day on most consumer hardware, making it extremely good at testing the RoI under various conditions.
-- ♠️ **Basic Strategy & Card Counting**: Includes rule-based and counting-based decision engines.
-- 🧪 **REST API**: Interact with the engine via a RESTful API for game flow and simulations.
-- 🎮 **Live Game Management**: Supports real-time game sessions.
-- 🧠 **AI and Human Player Support**: Register human and AI players into sessions.
-- 🐳 **Dockerized Setup**: Use `docker` and `docker-compose` for easy deployment.
-- 🔧 **Customizable Rules**: Plug in different game rules, betting rules, dealer behavior, and more.
+- **Simulation Engine**: This is the most well-supported and well-tested feature. Blackjack Engine can simulation hundreds of thousands of years of Blackjack per day on most consumer hardware, making it extremely good at testing the RoI under various conditions.
+- **Basic Strategy & Card Counting**: Includes rule-based and counting-based decision engines.
+- **REST API**: Interact with the engine via a RESTful API for game flow and simulations.
+- **Live Game Management**: Supports real-time game sessions.
+- **AI and Human Player Support**: Register human and AI players into sessions.
+- **Dockerized Setup**: Use `docker` and `docker-compose` for easy deployment.
+- **Customizable Rules**: Plug in different game rules, betting rules, dealer behavior, and more.
 
 ## Getting Started
 
